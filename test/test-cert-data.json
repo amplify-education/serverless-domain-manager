@@ -1,0 +1,8 @@
+{
+  "CertificateSummaryList": [
+    {
+      "CertificateArn": "test_arn",
+      "DomainName": "test_domain"
+    }
+  ]
+}

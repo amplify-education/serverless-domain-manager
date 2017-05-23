@@ -1,0 +1,48 @@
+{
+  "name": "serverless-domain-manager",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "description": "Serverless plugin for managing custom domains with API Gateways.",
+  "author": "Amplify Education Inc",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amplify-education/serverless-domain-manager"
+  },
+  "keywords": [
+    "serverless plugin custom domain",
+    "custom domain",
+    "serverless plugins",
+    "api gateway",
+    "lambda",
+    "aws",
+    "aws lambda",
+    "amazon",
+    "amazon web services",
+    "serverless.com",
+    "domain manager"
+  ],
+  "main": "index.js",
+  "bin": {},
+  "scripts": {
+    "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^1.6.1",
+    "chai": "^3.5.0",
+    "eslint": "^3.18.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.10.3",
+    "istanbul": "^0.4.5",
+    "mocha": "^2.2.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.2.33",
+    "eslint-config-airbnb": "^14.1.0"
+  }
+}

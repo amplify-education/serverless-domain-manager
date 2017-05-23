@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+- 7.7.1
+install:
+- npm install
+script:
+- npm run lint
+- bash scripts/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
+- npm test
+deploy:
+  provider: npm
+  email: $NPM_EMAIL
+  api_key: $NPM_KEY
+  on:
+    branch: master

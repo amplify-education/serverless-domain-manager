@@ -28,7 +28,8 @@ route53: ChangeResourceRecordSets
 npm install serverless-domain-manager
 
 # From github
-npm install https://github.com/amplify-education/serverless-domain-manager.git```
+npm install https://github.com/amplify-education/serverless-domain-manager.git
+```
 
 Then make the following edits to your serverless.yaml file:
 ```yaml

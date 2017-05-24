@@ -7,7 +7,7 @@ const ServerlessCustomDomain = require('../index.js');
 
 const expect = chai.expect;
 
-const constructPlugin = (basepath, certificateName) => {
+const constructPlugin = (basepath, certName) => {
   const serverless = {
     cli: { log(params) { return params; } },
     service: {
@@ -26,7 +26,7 @@ const constructPlugin = (basepath, certificateName) => {
           basePath: basepath,
           domainName: 'test_domain',
           stage: 'test',
-          certificateName: certificateName,
+          certificateName: certName,
         },
       },
     },

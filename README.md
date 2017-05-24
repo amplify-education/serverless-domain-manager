@@ -49,6 +49,8 @@ custom:
     stage:
     certificateName:
 ```
+If certificateName is not provided, the certificate will be chosen using the domain name.
+If certificateName is blank, it will throw an error.
 
 ## Running
 

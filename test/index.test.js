@@ -26,7 +26,7 @@ const constructPlugin = (basepath, certificateName) => {
           basePath: basepath,
           domainName: 'test_domain',
           stage: 'test',
-          certificateName: certificateName
+          certificateName: certificateName,
         },
       },
     },
@@ -76,7 +76,8 @@ describe('Custom Domain Plugin', () => {
       const result = await plugin.getCertArn();
 
       expect(result).to.equal('test_given_arn');
-    })
+    });
+
     it('Create a domain name', async () => {
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
         callback(null, { distributionDomainName: 'foo' });

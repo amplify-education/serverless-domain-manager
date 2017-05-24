@@ -181,7 +181,7 @@ class ServerlessCustomDomain {
         });
       }
 
-      if (certificateArn == null){
+      if (certificateArn == null) {
         throw Error(`Could not find the certificate ${certificateName}`);
       }
       return certificateArn;

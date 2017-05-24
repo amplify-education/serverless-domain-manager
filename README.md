@@ -24,7 +24,8 @@ route53: ChangeResourceRecordSets
 ```
 
 ## Installing
-```# From npm (recommended)
+```
+# From npm (recommended)
 npm install serverless-domain-manager
 
 # From github

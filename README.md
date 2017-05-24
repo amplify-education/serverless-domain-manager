@@ -1,4 +1,9 @@
 # serverless-domain-manager
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![Build Status](https://travis-ci.org/amplify-education/serverless-domain-manager.svg?branch=master)](https://travis-ci.org/amplify-education/serverless-domain-manager)
+[![npm version](https://badge.fury.io/js/serverless-domain-manager.svg)](https://badge.fury.io/js/serverless-domain-manager)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-domain-manager/master/LICENSE)
+
 Create custom domain names that your lambda can deploy to with serverless. Allows for base path mapping when deploying and deletion of domain names.
 
 # About Amplify

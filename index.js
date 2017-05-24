@@ -159,12 +159,11 @@ class ServerlessCustomDomain {
           throw Error('certificateName is empty. Please put a valid certificate name or remove certificateName from the serverless file.');
         }
 
-        let foundCertificate = data.CertificateSummaryList.find((certificate) => {
-          return certificate.DomainName === certificateName;
-        });
+        const foundCertificate = data.CertificateSummaryList
+          .find(certificate => (certificate.DomainName === certificateName));
 
         if (foundCertificate != null) {
-          certificateArn = foundCertificate.CertificateArn
+          certificateArn = foundCertificate.CertificateArn;
         }
       } else {
         certificateName = this.givenDomainName;

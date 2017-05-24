@@ -33,6 +33,33 @@ const constructPlugin = (basepath, certName) => {
   };
   return new ServerlessCustomDomain(serverless, {});
 };
+
+const constructPluginWithoutCertName = (basepath) => {
+  const serverless = {
+    cli: { log(params) { return params; } },
+    service: {
+      provider: {
+        region: 'us-moon-1',
+        compiledCloudFormationTemplate: {
+          Resources: {
+            Deployment0: {
+              Type: 'AWS::ApiGateway::Deployment',
+            },
+          },
+        },
+      },
+      custom: {
+        customDomain: {
+          basePath: basepath,
+          domainName: 'test_domain',
+          stage: 'test',
+        },
+      },
+    },
+  };
+  return new ServerlessCustomDomain(serverless, {});
+};
+
 describe('Custom Domain Plugin', () => {
   describe('Set Domain Name and Base Path', () => {
     const plugin = constructPlugin('test_basepath');
@@ -61,7 +88,7 @@ describe('Custom Domain Plugin', () => {
     it('Get the certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin('', '');
+      const plugin = constructPluginWithoutCertName('');
 
       const result = await plugin.getCertArn();
 
@@ -200,13 +227,28 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin('', '');
+      const plugin = constructPluginWithoutCertName('');
       const result = await plugin.createDomain();
       expect(result).to.equal('Domain was created, may take up to 40 mins to be initialized.');
     });
 
     afterEach(() => {
       AWS.restore();
+    });
+  });
+
+  describe('Error Catching', () => {
+    it('If a certificate cannot be found when a name is given', () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+
+      const plugin = constructPlugin('', 'does_not_exist');
+
+      return plugin.getCertArn().then(() => {
+        throw new Error('Test has failed. getCertArn did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'Could not find the certificate does_not_exist';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
     });
   });
 });

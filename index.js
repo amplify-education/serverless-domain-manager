@@ -152,15 +152,20 @@ class ServerlessCustomDomain {
       // The certificate name
       let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
+
       // Checks if a certificate name is given
-      if (certificateName.trim() !== '') {
-        data.CertificateSummaryList.some((certificate) => {
-          if (certificate.DomainName === certificateName) {
-            certificateArn = certificate.CertificateArn;
-            return true;
-          }
-          return false;
+      if (certificateName != null) {
+        if (certificateName.trim() === '') {
+          throw Error('certificateName is empty. Please put a valid certificate name or remove certificateName from the serverless file.');
+        }
+
+        let foundCertificate = data.CertificateSummaryList.find((certificate) => {
+          return certificate.DomainName === certificateName;
         });
+
+        if (foundCertificate != null) {
+          certificateArn = foundCertificate.CertificateArn
+        }
       } else {
         certificateName = this.givenDomainName;
         data.CertificateSummaryList.forEach((certificate) => {

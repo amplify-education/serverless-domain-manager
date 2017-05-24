@@ -3,6 +3,10 @@
     {
       "CertificateArn": "test_arn",
       "DomainName": "test_domain"
+    },
+    {
+      "CertificateArn": "test_given_arn",
+      "DomainName": "cert_name"
     }
   ]
 }

@@ -47,6 +47,7 @@ custom:
     basePath:
     domainName:
     stage:
+    certificateName:
 ```
 
 ## Running

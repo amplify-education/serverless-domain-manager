@@ -7,7 +7,7 @@ const ServerlessCustomDomain = require('../index.js');
 
 const expect = chai.expect;
 
-const constructPlugin = (basepath) => {
+const constructPlugin = (basepath, certificateName) => {
   const serverless = {
     cli: { log(params) { return params; } },
     service: {
@@ -26,6 +26,7 @@ const constructPlugin = (basepath) => {
           basePath: basepath,
           domainName: 'test_domain',
           stage: 'test',
+          certificateName: certificateName
         },
       },
     },
@@ -60,13 +61,22 @@ describe('Custom Domain Plugin', () => {
     it('Get the certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin();
+      const plugin = constructPlugin('', '');
 
       const result = await plugin.getCertArn();
 
       expect(result).to.equal('test_arn');
     });
 
+    it('Get a given certificate arn', async () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+
+      const plugin = constructPlugin('', 'cert_name');
+
+      const result = await plugin.getCertArn();
+
+      expect(result).to.equal('test_given_arn');
+    })
     it('Create a domain name', async () => {
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
         callback(null, { distributionDomainName: 'foo' });
@@ -189,7 +199,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin();
+      const plugin = constructPlugin('', '');
       const result = await plugin.createDomain();
       expect(result).to.equal('Domain was created, may take up to 40 mins to be initialized.');
     });

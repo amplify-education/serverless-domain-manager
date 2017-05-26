@@ -155,10 +155,6 @@ class ServerlessCustomDomain {
 
       // Checks if a certificate name is given
       if (certificateName != null) {
-        if (certificateName.trim() === '') {
-          throw Error('certificateName is empty. Please put a valid certificate name or remove certificateName from the serverless file.');
-        }
-
         const foundCertificate = data.CertificateSummaryList
           .find(certificate => (certificate.DomainName === certificateName));
 

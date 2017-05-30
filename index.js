@@ -149,24 +149,41 @@ class ServerlessCustomDomain {
       let nameLength = 0;
       // The arn of the choosen certificate
       let certificateArn;
+      // The certificate name
+      let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
-      data.CertificateSummaryList.forEach((certificate) => {
-        let certificateListName = certificate.DomainName;
 
-        // Looks for wild card and takes it out when checking
-        if (certificateListName[0] === '*') {
-          certificateListName = certificateListName.substr(1);
+      // Checks if a certificate name is given
+      if (certificateName != null) {
+        const foundCertificate = data.CertificateSummaryList
+          .find(certificate => (certificate.DomainName === certificateName));
+
+        if (foundCertificate != null) {
+          certificateArn = foundCertificate.CertificateArn;
         }
+      } else {
+        certificateName = this.givenDomainName;
+        data.CertificateSummaryList.forEach((certificate) => {
+          let certificateListName = certificate.DomainName;
 
-        // Looks to see if the name in the list is within the given domain
-        // Also checks if the name is more specific than previous ones
-        if (this.givenDomainName.includes(certificateListName)
-          && certificateListName.length > nameLength) {
-          nameLength = certificateListName.length;
-          certificateArn = certificate.CertificateArn;
-        }
-      });
+          // Looks for wild card and takes it out when checking
+          if (certificateListName[0] === '*') {
+            certificateListName = certificateListName.substr(1);
+          }
 
+          // Looks to see if the name in the list is within the given domain
+          // Also checks if the name is more specific than previous ones
+          if (certificateName.includes(certificateListName)
+            && certificateListName.length > nameLength) {
+            nameLength = certificateListName.length;
+            certificateArn = certificate.CertificateArn;
+          }
+        });
+      }
+
+      if (certificateArn == null) {
+        throw Error(`Could not find the certificate ${certificateName}`);
+      }
       return certificateArn;
     });
   }

@@ -7,7 +7,34 @@ const ServerlessCustomDomain = require('../index.js');
 
 const expect = chai.expect;
 
-const constructPlugin = (basepath) => {
+const constructPlugin = (basepath, certName) => {
+  const serverless = {
+    cli: { log(params) { return params; } },
+    service: {
+      provider: {
+        region: 'us-moon-1',
+        compiledCloudFormationTemplate: {
+          Resources: {
+            Deployment0: {
+              Type: 'AWS::ApiGateway::Deployment',
+            },
+          },
+        },
+      },
+      custom: {
+        customDomain: {
+          basePath: basepath,
+          domainName: 'test_domain',
+          stage: 'test',
+          certificateName: certName,
+        },
+      },
+    },
+  };
+  return new ServerlessCustomDomain(serverless, {});
+};
+
+const constructPluginWithoutCertName = (basepath) => {
   const serverless = {
     cli: { log(params) { return params; } },
     service: {
@@ -32,6 +59,7 @@ const constructPlugin = (basepath) => {
   };
   return new ServerlessCustomDomain(serverless, {});
 };
+
 describe('Custom Domain Plugin', () => {
   describe('Set Domain Name and Base Path', () => {
     const plugin = constructPlugin('test_basepath');
@@ -60,11 +88,21 @@ describe('Custom Domain Plugin', () => {
     it('Get the certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin();
+      const plugin = constructPluginWithoutCertName('');
 
       const result = await plugin.getCertArn();
 
       expect(result).to.equal('test_arn');
+    });
+
+    it('Get a given certificate arn', async () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+
+      const plugin = constructPlugin('', 'cert_name');
+
+      const result = await plugin.getCertArn();
+
+      expect(result).to.equal('test_given_arn');
     });
 
     it('Create a domain name', async () => {
@@ -189,13 +227,28 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin();
+      const plugin = constructPluginWithoutCertName('');
       const result = await plugin.createDomain();
       expect(result).to.equal('Domain was created, may take up to 40 mins to be initialized.');
     });
 
     afterEach(() => {
       AWS.restore();
+    });
+  });
+
+  describe('Error Catching', () => {
+    it('If a certificate cannot be found when a name is given', () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+
+      const plugin = constructPlugin('', 'does_not_exist');
+
+      return plugin.getCertArn().then(() => {
+        throw new Error('Test has failed. getCertArn did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'Could not find the certificate does_not_exist';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
     });
   });
 });

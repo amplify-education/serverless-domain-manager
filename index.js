@@ -266,7 +266,7 @@ class ServerlessCustomDomain {
       };
 
       return this.route53.changeResourceRecordSets(params).promise();
-    }, (err) => {
+    }, () => {
       if (action === 'CREATE') {
         throw new Error(`Record set for ${givenDomainName} already exists.`);
       }

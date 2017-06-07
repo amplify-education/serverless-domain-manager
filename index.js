@@ -6,9 +6,6 @@ class ServerlessCustomDomain {
 
   constructor(serverless) {
     this.serverless = serverless;
-
-    // The domain name specified in the serverless file
-    this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
     this.apigateway = new AWS.APIGateway({
       region: this.serverless.service.provider.region,
     });
@@ -33,8 +30,11 @@ class ServerlessCustomDomain {
     };
 
     this.hooks = {
+      'before:delete_domain:delete': this.setGivenDomainName.bind(this),
       'delete_domain:delete': this.deleteDomain.bind(this),
+      'before:create_domain:create': this.setGivenDomainName.bind(this),
       'create_domain:create': this.createDomain.bind(this),
+      'before:deploy:initalize': this.setGivenDomainName.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
     };
   }
@@ -61,6 +61,14 @@ class ServerlessCustomDomain {
     }).catch((err) => {
       throw new Error(`${err} ${this.givenDomainName} was not deleted.`);
     });
+  }
+
+  setGivenDomainName(){
+    /**
+     * Since serverless version 1.13.0, cli variables in the serverless file
+     * are not converted until before deploy initialize.
+      */
+    this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
   }
 
   setUpBasePathMapping() {

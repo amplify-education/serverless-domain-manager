@@ -61,7 +61,8 @@ const constructPluginWithoutCertName = (basepath) => {
   };
   const serverlessFile = new ServerlessCustomDomain(serverless, {});
   serverlessFile.givenDomainName = serverless.service.custom.customDomain.domainName;
-  return serverlessFile;};
+  return serverlessFile;
+};
 
 describe('Custom Domain Plugin', () => {
   it('this.givenDomainName is set', () => {

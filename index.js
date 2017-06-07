@@ -63,7 +63,7 @@ class ServerlessCustomDomain {
     });
   }
 
-  setGivenDomainName(){
+  setGivenDomainName() {
     /**
      * Since serverless version 1.13.0, cli variables in the serverless file
      * are not converted until before deploy initialize.

@@ -31,9 +31,7 @@ const constructPlugin = (basepath, certName) => {
       },
     },
   };
-  const serverlessFile = new ServerlessCustomDomain(serverless, {});
-  serverlessFile.givenDomainName = serverless.service.custom.customDomain.domainName;
-  return serverlessFile;
+  return new ServerlessCustomDomain(serverless, {});
 };
 
 const constructPluginWithoutCertName = (basepath) => {
@@ -59,19 +57,10 @@ const constructPluginWithoutCertName = (basepath) => {
       },
     },
   };
-  const serverlessFile = new ServerlessCustomDomain(serverless, {});
-  serverlessFile.givenDomainName = serverless.service.custom.customDomain.domainName;
-  return serverlessFile;
+  return new ServerlessCustomDomain(serverless, {});
 };
 
 describe('Custom Domain Plugin', () => {
-  it('this.givenDomainName is set', () => {
-    const plugin = constructPlugin('test_basepath');
-
-    plugin.setGivenDomainName();
-    expect(plugin.givenDomainName).to.equal('test_domain');
-  });
-
   describe('Set Domain Name and Base Path', () => {
     const plugin = constructPlugin('test_basepath');
     let deploymentId = '';

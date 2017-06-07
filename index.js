@@ -30,27 +30,26 @@ class ServerlessCustomDomain {
     };
 
     this.hooks = {
-      'before:delete_domain:delete': this.setGivenDomainName.bind(this),
       'delete_domain:delete': this.deleteDomain.bind(this),
-      'before:create_domain:create': this.setGivenDomainName.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'before:deploy:initalize': this.setGivenDomainName.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
     };
   }
 
   createDomain() {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     const getHosedZoneId = this.getHostedZoneId();
     return Promise.all([createDomainName, getHosedZoneId])
       .then(values => this.changeResourceRecordSet(values[0], 'CREATE', values[1]))
       .then(() => (this.serverless.cli.log('Domain was created, may take up to 40 mins to be initialized.')))
       .catch((err) => {
-        throw new Error(`${err} ${this.givenDomainName} was not created.`);
+        throw new Error(`${err} ${givenDomainName} was not created.`);
       });
   }
 
   deleteDomain() {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     return this.getDomain().then((data) => {
       const promises = [
         this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
@@ -59,16 +58,8 @@ class ServerlessCustomDomain {
 
       return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
     }).catch((err) => {
-      throw new Error(`${err} ${this.givenDomainName} was not deleted.`);
+      throw new Error(`${err} ${givenDomainName} was not deleted.`);
     });
-  }
-
-  setGivenDomainName() {
-    /**
-     * Since serverless version 1.13.0, cli variables in the serverless file
-     * are not converted until before deploy initialize.
-      */
-    this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
   }
 
   setUpBasePathMapping() {
@@ -104,6 +95,7 @@ class ServerlessCustomDomain {
    */
   addResources(deployId) {
     const service = this.serverless.service;
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
 
     if (!service.custom.customDomain) {
       throw new Error('customDomain settings in Serverless are not configured correctly');
@@ -122,7 +114,7 @@ class ServerlessCustomDomain {
       DependsOn: deployId,
       Properties: {
         BasePath: basePath,
-        DomainName: this.givenDomainName,
+        DomainName: givenDomainName,
         RestApiId: {
           Ref: 'ApiGatewayRestApi',
         },
@@ -152,6 +144,8 @@ class ServerlessCustomDomain {
     });       // us-east-1 is the only region that can be accepted (3/21)
 
     const certArn = acm.listCertificates().promise();
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
+
     return certArn.then((data) => {
       // The more specific name will be the longest
       let nameLength = 0;
@@ -170,7 +164,7 @@ class ServerlessCustomDomain {
           certificateArn = foundCertificate.CertificateArn;
         }
       } else {
-        certificateName = this.givenDomainName;
+        certificateName = givenDomainName;
         data.CertificateSummaryList.forEach((certificate) => {
           let certificateListName = certificate.DomainName;
 
@@ -201,8 +195,9 @@ class ServerlessCustomDomain {
    *  @param certificateArn   The certificate needed to create the new domain
    */
   createDomainName(givenCertificateArn) {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     const createDomainNameParams = {
-      domainName: this.givenDomainName,
+      domainName: givenDomainName,
       certificateArn: givenCertificateArn,
     };
 
@@ -216,9 +211,9 @@ class ServerlessCustomDomain {
    */
   getHostedZoneId() {
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
 
     return hostedZonePromise.then((data) => {
-      const givenDomainName = this.givenDomainName;
       // Gets the hostzone that contains the root of the custom domain name
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
@@ -242,6 +237,7 @@ class ServerlessCustomDomain {
    *                  The CNAME is specified in the serverless file under domainName
    */
   changeResourceRecordSet(distributionDomainName, action) {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     if (action !== 'DELETE' && action !== 'CREATE') {
       throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
     }
@@ -253,7 +249,7 @@ class ServerlessCustomDomain {
             {
               Action: action,
               ResourceRecordSet: {
-                Name: this.givenDomainName,
+                Name: givenDomainName,
                 ResourceRecords: [
                   {
                     Value: distributionDomainName,
@@ -270,11 +266,11 @@ class ServerlessCustomDomain {
       };
 
       return this.route53.changeResourceRecordSets(params).promise();
-    }, () => {
+    }, (err) => {
       if (action === 'CREATE') {
-        throw new Error(`Record set for ${this.givenDomainName} already exists.`);
+        throw new Error(`Record set for ${givenDomainName} already exists.`);
       }
-      throw new Error(`Record set for ${this.givenDomainName} does not exist and cannot be deleted.`);
+      throw new Error(`Record set for ${givenDomainName} does not exist and cannot be deleted.`);
     });
   }
 
@@ -282,8 +278,9 @@ class ServerlessCustomDomain {
    * Deletes the domain names specified in the serverless file
    */
   clearDomainName() {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     return this.apigateway.deleteDomainName({
-      domainName: this.givenDomainName,
+      domainName: givenDomainName,
     }).promise();
   }
 
@@ -291,13 +288,14 @@ class ServerlessCustomDomain {
    * Get information on domain
    */
   getDomain() {
+    const givenDomainName = this.serverless.service.custom.customDomain.domainName;
     const getDomainNameParams = {
-      domainName: this.givenDomainName,
+      domainName: givenDomainName,
     };
 
     const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
     return getDomainPromise.then(data => (data), () => {
-      throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);
+      throw new Error(`Cannot find specified domain name ${givenDomainName}.`);
     });
   }
 }

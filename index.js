@@ -6,6 +6,9 @@ class ServerlessCustomDomain {
 
   constructor(serverless) {
     this.serverless = serverless;
+    const awsCreds = this.serverless.providers.aws.getCredentials();
+
+    AWS.config.update(awsCreds);
     this.apigateway = new AWS.APIGateway({
       region: this.serverless.service.provider.region,
     });

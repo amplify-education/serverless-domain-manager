@@ -2,14 +2,25 @@
 
 const chai = require('chai');
 const AWS = require('aws-sdk-mock');
+const aws = require('aws-sdk');
 const certTestData = require('./test-cert-data.json');
 const ServerlessCustomDomain = require('../index.js');
 
 const expect = chai.expect;
 
+const testCreds = {
+  accessKeyId: 'test_key',
+  secretAccessKey: 'test_secret',
+  sessionToken: 'test_session',
+};
 const constructPlugin = (basepath, certName) => {
   const serverless = {
     cli: { log(params) { return params; } },
+    providers: {
+      aws: {
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
     service: {
       provider: {
         region: 'us-moon-1',
@@ -37,6 +48,11 @@ const constructPlugin = (basepath, certName) => {
 const constructPluginWithoutCertName = (basepath) => {
   const serverless = {
     cli: { log(params) { return params; } },
+    providers: {
+      aws: {
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
     service: {
       provider: {
         region: 'us-moon-1',
@@ -61,6 +77,14 @@ const constructPluginWithoutCertName = (basepath) => {
 };
 
 describe('Custom Domain Plugin', () => {
+  it('check aws config', () => {
+    const plugin = constructPlugin({}, 'tests');
+    const returnedCreds = plugin.apigateway.config.credentials;
+    console.log(returnedCreds)
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+  });
+
   describe('Set Domain Name and Base Path', () => {
     const plugin = constructPlugin('test_basepath');
     let deploymentId = '';

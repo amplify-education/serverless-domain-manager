@@ -9,12 +9,8 @@ class ServerlessCustomDomain {
     const awsCreds = this.serverless.providers.aws.getCredentials();
 
     AWS.config.update(awsCreds);
-    this.apigateway = new AWS.APIGateway({
-      region: this.serverless.service.provider.region,
-    });
-    this.route53 = new AWS.Route53({
-      region: this.serverless.service.provider.region,
-    });
+    this.apigateway = new AWS.APIGateway();
+    this.route53 = new AWS.Route53();
 
 
     this.commands = {

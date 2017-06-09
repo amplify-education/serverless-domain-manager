@@ -80,7 +80,6 @@ describe('Custom Domain Plugin', () => {
   it('check aws config', () => {
     const plugin = constructPlugin({}, 'tests');
     const returnedCreds = plugin.apigateway.config.credentials;
-    console.log(returnedCreds)
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
   });

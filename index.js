@@ -17,22 +17,34 @@ class ServerlessCustomDomain {
       create_domain: {
         usage: 'Creates a domain using the domain name defined in the serverless file',
         lifecycleEvents: [
+          'initalize',
           'create',
         ],
       },
       delete_domain: {
         usage: 'Deletes a domain using the domain name defined in the serverless file',
         lifecycleEvents: [
+          'initalize',
           'delete',
         ],
       },
     };
 
     this.hooks = {
+      'delete_domain:initalize': this.initalizeVariables.bind(this),
       'delete_domain:delete': this.deleteDomain.bind(this),
+      'create_domain:initalize': this.initalizeVariables.bind(this),
       'create_domain:create': this.createDomain.bind(this),
+      'before:deploy:initalize': this.initalizeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
     };
+  }
+
+  initalizeVariables() {
+    const awsCreds = this.serverless.providers.aws.getCredentials();
+    this.apigateway = new AWS.APIGateway({ credentials: awsCreds });
+    this.route53 = new AWS.Route53({ credentials: awsCreds });
+    this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
   }
 
   createDomain() {

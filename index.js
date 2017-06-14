@@ -11,14 +11,14 @@ class ServerlessCustomDomain {
       create_domain: {
         usage: 'Creates a domain using the domain name defined in the serverless file',
         lifecycleEvents: [
-          'initalize',
+          'initialize',
           'create',
         ],
       },
       delete_domain: {
         usage: 'Deletes a domain using the domain name defined in the serverless file',
         lifecycleEvents: [
-          'initalize',
+          'initialize',
           'delete',
         ],
       },

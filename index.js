@@ -25,16 +25,16 @@ class ServerlessCustomDomain {
     };
 
     this.hooks = {
-      'delete_domain:initialize': this.initalizeVariables.bind(this),
+      'delete_domain:initialize': this.initializeVariables.bind(this),
       'delete_domain:delete': this.deleteDomain.bind(this),
-      'create_domain:initialize': this.initalizeVariables.bind(this),
+      'create_domain:initialize': this.initializeVariables.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'before:deploy:initialize': this.initalizeVariables.bind(this),
+      'before:deploy:initialize': this.initializeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
     };
   }
 
-  initalizeVariables() {
+  initializeVariables() {
     // Sets the credentials for AWS resources.
     const awsCreds = this.serverless.providers.aws.getCredentials();
     AWS.config.update(awsCreds);

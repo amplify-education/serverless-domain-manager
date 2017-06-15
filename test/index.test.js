@@ -2,14 +2,25 @@
 
 const chai = require('chai');
 const AWS = require('aws-sdk-mock');
+const aws = require('aws-sdk');
 const certTestData = require('./test-cert-data.json');
 const ServerlessCustomDomain = require('../index.js');
 
 const expect = chai.expect;
 
+const testCreds = {
+  accessKeyId: 'test_key',
+  secretAccessKey: 'test_secret',
+  sessionToken: 'test_session',
+};
 const constructPlugin = (basepath, certName) => {
   const serverless = {
     cli: { log(params) { return params; } },
+    providers: {
+      aws: {
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
     service: {
       provider: {
         region: 'us-moon-1',
@@ -37,6 +48,11 @@ const constructPlugin = (basepath, certName) => {
 const constructPluginWithoutCertName = (basepath) => {
   const serverless = {
     cli: { log(params) { return params; } },
+    providers: {
+      aws: {
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
     service: {
       provider: {
         region: 'us-moon-1',
@@ -61,6 +77,14 @@ const constructPluginWithoutCertName = (basepath) => {
 };
 
 describe('Custom Domain Plugin', () => {
+  it('check aws config', () => {
+    const plugin = constructPlugin({}, 'tests');
+    plugin.initializeVariables();
+    const returnedCreds = plugin.apigateway.config.credentials;
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+  });
+
   describe('Set Domain Name and Base Path', () => {
     const plugin = constructPlugin('test_basepath');
     let deploymentId = '';
@@ -89,6 +113,8 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPluginWithoutCertName('');
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
 
       const result = await plugin.getCertArn();
 
@@ -111,6 +137,9 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPlugin();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
 
       const result = await plugin.createDomainName('fake_cert');
 
@@ -127,6 +156,9 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPlugin('test_basepath');
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
 
       const result = await plugin.changeResourceRecordSet('test_distribution_name', 'CREATE');
       const changes = result.ChangeBatch.Changes[0];
@@ -147,6 +179,8 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPlugin('test_basepath');
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       const result = await plugin.getDomain();
 
@@ -162,6 +196,8 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPlugin('test_basepath');
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       const result = await plugin.changeResourceRecordSet('test_distribution_name', 'DELETE');
       const changes = result.ChangeBatch.Changes[0];
@@ -176,6 +212,9 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPlugin('test_basepath');
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
       const result = await plugin.clearDomainName();
       expect(result).to.eql({});
     });
@@ -191,6 +230,8 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
       const plugin = constructPlugin('');
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       await plugin.setUpBasePathMapping();
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
@@ -211,6 +252,9 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
       const plugin = constructPlugin();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.route53 = new aws.Route53();
       const results = await plugin.deleteDomain();
       expect(results).to.equal('Domain was deleted.');
     });
@@ -228,6 +272,9 @@ describe('Custom Domain Plugin', () => {
       });
 
       const plugin = constructPluginWithoutCertName('');
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.route53 = new aws.Route53();
       const result = await plugin.createDomain();
       expect(result).to.equal('Domain was created, may take up to 40 mins to be initialized.');
     });

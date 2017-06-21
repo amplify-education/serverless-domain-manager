@@ -29,7 +29,7 @@ class ServerlessCustomDomain {
       'delete_domain:delete': this.deleteDomain.bind(this),
       'create_domain:initialize': this.initializeVariables.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'before:deploy:initialize': this.initializeVariables.bind(this),
+      'before:package:initialize': this.initializeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
     };
   }

@@ -45,9 +45,8 @@ class ServerlessCustomDomain {
 
   createDomain() {
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
-    const getHosedZoneId = this.getHostedZoneId();
-    return Promise.all([createDomainName, getHosedZoneId])
-      .then(values => this.changeResourceRecordSet(values[0], 'CREATE', values[1]))
+    return Promise.all([createDomainName])
+      .then(values => this.changeResourceRecordSet(values[0], 'CREATE'))
       .then(() => (this.serverless.cli.log('Domain was created, may take up to 40 mins to be initialized.')))
       .catch((err) => {
         throw new Error(`${err} ${this.givenDomainName} was not created.`);
@@ -210,6 +209,7 @@ class ServerlessCustomDomain {
 
   /*
    * Gets the HostedZoneId
+   * @return hostedZoneId or null if not found or access denied
    */
   getHostedZoneId() {
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
@@ -221,11 +221,17 @@ class ServerlessCustomDomain {
         hZoneName = hZoneName.substr(0, hostedZone.Name.length - 1);   // Takes out the . at the end
         return this.givenDomainName.includes(hZoneName);
       });
-      hostedZoneId = hostedZoneId.Id;
-      // Extracts the hostzone Id
-      const startPos = hostedZoneId.indexOf('e/') + 2;
-      const endPos = hostedZoneId.length;
-      return hostedZoneId.substring(startPos, endPos);
+      if (hostedZoneId) {
+        hostedZoneId = hostedZoneId.Id;
+        // Extracts the hostzone Id
+        const startPos = hostedZoneId.indexOf('e/') + 2;
+        const endPos = hostedZoneId.length;
+        return hostedZoneId.substring(startPos, endPos);
+      }
+      return null;
+    })
+    .catch((err) => {
+        return null;
     });
   }
 
@@ -243,6 +249,10 @@ class ServerlessCustomDomain {
     }
 
     return this.getHostedZoneId().then((hostedZoneId) => {
+      if (!hostedZoneId) {
+        return null;
+      }
+
       const params = {
         ChangeBatch: {
           Changes: [

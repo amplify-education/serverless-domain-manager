@@ -230,9 +230,7 @@ class ServerlessCustomDomain {
       }
       return null;
     })
-    .catch((err) => {
-        return null;
-    });
+    .catch(() => (null));
   }
 
   /**

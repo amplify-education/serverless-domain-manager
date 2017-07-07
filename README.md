@@ -50,8 +50,7 @@ custom:
     stage:
     certificateName:
 ```
-If certificateName is not provided, the certificate will be chosen using the domain name.
-If certificateName is blank, an error will be thrown.
+If certificateName is omitted, the certificate will be chosen using the domain name. Otherwise leaving certificateName with an empty string will result in an error being thrown.
 
 For example:
 ```yaml

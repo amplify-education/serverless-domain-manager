@@ -53,6 +53,15 @@ custom:
 If certificateName is not provided, the certificate will be chosen using the domain name.
 If certificateName is blank, an error will be thrown.
 
+For example:
+```yaml
+custom:
+  customDomain:
+    basePath: "dev"
+    domainName: serverless.foo.com
+    stage: dev
+```
+
 ## Running
 
 To create the custom domain:

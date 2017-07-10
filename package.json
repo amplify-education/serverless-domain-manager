@@ -42,7 +42,6 @@
     "mocha": "^2.2.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.2.33",
-    "eslint-config-airbnb": "^14.1.0"
+    "aws-sdk": "^2.2.33"
   }
 }

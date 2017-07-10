@@ -116,7 +116,6 @@ class ServerlessCustomDomain {
 
     // If stage is not provided, stage will be set based on the provider.
     if (typeof stage === 'undefined') {
-      console.log(service.provider.stage);
       stage = service.provider.stage;
     }
 

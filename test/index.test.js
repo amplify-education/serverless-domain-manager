@@ -85,9 +85,9 @@ describe('Custom Domain Plugin', () => {
     });
 
     it('stage was not given', () => {
-      const emptyStagePlugin = constructPlugin('');
-      emptyStagePlugin.addResources(deploymentId);
-      const cf = emptyStagePlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      const noStagePlugin = constructPlugin('');
+      noStagePlugin.addResources(deploymentId);
+      const cf = noStagePlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.pathmapping.Properties.Stage).to.equal('providerStage');
     });
   });

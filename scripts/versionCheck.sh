@@ -13,7 +13,7 @@ if [ "$IS_PULL_REQUEST" != "false" ]
 
         if [ "$CURRENT_PACKAGE_VERSION" = "$PACKAGE_VERSION" ]
             then
-                echo "Failure reason: serverless custom domain version number should be bumped."
+                echo "Failure reason: Version number should be bumped."
                 exit 1
         fi
 fi

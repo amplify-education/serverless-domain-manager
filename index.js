@@ -237,7 +237,9 @@ class ServerlessCustomDomain {
       }
       return null;
     })
-    .catch(() => (null));
+    .catch((err) => {
+      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
+    });
   }
 
   /**
@@ -251,6 +253,11 @@ class ServerlessCustomDomain {
   changeResourceRecordSet(distributionDomainName, action) {
     if (action !== 'DELETE' && action !== 'CREATE') {
       throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
+    }
+
+    if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
+        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 
     return this.getHostedZoneId().then((hostedZoneId) => {

@@ -111,6 +111,13 @@ class ServerlessCustomDomain {
       basePath = '(none)';
     }
 
+    let stage = service.custom.customDomain.stage;
+
+    // If stage is not provided, stage will be set based on the provider.
+    if (typeof stage === 'undefined') {
+      stage = service.provider.stage;
+    }
+
     // Creates the pathmapping
     const pathmapping = {
       Type: 'AWS::ApiGateway::BasePathMapping',
@@ -121,7 +128,7 @@ class ServerlessCustomDomain {
         RestApiId: {
           Ref: 'ApiGatewayRestApi',
         },
-        Stage: service.custom.customDomain.stage,
+        Stage: stage,
       },
     };
 

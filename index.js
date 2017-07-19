@@ -235,7 +235,7 @@ class ServerlessCustomDomain {
         const endPos = hostedZoneId.length;
         return hostedZoneId.substring(startPos, endPos);
       }
-      return null;
+      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
     })
     .catch((err) => {
       throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);

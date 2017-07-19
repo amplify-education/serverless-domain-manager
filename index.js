@@ -41,6 +41,8 @@ class ServerlessCustomDomain {
     this.apigateway = new AWS.APIGateway();
     this.route53 = new AWS.Route53();
     this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
+    let firstDotPosition = this.givenDomainName.indexOf(".");
+    this.targetHostedZone = this.givenDomainName.substring(firstDotPosition);
   }
 
   createDomain() {
@@ -226,7 +228,7 @@ class ServerlessCustomDomain {
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
         hZoneName = hZoneName.substr(0, hostedZone.Name.length - 1);   // Takes out the . at the end
-        return this.givenDomainName.includes(hZoneName);
+        return (this.targetHostedZone === hZoneName);
       });
       hostedZoneId = hostedZoneId.Id;
       // Extracts the hostzone Id

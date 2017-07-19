@@ -43,6 +43,7 @@ class ServerlessCustomDomain {
     this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
     let firstDotPosition = this.givenDomainName.indexOf(".");
     this.targetHostedZone = this.givenDomainName.substring(firstDotPosition);
+    this.serverless.cli.log('Target hosted zone: ' + this.targetHostedZone);
   }
 
   createDomain() {
@@ -228,6 +229,9 @@ class ServerlessCustomDomain {
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
         hZoneName = hZoneName.substr(0, hostedZone.Name.length - 1);   // Takes out the . at the end
+        this.serverless.cli.log('hZoneName = ' + hZoneName);
+        this.serverless.cli.log('targetHostedZone = ' + this.targetHostedZone);
+        this.serverless.cli.log('targetHostedZone === hZoneName' + (this.targetHostedZone === hZoneName));
         return (this.targetHostedZone === hZoneName);
       });
       hostedZoneId = hostedZoneId.Id;

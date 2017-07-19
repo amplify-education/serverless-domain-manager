@@ -41,7 +41,7 @@ class ServerlessCustomDomain {
     this.apigateway = new AWS.APIGateway();
     this.route53 = new AWS.Route53();
     this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
-    let firstDotPosition = this.givenDomainName.indexOf(".");
+    const firstDotPosition = this.givenDomainName.indexOf('.');
     this.targetHostedZone = this.givenDomainName.substring(firstDotPosition + 1);
   }
 

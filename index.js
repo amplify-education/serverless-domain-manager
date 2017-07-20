@@ -1,7 +1,7 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-const chalk = require('chalk')
+const chalk = require('chalk');
 
 class ServerlessCustomDomain {
 
@@ -329,8 +329,8 @@ class ServerlessCustomDomain {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
       if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
           && this.serverless.service.custom.customDomain.createRoute53Record === true) {
-            this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
-            this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
+        this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
+        this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
       }
       this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
       this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);

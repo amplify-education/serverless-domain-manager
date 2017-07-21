@@ -327,8 +327,7 @@ class ServerlessCustomDomain {
   domainSummary() {
     this.getDomain().then((data) => {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
-      if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
-          && this.serverless.service.custom.customDomain.createRoute53Record === true) {
+      if (this.serverless.service.custom.customDomain.createRoute53Record === true) {
         this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
         this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
       }

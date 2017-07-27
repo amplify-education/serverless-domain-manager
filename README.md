@@ -49,9 +49,8 @@ custom:
     domainName:
     stage:
     certificateName:
+    createRoute53Record: true
 ```
-If certificateName is omitted, the certificate will be chosen using the domain name. Otherwise leaving certificateName with an empty string will result in an error being thrown.
-
 For example:
 ```yaml
 custom:
@@ -60,6 +59,9 @@ custom:
     domainName: serverless.foo.com
     stage: dev
 ```
+If certificateName is not provided, the certificate will be chosen using the domain name.
+If certificateName is blank, an error will be thrown.
+If createRoute53Record is blank or not provided, it defaults to true.
 
 ## Running
 

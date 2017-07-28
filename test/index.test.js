@@ -349,7 +349,7 @@ describe('Custom Domain Plugin', () => {
 
       return plugin.domainSummary().then((data) => {
         expect(data).to.equal(true);
-      }).catch((err) => {
+      }).catch(() => {
         throw new Error('Test has failed, domainSummary threw an error');
       });
     });

@@ -15,7 +15,13 @@ const testCreds = {
 };
 const constructPlugin = (basepath, certName, stage, createRecord) => {
   const serverless = {
-    cli: { log(params) { return params; } },
+    cli: {
+      log(params) { return params; },
+      consoleLog(params) {
+        console.log(params);
+        return params;
+      },
+    },
     providers: {
       aws: {
         getCredentials: () => new aws.Credentials(testCreds),
@@ -37,7 +43,6 @@ const constructPlugin = (basepath, certName, stage, createRecord) => {
         customDomain: {
           basePath: basepath,
           domainName: 'test_domain',
-          createRoute53Record: createRecord,
         },
       },
     },
@@ -50,6 +55,11 @@ const constructPlugin = (basepath, certName, stage, createRecord) => {
   if (stage) {
     serverless.service.custom.customDomain.stage = 'test';
   }
+
+  if (!createRecord) {
+    serverless.service.custom.customDomain.createRoute53Record = createRecord;
+  }
+
   return new ServerlessCustomDomain(serverless, {});
 };
 
@@ -150,6 +160,12 @@ describe('Custom Domain Plugin', () => {
       expect(changes.Action).to.equal('CREATE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
       expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+    });
+
+    it('Do not create a Route53 record', async () => {
+      const plugin = constructPlugin(null, null, true, false);
+      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'CREATE');
+      expect(result).to.equal('Skipping creation of Route53 record.');
     });
 
     afterEach(() => {
@@ -282,31 +298,64 @@ describe('Custom Domain Plugin', () => {
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });
+
+    it('Fail getHostedZone', () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'no_hosted_zone', Id: 'test_id' }] });
+      });
+
+      const plugin = constructPlugin();
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      return plugin.getHostedZoneId().then(() => {
+        throw new Error('Test has failed, getHostedZone did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'Error: Could not find hosted zone. Unable to retrieve Route53 hosted zone id.';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    it('Domain summary failed', () => {
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(null, null);
+      });
+      const plugin = constructPlugin(null, null, true, false);
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      return plugin.domainSummary().then(() => {
+        // check if distribution domain name is printed
+      }).catch((err) => {
+        const expectedErrorMessage = "TypeError: Cannot read property 'distributionDomainName' of null Domain manager summary logging failed.";
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    afterEach(() => {
+      AWS.restore();
+    });
   });
 
   describe('Summary Printing', () => {
-    it('If createRoute53Record is true', () => {
+    it('Prints Summary', () => {
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(null, { domainName: params, distributionDomainName: 'test_distributed_domain_name' });
+      });
       const plugin = constructPlugin('', null, true, true);
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
-      return plugin.domainSummary().then(() => {
-        // check if domain name is printed
-        // check if distribution domain name is printed
+
+      return plugin.domainSummary().then((data) => {
+        expect(data).to.equal(true);
       }).catch((err) => {
-        // catch err
+        throw new Error('Test has failed, domainSummary threw an error');
       });
     });
 
-    it('If createRoute53Record is false', () => {
-      const plugin = constructPlugin(null, null, true, true);
-
-      return plugin.domainSummary().then(() => {
-        // check if distribution domain name is printed
-      }).catch((err) => {
-        // catch err
-      });
+    afterEach(() => {
+      AWS.restore();
     });
-
   });
-
-
 });

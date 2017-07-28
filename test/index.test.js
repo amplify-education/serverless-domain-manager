@@ -126,7 +126,7 @@ describe('Custom Domain Plugin', () => {
       expect(result).to.equal('test_given_arn');
     });
 
-    it('Create a domain name', async () => {  // @TODO
+    it('Create a domain name', async () => {
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
         callback(null, { distributionDomainName: 'foo' });
       });
@@ -142,7 +142,7 @@ describe('Custom Domain Plugin', () => {
     });
 
 
-    it('Create a new CNAME', async () => {  // @TODO
+    it('Create a new CNAME', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });

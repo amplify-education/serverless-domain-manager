@@ -78,6 +78,24 @@ class ServerlessCustomDomain {
   }
 
   /**
+   * Prints out a summary of all domain manager related info
+   */
+  domainSummary() {
+    return this.getDomain().then((data) => {
+      this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
+      if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+        this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
+        this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
+      }
+      this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
+      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
+      return true;
+    }).catch((err) => {
+      throw new Error(`${err} Domain manager summary logging failed.`);
+    });
+  }
+
+  /**
    * Gets the deployment id
    */
   getDeploymentId() {
@@ -314,27 +332,9 @@ class ServerlessCustomDomain {
     const getDomainNameParams = {
       domainName: this.givenDomainName,
     };
-
     const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
     return getDomainPromise.then(data => (data), () => {
       throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);
-    });
-  }
-
-  /**
-   * Prints out a summary of all domain manager related info
-   */
-  domainSummary() {
-    this.getDomain().then((data) => {
-      this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
-      if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
-        this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
-        this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
-      }
-      this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
-      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
-    }).catch((err) => {
-      throw new Error(`${err} Domain manager summary logging failed.`);
     });
   }
 }

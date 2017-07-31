@@ -1,6 +1,7 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+const chalk = require('chalk');
 
 class ServerlessCustomDomain {
 
@@ -31,6 +32,7 @@ class ServerlessCustomDomain {
       'create_domain:create': this.createDomain.bind(this),
       'before:package:initialize': this.initializeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
+      'after:deploy:deploy': this.domainSummary.bind(this),
     };
   }
 
@@ -72,6 +74,24 @@ class ServerlessCustomDomain {
       this.addResources(deploymentId);
     }).catch((err) => {
       throw new Error(`${err} Try running sls create_domain first.`);
+    });
+  }
+
+  /**
+   * Prints out a summary of all domain manager related info
+   */
+  domainSummary() {
+    return this.getDomain().then((data) => {
+      this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
+      if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+        this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
+        this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
+      }
+      this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
+      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
+      return true;
+    }).catch((err) => {
+      throw new Error(`${err} Domain manager summary logging failed.`);
     });
   }
 
@@ -312,7 +332,6 @@ class ServerlessCustomDomain {
     const getDomainNameParams = {
       domainName: this.givenDomainName,
     };
-
     const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
     return getDomainPromise.then(data => (data), () => {
       throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);

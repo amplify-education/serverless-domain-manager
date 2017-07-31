@@ -13,9 +13,15 @@ const testCreds = {
   secretAccessKey: 'test_secret',
   sessionToken: 'test_session',
 };
-const constructPlugin = (basepath, certName, stage) => {
+const constructPlugin = (basepath, certName, stage, createRecord) => {
   const serverless = {
-    cli: { log(params) { return params; } },
+    cli: {
+      log(params) { return params; },
+      consoleLog(params) {
+        console.log(params);
+        return params;
+      },
+    },
     providers: {
       aws: {
         getCredentials: () => new aws.Credentials(testCreds),
@@ -49,13 +55,18 @@ const constructPlugin = (basepath, certName, stage) => {
   if (stage) {
     serverless.service.custom.customDomain.stage = 'test';
   }
+
+  if (!createRecord) {
+    serverless.service.custom.customDomain.createRoute53Record = createRecord;
+  }
+
   return new ServerlessCustomDomain(serverless, {});
 };
 
 
 describe('Custom Domain Plugin', () => {
   it('check aws config', () => {
-    const plugin = constructPlugin({}, 'tests', true);
+    const plugin = constructPlugin({}, 'tests', true, true);
     plugin.initializeVariables();
     const returnedCreds = plugin.apigateway.config.credentials;
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
@@ -63,7 +74,7 @@ describe('Custom Domain Plugin', () => {
   });
 
   describe('Set Domain Name and Base Path', () => {
-    const plugin = constructPlugin('test_basepath', null, true);
+    const plugin = constructPlugin('test_basepath', null, true, true);
     let deploymentId = '';
 
     it('Find Deployment Id', () => {
@@ -78,7 +89,7 @@ describe('Custom Domain Plugin', () => {
     });
 
     it('(none) is added if empty basepath is given', () => {
-      const emptyPlugin = constructPlugin('', null, true);
+      const emptyPlugin = constructPlugin('', null, true, true);
       emptyPlugin.addResources(deploymentId);
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
@@ -96,7 +107,7 @@ describe('Custom Domain Plugin', () => {
     it('Get the certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin('', null, true);
+      const plugin = constructPlugin('', null, true, true);
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
 
@@ -108,7 +119,7 @@ describe('Custom Domain Plugin', () => {
     it('Get a given certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin('', 'cert_name', true);
+      const plugin = constructPlugin('', 'cert_name', true, true);
 
       const result = await plugin.getCertArn();
 
@@ -120,7 +131,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, { distributionDomainName: 'foo' });
       });
 
-      const plugin = constructPlugin(null, null, true);
+      const plugin = constructPlugin(null, null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -139,7 +150,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin('test_basepath', null, true);
+      const plugin = constructPlugin('test_basepath', null, true, true);
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -149,6 +160,12 @@ describe('Custom Domain Plugin', () => {
       expect(changes.Action).to.equal('CREATE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
       expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+    });
+
+    it('Do not create a Route53 record', async () => {
+      const plugin = constructPlugin(null, null, true, false);
+      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'CREATE');
+      expect(result).to.equal('Skipping creation of Route53 record.');
     });
 
     afterEach(() => {
@@ -162,7 +179,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin('test_basepath', null, true);
+      const plugin = constructPlugin('test_basepath', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -179,7 +196,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin('test_basepath', null, true);
+      const plugin = constructPlugin('test_basepath', null, true, true);
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -195,7 +212,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, {});
       });
 
-      const plugin = constructPlugin('test_basepath', null, true);
+      const plugin = constructPlugin('test_basepath', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -213,7 +230,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
         callback(null, params);
       });
-      const plugin = constructPlugin('', null, true);
+      const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -235,7 +252,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, params);
       });
-      const plugin = constructPlugin(null, null, true);
+      const plugin = constructPlugin(null, null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.route53 = new aws.Route53();
@@ -255,7 +272,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin('', null, true);
+      const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.route53 = new aws.Route53();
@@ -272,7 +289,7 @@ describe('Custom Domain Plugin', () => {
     it('If a certificate cannot be found when a name is given', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin('', 'does_not_exist', true);
+      const plugin = constructPlugin('', 'does_not_exist', true, true);
 
       return plugin.getCertArn().then(() => {
         throw new Error('Test has failed. getCertArn did not catch errors.');
@@ -280,6 +297,65 @@ describe('Custom Domain Plugin', () => {
         const expectedErrorMessage = 'Could not find the certificate does_not_exist';
         expect(err.message).to.equal(expectedErrorMessage);
       });
+    });
+
+    it('Fail getHostedZone', () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'no_hosted_zone', Id: 'test_id' }] });
+      });
+
+      const plugin = constructPlugin();
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      return plugin.getHostedZoneId().then(() => {
+        throw new Error('Test has failed, getHostedZone did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'Error: Could not find hosted zone. Unable to retrieve Route53 hosted zone id.';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    it('Domain summary failed', () => {
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(null, null);
+      });
+      const plugin = constructPlugin(null, null, true, false);
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      return plugin.domainSummary().then(() => {
+        // check if distribution domain name is printed
+      }).catch((err) => {
+        const expectedErrorMessage = "TypeError: Cannot read property 'distributionDomainName' of null Domain manager summary logging failed.";
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    afterEach(() => {
+      AWS.restore();
+    });
+  });
+
+  describe('Summary Printing', () => {
+    it('Prints Summary', () => {
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(null, { domainName: params, distributionDomainName: 'test_distributed_domain_name' });
+      });
+      const plugin = constructPlugin('', null, true, true);
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+
+      return plugin.domainSummary().then((data) => {
+        expect(data).to.equal(true);
+      }).catch(() => {
+        throw new Error('Test has failed, domainSummary threw an error');
+      });
+    });
+
+    afterEach(() => {
+      AWS.restore();
     });
   });
 });

@@ -71,7 +71,8 @@ class ServerlessCustomDomain {
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
     const firstDotPosition = this.givenDomainName.indexOf('.');
-    this.targetHostedZone = firstDotPosition === -1 ? this.givenDomainName : this.givenDomainName.substring(firstDotPosition + 1);
+    this.targetHostedZone = firstDotPosition === -1 ? this.givenDomainName
+      : this.givenDomainName.substring(firstDotPosition + 1);
   }
 
   setUpBasePathMapping() {

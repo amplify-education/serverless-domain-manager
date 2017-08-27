@@ -1,6 +1,7 @@
 'use strict';
 
 const AWS = require('aws-sdk');
+const chalk = require('chalk');
 
 class ServerlessCustomDomain {
 
@@ -31,6 +32,7 @@ class ServerlessCustomDomain {
       'create_domain:create': this.createDomain.bind(this),
       'before:package:initialize': this.initializeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
+      'after:deploy:deploy': this.domainSummary.bind(this),
     };
   }
 
@@ -45,9 +47,8 @@ class ServerlessCustomDomain {
 
   createDomain() {
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
-    const getHosedZoneId = this.getHostedZoneId();
-    return Promise.all([createDomainName, getHosedZoneId])
-      .then(values => this.changeResourceRecordSet(values[0], 'CREATE', values[1]))
+    return Promise.all([createDomainName])
+      .then(values => this.changeResourceRecordSet(values[0], 'CREATE'))
       .then(() => (this.serverless.cli.log('Domain was created, may take up to 40 mins to be initialized.')))
       .catch((err) => {
         throw new Error(`${err} ${this.givenDomainName} was not created.`);
@@ -79,6 +80,24 @@ class ServerlessCustomDomain {
       this.addResources(deploymentId);
     }).catch((err) => {
       throw new Error(`${err} Try running sls create_domain first.`);
+    });
+  }
+
+  /**
+   * Prints out a summary of all domain manager related info
+   */
+  domainSummary() {
+    return this.getDomain().then((data) => {
+      this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
+      if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+        this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
+        this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
+      }
+      this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
+      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
+      return true;
+    }).catch((err) => {
+      throw new Error(`${err} Domain manager summary logging failed.`);
     });
   }
 
@@ -223,6 +242,7 @@ class ServerlessCustomDomain {
 
   /*
    * Gets the HostedZoneId
+   * @return hostedZoneId or null if not found or access denied
    */
   getHostedZoneId() {
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
@@ -235,11 +255,17 @@ class ServerlessCustomDomain {
         hZoneName = hZoneName.substr(hostedZone.Name.length - 1) === '.' ? hZoneName.substr(0, hostedZone.Name.length - 1) : hZoneName;
         return (this.targetHostedZone === hZoneName);
       });
-      hostedZoneId = hostedZoneId.Id;
-      // Extracts the hostzone Id
-      const startPos = hostedZoneId.indexOf('e/') + 2;
-      const endPos = hostedZoneId.length;
-      return hostedZoneId.substring(startPos, endPos);
+      if (hostedZoneId) {
+        hostedZoneId = hostedZoneId.Id;
+        // Extracts the hostzone Id
+        const startPos = hostedZoneId.indexOf('e/') + 2;
+        const endPos = hostedZoneId.length;
+        return hostedZoneId.substring(startPos, endPos);
+      }
+      throw new Error('Could not find hosted zone.');
+    })
+    .catch((err) => {
+      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
     });
   }
 
@@ -256,7 +282,16 @@ class ServerlessCustomDomain {
       throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
     }
 
+    if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
+        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
+    }
+
     return this.getHostedZoneId().then((hostedZoneId) => {
+      if (!hostedZoneId) {
+        return null;
+      }
+
       const params = {
         ChangeBatch: {
           Changes: [
@@ -304,7 +339,6 @@ class ServerlessCustomDomain {
     const getDomainNameParams = {
       domainName: this.givenDomainName,
     };
-
     const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
     return getDomainPromise.then(data => (data), () => {
       throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);

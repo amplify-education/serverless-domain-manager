@@ -267,6 +267,63 @@ describe('Custom Domain Plugin', () => {
     });
   });
 
+  describe('Select Hosted Zone', () => {
+    it('Natural order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {HostedZones: [{ Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
+          { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_3' }]
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName("test.ccc.bbb.aaa.com");
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_2');
+    });
+
+    it('Reverse order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {HostedZones: [{ Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
+          { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }]
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName("test.ccc.bbb.aaa.com");
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_1');
+    });
+
+    it('Random order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {HostedZones: [{ Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }]
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName("test.ccc.bbb.aaa.com");
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_2');
+    });
+
+    afterEach(() => {
+      AWS.restore();
+    });
+  });
+
   describe('Error Catching', () => {
     it('If a certificate cannot be found when a name is given', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);

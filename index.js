@@ -70,9 +70,7 @@ class ServerlessCustomDomain {
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
     const firstDotPosition = this.givenDomainName.indexOf('.');
-    console.log("firstDotPosition = " + firstDotPosition);
     this.targetHostedZone = firstDotPosition === -1 ? this.givenDomainName : this.givenDomainName.substring(firstDotPosition + 1);
-    console.log("this.targetHostedZone = "+this.targetHostedZone);
   }
 
   setUpBasePathMapping() {
@@ -233,12 +231,10 @@ class ServerlessCustomDomain {
       // Gets the hostzone that contains the root of the custom domain name
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
-        hZoneName = hZoneName.substr(hostedZone.Name.length - 1) === '.' ? hZoneName.substr(0, hostedZone.Name.length - 1) : hZoneName;   // Takes out the . at the end
-        console.log("hZoneName = " + hZoneName);
-        console.log("targetHostedZone = " + this.targetHostedZone);
+        // Takes out the . at the end if there is one
+        hZoneName = hZoneName.substr(hostedZone.Name.length - 1) === '.' ? hZoneName.substr(0, hostedZone.Name.length - 1) : hZoneName;
         return (this.targetHostedZone === hZoneName);
       });
-      console.log("Found hostedZoneId = " + hostedZoneId);
       hostedZoneId = hostedZoneId.Id;
       // Extracts the hostzone Id
       const startPos = hostedZoneId.indexOf('e/') + 2;

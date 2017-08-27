@@ -18,7 +18,6 @@ const constructPlugin = (basepath, certName, stage, createRecord) => {
     cli: {
       log(params) { return params; },
       consoleLog(params) {
-        console.log(params);
         return params;
       },
     },

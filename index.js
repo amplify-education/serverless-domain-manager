@@ -143,19 +143,7 @@ class ServerlessCustomDomain {
       stage = service.provider.stage;
     }
 
-    // Creates the pathmapping
-    const pathmapping = {
-      Type: 'AWS::ApiGateway::BasePathMapping',
-      DependsOn: deployId,
-      Properties: {
-        BasePath: basePath,
-        DomainName: this.givenDomainName,
-        RestApiId: {
-          Ref: 'ApiGatewayRestApi',
-        },
-        Stage: stage,
-      },
-    };
+    const dependsOn = [deployId];
 
     // Verify the cloudFormationTemplate exists
     if (!service.provider.compiledCloudFormationTemplate) {
@@ -165,6 +153,25 @@ class ServerlessCustomDomain {
     if (!service.provider.compiledCloudFormationTemplate.Resources) {
       service.provider.compiledCloudFormationTemplate.Resources = {};
     }
+
+    // If user define an ApiGatewayStage resources add it into the dependsOn array
+    if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
+      dependsOn.push('ApiGatewayStage');
+    }
+
+    // Creates the pathmapping
+    const pathmapping = {
+      Type: 'AWS::ApiGateway::BasePathMapping',
+      DependsOn: dependsOn,
+      Properties: {
+        BasePath: basePath,
+        DomainName: this.givenDomainName,
+        RestApiId: {
+          Ref: 'ApiGatewayRestApi',
+        },
+        Stage: stage,
+      },
+    };
 
     // Creates and sets the resources
     service.provider.compiledCloudFormationTemplate.Resources.pathmapping = pathmapping;

@@ -70,9 +70,7 @@ class ServerlessCustomDomain {
 
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
-    const firstDotPosition = this.givenDomainName.indexOf('.');
-    this.targetHostedZone = firstDotPosition === -1 ? this.givenDomainName
-      : this.givenDomainName.substring(firstDotPosition + 1);
+    this.targetHostedZone = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
   }
 
   setUpBasePathMapping() {
@@ -253,7 +251,7 @@ class ServerlessCustomDomain {
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
         // Takes out the . at the end if there is one
-        hZoneName = hZoneName.substr(hostedZone.Name.length - 1) === '.' ? hZoneName.substr(0, hostedZone.Name.length - 1) : hZoneName;
+        hZoneName = hZoneName.endsWith('.') ? hZoneName.slice(0, -1) : hZoneName;
         return (this.targetHostedZone === hZoneName);
       });
       if (hostedZoneId) {

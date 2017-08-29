@@ -42,7 +42,7 @@ class ServerlessCustomDomain {
     AWS.config.update(awsCreds);
     this.apigateway = new AWS.APIGateway();
     this.route53 = new AWS.Route53();
-    this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
+    this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
   }
 
   createDomain() {
@@ -66,6 +66,11 @@ class ServerlessCustomDomain {
     }).catch((err) => {
       throw new Error(`${err} ${this.givenDomainName} was not deleted.`);
     });
+  }
+
+  setGivenDomainName(givenDomainName) {
+    this.givenDomainName = givenDomainName;
+    this.targetHostedZone = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
   }
 
   setUpBasePathMapping() {
@@ -252,8 +257,9 @@ class ServerlessCustomDomain {
       // Gets the hostzone that contains the root of the custom domain name
       let hostedZoneId = data.HostedZones.find((hostedZone) => {
         let hZoneName = hostedZone.Name;
-        hZoneName = hZoneName.substr(0, hostedZone.Name.length - 1);   // Takes out the . at the end
-        return this.givenDomainName.includes(hZoneName);
+        // Takes out the . at the end if there is one
+        hZoneName = hZoneName.endsWith('.') ? hZoneName.slice(0, -1) : hZoneName;
+        return (this.targetHostedZone === hZoneName);
       });
       if (hostedZoneId) {
         hostedZoneId = hostedZoneId.Id;

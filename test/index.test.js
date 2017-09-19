@@ -361,6 +361,77 @@ describe('Custom Domain Plugin', () => {
       expect(result).to.equal('test_id_2');
     });
 
+    it('Sub domain name - only root hosted zones', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('bar.foo.bbb.fr');
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_1');
+    });
+
+
+    it('Sub domain name - natural order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('bar.foo.bbb.fr');
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_3');
+    });
+
+    it('Sub domain name - reverse order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('bar.foo.bbb.fr');
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_3');
+    });
+
+    it('Sub domain name - random order', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('bar.foo.bbb.fr');
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_3');
+    });
+
     afterEach(() => {
       AWS.restore();
     });

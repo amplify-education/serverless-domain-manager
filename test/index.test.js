@@ -66,10 +66,14 @@ const constructPlugin = (basepath, certName, stage, createRecord) => {
 describe('Custom Domain Plugin', () => {
   it('check aws config', () => {
     const plugin = constructPlugin({}, 'tests', true, true);
+    expect(plugin.initialized).to.equal(false);
+
     plugin.initializeVariables();
+
     const returnedCreds = plugin.apigateway.config.credentials;
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+    expect(plugin.initialized).to.equal(true);
   });
 
   describe('Set Domain Name and Base Path', () => {

@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template to generate minimum required permissions to run serverless domain manager plugin
+
+Outputs:
+  ServerlessDomainManagerDeployPolicyArn:
+    Description: Serverless domain manager deployment iam policy arn
+    Value:
+      Ref: ServerlessDomainManagerDeployPolicy
+
+Parameters:
+  HostedZoneId:
+    AllowedPattern: '[A-Za-z0-9]+'
+    Description: ID of the hosted zone to grant permissions to
+    Type: String
+
+Resources:
+  ServerlessDomainManagerDeployPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - apigateway:POST
+            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames
+          - Effect: Allow
+            Action:
+              - apigateway:GET
+              - apigateway:DELETE
+            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
+          - Effect: Allow
+            Action:
+              - cloudfront:UpdateDistribution
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - route53:ListHostedZones
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - acm:ListCertificates
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - route53:ChangeResourceRecordSets
+              - route53:GetHostedZone
+              - route53:ListResourceRecordSets
+            Resource: !Sub arn:aws:route53:::hostedzone/${HostedZoneId}

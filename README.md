@@ -23,12 +23,20 @@ Make sure you have the following installed before starting:
 
 The IAM role that is deploying the lambda will need the following permissions:
 ```
-acm: ListCertificate
-apigateway: GET
-apigateway: POST
-route53: ListHostedZones
-route53: ChangeResourceRecordSets
+acm:ListCertificates                *
+apigateway:GET                      /domainnames/* 
+apigateway:DELETE                   /domainnames/*
+apigateway:POST                     /domainnames
+cloudfront:UpdateDistribution       *
+route53:ListHostedZones             *
+route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
+route53:GetHostedZone               hostedzone/{HostedZoneId}
+route53:ListResourceRecordSets      hostedzone/{HostedZoneId}
 ```
+### CloudFormation
+Alternatively you can generate an least privileged IAM Managed Policy for deployment with this:
+
+[deployment policy cloudformation template](scripts/cloudformation/serverless-domain-manager-deploy-policy.yaml)
 
 ## Installing
 ```

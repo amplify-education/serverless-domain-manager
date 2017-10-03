@@ -22,6 +22,8 @@ class ServerlessCustomDomain {
 
   constructor(serverless) {
     this.serverless = serverless;
+    // Indicate if variables are initialized to avoid run multiples init
+    this.initialized = false;
 
     this.commands = {
       create_domain: {
@@ -41,26 +43,29 @@ class ServerlessCustomDomain {
     };
 
     this.hooks = {
-      'delete_domain:initialize': this.initializeVariables.bind(this),
       'delete_domain:delete': this.deleteDomain.bind(this),
-      'create_domain:initialize': this.initializeVariables.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'before:package:initialize': this.initializeVariables.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
       'after:deploy:deploy': this.domainSummary.bind(this),
     };
   }
 
   initializeVariables() {
-    // Sets the credentials for AWS resources.
-    const awsCreds = this.serverless.providers.aws.getCredentials();
-    AWS.config.update(awsCreds);
-    this.apigateway = new AWS.APIGateway();
-    this.route53 = new AWS.Route53();
-    this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+    if (!this.initialized) {
+      // Sets the credentials for AWS resources.
+      const awsCreds = this.serverless.providers.aws.getCredentials();
+      AWS.config.update(awsCreds);
+      this.apigateway = new AWS.APIGateway();
+      this.route53 = new AWS.Route53();
+      this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+
+      this.initialized = true;
+    }
   }
 
   createDomain() {
+    this.initializeVariables();
+
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return Promise.all([createDomainName])
       .then(values => this.changeResourceRecordSet(values[0], 'CREATE'))
@@ -71,6 +76,8 @@ class ServerlessCustomDomain {
   }
 
   deleteDomain() {
+    this.initializeVariables();
+
     return this.getDomain().then((data) => {
       const promises = [
         this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
@@ -89,6 +96,8 @@ class ServerlessCustomDomain {
   }
 
   setUpBasePathMapping() {
+    this.initializeVariables();
+
     return this.getDomain().then(() => {
       const deploymentId = this.getDeploymentId();
       this.addResources(deploymentId);
@@ -101,6 +110,8 @@ class ServerlessCustomDomain {
    * Prints out a summary of all domain manager related info
    */
   domainSummary() {
+    this.initializeVariables();
+
     return this.getDomain().then((data) => {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
       if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {

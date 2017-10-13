@@ -3,21 +3,6 @@
 const AWS = require('aws-sdk');
 const chalk = require('chalk');
 
-/**
- * Private function used to sort hosted zones
- * @param hostedZoneFromAWS the result of listHostedZones api call
- * @returns same structure as parameter with the property "HostedZone" sorted in reverse order
- */
-function sortHostedZone(hostedZoneFromAWS) {
-  const sortedHostedZones = hostedZoneFromAWS.HostedZones.sort((hostedZone1, hostedZone2) => {
-    if (hostedZone1.Name < hostedZone2.Name) { return -1; }
-    if (hostedZone1.Name > hostedZone2.Name) { return 1; }
-    return 0;
-  });
-
-  return Object.assign({}, hostedZoneFromAWS, { HostedZone: sortedHostedZones.reverse() });
-}
-
 class ServerlessCustomDomain {
 
   constructor(serverless) {
@@ -279,18 +264,19 @@ class ServerlessCustomDomain {
   getHostedZoneId() {
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
 
-    return hostedZonePromise.then(sortHostedZone)
+    return hostedZonePromise
       .then((data) => {
-        // Gets the hostzone that contains the root of the custom domain name
-        let hostedZoneId = data.HostedZones.find((hostedZone) => {
-          let hZoneName = hostedZone.Name;
-          // Takes out the . at the end if there is one
-          hZoneName = hZoneName.endsWith('.') ? hZoneName.slice(0, -1) : hZoneName;
-          return (this.targetHostedZone || '').endsWith(hZoneName);
-        });
+        // Gets the hostzone that is closest match to the custom domain name
+        const targetHostedZone = data.HostedZones
+          .filter((hostedZone) => {
+            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
+            return (this.targetHostedZone || '').endsWith(hostedZoneName);
+          })
+          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+          .shift();
 
-        if (hostedZoneId) {
-          hostedZoneId = hostedZoneId.Id;
+        if (targetHostedZone) {
+          const hostedZoneId = targetHostedZone.Id;
           // Extracts the hostzone Id
           const startPos = hostedZoneId.indexOf('e/') + 2;
           const endPos = hostedZoneId.length;

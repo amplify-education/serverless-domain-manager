@@ -382,6 +382,21 @@ describe('Custom Domain Plugin', () => {
       expect(result).to.equal('test_id_1');
     });
 
+    it('With matching root and sub hosted zone', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [
+          { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('test.a.aaa.com');
+
+      const result = await plugin.getHostedZoneId();
+      expect(result).to.equal('test_id_0');
+    });
 
     it('Sub domain name - natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {

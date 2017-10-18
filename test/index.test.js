@@ -477,7 +477,7 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin();
       plugin.route53 = new aws.Route53();
-      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
       return plugin.getHostedZoneId().then(() => {
         throw new Error('Test has failed, getHostedZone did not catch errors.');

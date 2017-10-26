@@ -32,6 +32,7 @@ class ServerlessCustomDomain {
       'create_domain:create': this.createDomain.bind(this),
       'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
       'after:deploy:deploy': this.domainSummary.bind(this),
+      'after:info:info': this.domainSummary.bind(this),
     };
   }
 

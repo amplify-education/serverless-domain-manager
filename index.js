@@ -197,9 +197,13 @@ class ServerlessCustomDomain {
       region: 'us-east-1',
     });       // us-east-1 is the only region that can be accepted (3/21)
 
-    const certArn = acm.listCertificates().promise();
+    const certArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
     return certArn.then((data) => {
+      if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
+        this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Valid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
+      }
+
       // The more specific name will be the longest
       let nameLength = 0;
       // The arn of the choosen certificate
@@ -240,6 +244,60 @@ class ServerlessCustomDomain {
         throw Error(`Could not find the certificate ${certificateName}`);
       }
       return certificateArn;
+    }).catch((err) => {
+      // No cert found in the ISSUED status. Let's look through certs in all other statuses.
+      const invalidCertArn = acm.listCertificates({ CertificateStatuses: [
+        'PENDING_VALIDATION',
+        'INACTIVE',
+        'EXPIRED',
+        'VALIDATION_TIMED_OUT',
+        'REVOKED',
+        'FAILED',
+      ] }).promise();
+
+      return invalidCertArn.then((data) => {
+        if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
+          this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Invalid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
+        }
+
+        // The more specific name will be the longest
+        let nameLength = 0;
+        // The certificate name
+        let certificateName = this.serverless.service.custom.customDomain.certificateName;
+
+
+        // Checks if a certificate name is given
+        if (certificateName != null) {
+          const foundCertificate = data.CertificateSummaryList
+            .find(certificate => (certificate.DomainName === certificateName));
+
+          if (foundCertificate != null) {
+            throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
+          }
+        } else {
+          certificateName = this.givenDomainName;
+          data.CertificateSummaryList.forEach((certificate) => {
+            let certificateListName = certificate.DomainName;
+
+            // Looks for wild card and takes it out when checking
+            if (certificateListName[0] === '*') {
+              certificateListName = certificateListName.substr(1);
+            }
+
+            // Looks to see if the name in the list is within the given domain
+            // Also checks if the name is more specific than previous ones
+            if (certificateName.includes(certificateListName)
+              && certificateListName.length > nameLength) {
+              nameLength = certificateListName.length;
+              throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
+            }
+          });
+        }
+        throw Error(`Could not find the certificate ${certificateName}`);
+      }, () => {
+        // rethrow the original error
+        throw err;
+      });
     });
   }
 
@@ -285,9 +343,9 @@ class ServerlessCustomDomain {
         }
         throw new Error('Could not find hosted zone.');
       })
-    .catch((err) => {
-      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
-    });
+      .catch((err) => {
+        throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
+      });
   }
 
   /**

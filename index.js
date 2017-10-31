@@ -190,6 +190,52 @@ class ServerlessCustomDomain {
   }
 
   /*
+   * Look through list of certs and see if any match the one we are looking for
+   */
+  findClosetCertificate(data) {
+    // The more specific name will be the longest
+    let nameLength = 0;
+    // The arn of the choosen certificate
+    let certificateArn;
+    // The certificate name
+    let certificateName = this.serverless.service.custom.customDomain.certificateName;
+
+
+    // Checks if a certificate name is given
+    if (certificateName != null) {
+      const foundCertificate = data.CertificateSummaryList
+        .find(certificate => (certificate.DomainName === certificateName));
+
+      if (foundCertificate != null) {
+        certificateArn = foundCertificate.CertificateArn;
+      }
+    } else {
+      certificateName = this.givenDomainName;
+      data.CertificateSummaryList.forEach((certificate) => {
+        let certificateListName = certificate.DomainName;
+
+        // Looks for wild card and takes it out when checking
+        if (certificateListName[0] === '*') {
+          certificateListName = certificateListName.substr(1);
+        }
+
+        // Looks to see if the name in the list is within the given domain
+        // Also checks if the name is more specific than previous ones
+        if (certificateName.includes(certificateListName)
+          && certificateListName.length > nameLength) {
+          nameLength = certificateListName.length;
+          certificateArn = certificate.CertificateArn;
+        }
+      });
+    }
+
+    if (certificateArn == null) {
+      throw Error(`Could not find the certificate ${certificateName}`);
+    }
+    return certificateArn;
+  }
+
+  /*
    * Obtains the certification arn
    */
   getCertArn() {
@@ -197,107 +243,44 @@ class ServerlessCustomDomain {
       region: 'us-east-1',
     });       // us-east-1 is the only region that can be accepted (3/21)
 
-    const certArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
+    const issuedCertArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
-    return certArn.then((data) => {
+    return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
         this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Valid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
       }
-
-      // The more specific name will be the longest
-      let nameLength = 0;
-      // The arn of the choosen certificate
-      let certificateArn;
-      // The certificate name
-      let certificateName = this.serverless.service.custom.customDomain.certificateName;
-
-
-      // Checks if a certificate name is given
-      if (certificateName != null) {
-        const foundCertificate = data.CertificateSummaryList
-          .find(certificate => (certificate.DomainName === certificateName));
-
-        if (foundCertificate != null) {
-          certificateArn = foundCertificate.CertificateArn;
-        }
-      } else {
-        certificateName = this.givenDomainName;
-        data.CertificateSummaryList.forEach((certificate) => {
-          let certificateListName = certificate.DomainName;
-
-          // Looks for wild card and takes it out when checking
-          if (certificateListName[0] === '*') {
-            certificateListName = certificateListName.substr(1);
-          }
-
-          // Looks to see if the name in the list is within the given domain
-          // Also checks if the name is more specific than previous ones
-          if (certificateName.includes(certificateListName)
-            && certificateListName.length > nameLength) {
-            nameLength = certificateListName.length;
-            certificateArn = certificate.CertificateArn;
-          }
-        });
-      }
-
-      if (certificateArn == null) {
-        throw Error(`Could not find the certificate ${certificateName}`);
-      }
-      return certificateArn;
+      return this.findClosetCertificate(data);
     }).catch((err) => {
       // No cert found in the ISSUED status. Let's look through certs in all other statuses.
-      const invalidCertArn = acm.listCertificates({ CertificateStatuses: [
-        'PENDING_VALIDATION',
-        'INACTIVE',
-        'EXPIRED',
-        'VALIDATION_TIMED_OUT',
-        'REVOKED',
-        'FAILED',
-      ] }).promise();
+      const certArn = acm.listCertificates().promise();
 
-      return invalidCertArn.then((data) => {
+      return certArn.then((data) => {
         if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
-          this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Invalid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
+          this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
         }
 
-        // The more specific name will be the longest
-        let nameLength = 0;
-        // The certificate name
-        let certificateName = this.serverless.service.custom.customDomain.certificateName;
-
-
-        // Checks if a certificate name is given
-        if (certificateName != null) {
-          const foundCertificate = data.CertificateSummaryList
-            .find(certificate => (certificate.DomainName === certificateName));
-
-          if (foundCertificate != null) {
-            throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
-          }
-        } else {
-          certificateName = this.givenDomainName;
-          data.CertificateSummaryList.forEach((certificate) => {
-            let certificateListName = certificate.DomainName;
-
-            // Looks for wild card and takes it out when checking
-            if (certificateListName[0] === '*') {
-              certificateListName = certificateListName.substr(1);
-            }
-
-            // Looks to see if the name in the list is within the given domain
-            // Also checks if the name is more specific than previous ones
-            if (certificateName.includes(certificateListName)
-              && certificateListName.length > nameLength) {
-              nameLength = certificateListName.length;
-              throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
-            }
-          });
-        }
-        throw Error(`Could not find the certificate ${certificateName}`);
+        this.findClosetCertificate();
       }, () => {
         // rethrow the original error
         throw err;
-      });
+      })
+        .then((certificateArn) => {
+          const certificateName = this.serverless.service.custom.customDomain.certificateName;
+
+          // The cert was found in an invalid status. Let's get the actual status.
+          const describeCert = acm.describeCertificate({
+            CertificateArn: certificateArn,
+          }).promise();
+
+          return describeCert.then((data) => {
+            throw Error(`The certificate ${certificateName} was found with a "${data.Certificate.Status}" status but was expecting "ISSUED" status`);
+          }).catch(() => {
+            throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
+          });
+        }, () => {
+          // rethrow the original error
+          throw err;
+        });
     });
   }
 
@@ -362,7 +345,7 @@ class ServerlessCustomDomain {
     }
 
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
-        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      && this.serverless.service.custom.customDomain.createRoute53Record === false) {
       return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 

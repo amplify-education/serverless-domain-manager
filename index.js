@@ -256,7 +256,7 @@ class ServerlessCustomDomain {
           this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
         }
 
-        this.findClosestCertificate();
+        return this.findClosestCertificate();
       }, () => {
         // rethrow the original error
         throw err;
@@ -274,9 +274,6 @@ class ServerlessCustomDomain {
           }).catch(() => {
             throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
           });
-        }, () => {
-          // rethrow the original error
-          throw err;
         });
     });
   }

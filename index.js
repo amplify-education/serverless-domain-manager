@@ -192,12 +192,9 @@ class ServerlessCustomDomain {
   /*
    * Look through list of certs and see if any match the one we are looking for
    */
-  findClosetCertificate(data) {
-    // The more specific name will be the longest
+  findClosestCertificate(data) {
     let nameLength = 0;
-    // The arn of the choosen certificate
     let certificateArn;
-    // The certificate name
     let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
 
@@ -249,7 +246,7 @@ class ServerlessCustomDomain {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
         this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Valid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
       }
-      return this.findClosetCertificate(data);
+      return this.findClosestCertificate(data);
     }).catch((err) => {
       // No cert found in the ISSUED status. Let's look through certs in all other statuses.
       const certArn = acm.listCertificates().promise();
@@ -259,7 +256,7 @@ class ServerlessCustomDomain {
           this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
         }
 
-        this.findClosetCertificate();
+        this.findClosestCertificate();
       }, () => {
         // rethrow the original error
         throw err;

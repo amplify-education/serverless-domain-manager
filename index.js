@@ -240,7 +240,7 @@ class ServerlessCustomDomain {
       region: 'us-east-1',
     });       // us-east-1 is the only region that can be accepted (3/21)
 
-    const issuedCertArn = acm.listCertificates({CertificateStatuses: ['ISSUED']}).promise();
+    const issuedCertArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
     return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {

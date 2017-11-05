@@ -194,7 +194,7 @@ class ServerlessCustomDomain {
    */
   findClosestCertificate(data) {
     let nameLength = 0;
-    let certificateArn;
+    let certificateArn = null;
     let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
 
@@ -240,7 +240,7 @@ class ServerlessCustomDomain {
       region: 'us-east-1',
     });       // us-east-1 is the only region that can be accepted (3/21)
 
-    const issuedCertArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
+    const issuedCertArn = acm.listCertificates({CertificateStatuses: ['ISSUED']}).promise();
 
     return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
@@ -256,25 +256,24 @@ class ServerlessCustomDomain {
           this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
         }
 
-        return this.findClosestCertificate();
-      }, () => {
+        return this.findClosestCertificate(data);
+      }).catch(() => {
         // rethrow the original error
         throw err;
-      })
-        .then((certificateArn) => {
-          const certificateName = this.serverless.service.custom.customDomain.certificateName;
+      }).then((certificateArn) => {
+        const certificateName = this.serverless.service.custom.customDomain.certificateName;
 
-          // The cert was found in an invalid status. Let's get the actual status.
-          const describeCert = acm.describeCertificate({
-            CertificateArn: certificateArn,
-          }).promise();
+        // The cert was found in an invalid status. Let's get the actual status.
+        const describeCert = acm.describeCertificate({
+          CertificateArn: certificateArn,
+        }).promise();
 
-          return describeCert.then((data) => {
-            throw Error(`The certificate ${certificateName} was found with a "${data.Certificate.Status}" status but was expecting "ISSUED" status`);
-          }).catch(() => {
-            throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
-          });
+        return describeCert.then((data) => {
+          throw Error(`The certificate ${certificateName} was found with a "${data.Certificate.Status}" status but was expecting "ISSUED" status`);
+        }, () => {
+          throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
         });
+      });
     });
   }
 

@@ -199,10 +199,10 @@ class ServerlessCustomDomain {
       service.provider.compiledCloudFormationTemplate.Outputs = {};
     }
     service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
-      Value: data.domainName
+      Value: data.domainName,
     };
     service.provider.compiledCloudFormationTemplate.Outputs.DistributionDomainName = {
-      Value: data.distributionDomainName
+      Value: data.distributionDomainName,
     };
   }
 

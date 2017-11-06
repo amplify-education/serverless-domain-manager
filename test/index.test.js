@@ -92,7 +92,7 @@ describe('Custom Domain Plugin', () => {
     });
 
     it('Add Domain Name and Distribution Name to stack output', () => {
-      plugin.addOutputs( {'domainName': 'fake_domain', 'distributionDomainName' : 'fake_dist_name'} );
+      plugin.addOutputs({ domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -262,7 +262,7 @@ describe('Custom Domain Plugin', () => {
   describe('Hook Methods', () => {
     it('setupBasePathMapping', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
-        callback(null, { 'domainName': 'fake_domain', 'distributionDomainName': 'fake_dist_name'});
+        callback(null, { domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
       });
       const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();

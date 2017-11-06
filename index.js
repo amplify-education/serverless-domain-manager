@@ -84,9 +84,10 @@ class ServerlessCustomDomain {
   setUpBasePathMapping() {
     this.initializeVariables();
 
-    return this.getDomain().then(() => {
+    return this.getDomain().then((data) => {
       const deploymentId = this.getDeploymentId();
       this.addResources(deploymentId);
+      this.addOutputs(data);
     }).catch((err) => {
       throw new Error(`${err} Try running sls create_domain first.`);
     });
@@ -187,6 +188,22 @@ class ServerlessCustomDomain {
 
     // Creates and sets the resources
     service.provider.compiledCloudFormationTemplate.Resources.pathmapping = pathmapping;
+  }
+
+  /**
+   *  Adds the domain name and distribution domain name to the CloudFormation outputs
+   */
+  addOutputs(data) {
+    const service = this.serverless.service;
+    if (!service.provider.compiledCloudFormationTemplate.Outputs) {
+      service.provider.compiledCloudFormationTemplate.Outputs = {};
+    }
+    service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
+      Value: data.domainName,
+    };
+    service.provider.compiledCloudFormationTemplate.Outputs.DistributionDomainName = {
+      Value: data.distributionDomainName,
+    };
   }
 
   /*

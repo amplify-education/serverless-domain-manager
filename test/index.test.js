@@ -91,6 +91,12 @@ describe('Custom Domain Plugin', () => {
       expect(cfTemplat).to.not.equal(undefined);
     });
 
+    it('Add Domain Name and Distribution Name to stack output', () => {
+      plugin.addOutputs({ domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
+      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      expect(cfTemplat).to.not.equal(undefined);
+    });
+
     it('(none) is added if empty basepath is given', () => {
       const emptyPlugin = constructPlugin('', null, true, true);
       emptyPlugin.addResources(deploymentId);
@@ -256,15 +262,16 @@ describe('Custom Domain Plugin', () => {
   describe('Hook Methods', () => {
     it('setupBasePathMapping', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
-        callback(null, params);
+        callback(null, { domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
       });
       const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
       await plugin.setUpBasePathMapping();
-      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      expect(cfTemplat).to.not.equal(undefined);
+      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate;
+      expect(cfTemplat.Resources).to.not.equal(undefined);
+      expect(cfTemplat.Outputs).to.not.equal(undefined);
     });
 
     it('deleteDomain', async () => {

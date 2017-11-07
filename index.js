@@ -3,6 +3,8 @@
 const AWS = require('aws-sdk');
 const chalk = require('chalk');
 
+const SUPPORTED_ENDPOINT_TYPES = ['EDGE', 'REGIONAL'];
+
 class ServerlessCustomDomain {
 
   constructor(serverless, options) {
@@ -84,7 +86,8 @@ class ServerlessCustomDomain {
     this.targetHostedZoneName = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
   }
 
-  setEndpointType(endpointType) {
+  setEndpointType(endpointType = 'EDGE') {
+    if (!SUPPORTED_ENDPOINT_TYPES.includes(endpointType)) throw new Error(`${endpointType} is not supported endpointType, use EDGE or REGIONAL.`)
     this.endpointType = endpointType || 'EDGE';
   }
 
@@ -203,9 +206,9 @@ class ServerlessCustomDomain {
     service.provider.compiledCloudFormationTemplate.Resources.pathmapping = pathmapping;
   }
 
-    /**
-   *  Adds the domain name and distribution domain name to the CloudFormation outputs
-   */
+  /**
+ *  Adds the domain name and distribution domain name to the CloudFormation outputs
+ */
   addOutputs(data) {
     const service = this.serverless.service;
     if (!service.provider.compiledCloudFormationTemplate.Outputs) {

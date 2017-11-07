@@ -84,11 +84,11 @@ class ServerlessCustomDomain {
   }
 
   setEndpointType(endpointType) {
-    this.endpointType = endpointType ? endpointType : 'EDGE';
+    this.endpointType = endpointType || 'EDGE';
   }
 
   setAcmRegion(region) {
-    this.acmRegion = region ? region : 'us-east-1';
+    this.acmRegion = region || 'us-east-1';
   }
 
   setUpBasePathMapping() {
@@ -281,8 +281,8 @@ class ServerlessCustomDomain {
     const createDomainNameParams = {
       domainName: this.givenDomainName,
       endpointConfiguration: {
-        types: [this.endpointType]
-      }
+        types: [this.endpointType],
+      },
     };
 
     if (this.endpointType === 'EDGE') {

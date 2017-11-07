@@ -319,6 +319,10 @@ class ServerlessCustomDomain {
    *                  The CNAME is specified in the serverless file under domainName
    */
   changeResourceRecordSet(distributionDomainName, action) {
+    /* Constant for the hosted zone of API Gateway CloudFront distributions.
+       <http://docs.aws.amazon.com/general/latest/gr/rande.html#cf_region> */
+    const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
+
     if (action !== 'DELETE' && action !== 'CREATE') {
       throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
     }
@@ -340,17 +344,16 @@ class ServerlessCustomDomain {
               Action: action,
               ResourceRecordSet: {
                 Name: this.givenDomainName,
-                ResourceRecords: [
-                  {
-                    Value: distributionDomainName,
-                  },
-                ],
-                TTL: 60,
-                Type: 'CNAME',
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: distributionDomainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: cloudfrontHostedZoneID,
+                },
               },
             },
           ],
-          Comment: 'Created from Serverless Custom Domain Name',
+          Comment: 'Record created by serverless-domain-manager',
         },
         HostedZoneId: hostedZoneId,
       };

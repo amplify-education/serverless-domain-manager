@@ -400,9 +400,9 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - only root hosted zones', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
         });
       });
 
@@ -417,8 +417,8 @@ describe('Custom Domain Plugin', () => {
     it('With matching root and sub hosted zone', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-            { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
+          { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
         });
       });
 
@@ -433,10 +433,10 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
         });
       });
 
@@ -451,10 +451,10 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - reverse order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
         });
       });
 
@@ -469,9 +469,9 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - random order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
+          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
         });
       });
 

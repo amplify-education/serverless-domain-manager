@@ -13,54 +13,57 @@ const testCreds = {
   secretAccessKey: 'test_secret',
   sessionToken: 'test_session',
 };
-const constructPlugin = (basepath, certName, stage, createRecord) => {
-  const serverless = {
-    cli: {
-      log(params) { return params; },
-      consoleLog(params) {
-        return params;
+const constructPlugin =
+  (basepath, certName, stage, createRecord, endpointType, certificateRegion) => {
+    const serverless = {
+      cli: {
+        log(params) { return params; },
+        consoleLog(params) {
+          return params;
+        },
       },
-    },
-    providers: {
-      aws: {
-        getCredentials: () => new aws.Credentials(testCreds),
+      providers: {
+        aws: {
+          getCredentials: () => new aws.Credentials(testCreds),
+        },
       },
-    },
-    service: {
-      provider: {
-        region: 'us-moon-1',
-        compiledCloudFormationTemplate: {
-          Resources: {
-            Deployment0: {
-              Type: 'AWS::ApiGateway::Deployment',
+      service: {
+        provider: {
+          region: 'us-moon-1',
+          compiledCloudFormationTemplate: {
+            Resources: {
+              Deployment0: {
+                Type: 'AWS::ApiGateway::Deployment',
+              },
             },
           },
+          stage: 'providerStage',
         },
-        stage: 'providerStage',
-      },
-      custom: {
-        customDomain: {
-          basePath: basepath,
-          domainName: 'test_domain',
+        custom: {
+          customDomain: {
+            basePath: basepath,
+            domainName: 'test_domain',
+            endpointType,
+            certificateRegion,
+          },
         },
       },
-    },
+    };
+
+    if (certName) {
+      serverless.service.custom.customDomain.certificateName = certName;
+    }
+
+    if (stage) {
+      serverless.service.custom.customDomain.stage = 'test';
+    }
+
+    if (!createRecord) {
+      serverless.service.custom.customDomain.createRoute53Record = createRecord;
+    }
+
+    return new ServerlessCustomDomain(serverless, {});
   };
-
-  if (certName) {
-    serverless.service.custom.customDomain.certificateName = certName;
-  }
-
-  if (stage) {
-    serverless.service.custom.customDomain.stage = 'test';
-  }
-
-  if (!createRecord) {
-    serverless.service.custom.customDomain.createRoute53Record = createRecord;
-  }
-
-  return new ServerlessCustomDomain(serverless, {});
-};
 
 
 describe('Custom Domain Plugin', () => {
@@ -74,6 +77,22 @@ describe('Custom Domain Plugin', () => {
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
     expect(plugin.initialized).to.equal(true);
+  });
+
+  describe('Domain Endpoint types', () => {
+    it('Unsupported endpoint types throw exception', () => {
+      const plugin = constructPlugin({}, 'tests', true, true, 'notSupported');
+      expect(plugin.initialized).to.equal(false);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal('notSupported is not supported endpointType, use EDGE or REGIONAL.');
+      }
+      expect(errored).to.equal(true);
+    });
   });
 
   describe('Set Domain Name and Base Path', () => {
@@ -91,8 +110,12 @@ describe('Custom Domain Plugin', () => {
       expect(cfTemplat).to.not.equal(undefined);
     });
 
-    it('Add Domain Name and Distribution Name to stack output', () => {
-      plugin.addOutputs({ domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
+    it('Add Domain Name, Distribution Name and Regional Name to stack output', () => {
+      plugin.addOutputs({
+        domainName: 'fake_domain',
+        distributionDomainName: 'fake_dist_name',
+        regionalDomainName: 'fake_regional_name',
+      });
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -118,6 +141,8 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin('', null, true, true);
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
+
+      plugin.setEndpointType('REGIONAL');
 
       const result = await plugin.getCertArn();
 
@@ -375,9 +400,9 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - only root hosted zones', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
         });
       });
 
@@ -392,8 +417,8 @@ describe('Custom Domain Plugin', () => {
     it('With matching root and sub hosted zone', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-          { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
+            { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
         });
       });
 
@@ -408,10 +433,10 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
         });
       });
 
@@ -426,10 +451,10 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - reverse order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
         });
       });
 
@@ -444,9 +469,9 @@ describe('Custom Domain Plugin', () => {
     it('Sub domain name - random order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
         });
       });
 

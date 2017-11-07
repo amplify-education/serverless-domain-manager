@@ -44,6 +44,8 @@ class ServerlessCustomDomain {
       this.apigateway = new AWS.APIGateway();
       this.route53 = new AWS.Route53();
       this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+      this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
+      this.setAcmRegion(this.serverless.service.custom.customDomain.certificateRegion);
 
       this.initialized = true;
     }
@@ -79,6 +81,14 @@ class ServerlessCustomDomain {
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
     this.targetHostedZoneName = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
+  }
+
+  setEndpointType(endpointType) {
+    this.endpointType = endpointType ? endpointType : 'EDGE';
+  }
+
+  setAcmRegion(region) {
+    this.acmRegion = region ? region : 'us-east-1';
   }
 
   setUpBasePathMapping() {
@@ -190,7 +200,7 @@ class ServerlessCustomDomain {
     service.provider.compiledCloudFormationTemplate.Resources.pathmapping = pathmapping;
   }
 
-  /**
+    /**
    *  Adds the domain name and distribution domain name to the CloudFormation outputs
    */
   addOutputs(data) {
@@ -204,6 +214,9 @@ class ServerlessCustomDomain {
     service.provider.compiledCloudFormationTemplate.Outputs.DistributionDomainName = {
       Value: data.distributionDomainName,
     };
+    service.provider.compiledCloudFormationTemplate.Outputs.RegionalDomainName = {
+      Value: data.regionalDomainName,
+    };
   }
 
   /*
@@ -211,8 +224,8 @@ class ServerlessCustomDomain {
    */
   getCertArn() {
     const acm = new AWS.ACM({
-      region: 'us-east-1',
-    });       // us-east-1 is the only region that can be accepted (3/21)
+      region: this.acmRegion,
+    });
 
     const certArn = acm.listCertificates().promise();
 
@@ -267,12 +280,21 @@ class ServerlessCustomDomain {
   createDomainName(givenCertificateArn) {
     const createDomainNameParams = {
       domainName: this.givenDomainName,
-      certificateArn: givenCertificateArn,
+      endpointConfiguration: {
+        types: [this.endpointType]
+      }
     };
 
-    // This will return the distributionDomainName (used in changeResourceRecordSet)
+    if (this.endpointType === 'EDGE') {
+      createDomainNameParams.certificateArn = givenCertificateArn;
+    } else {
+      createDomainNameParams.regionalCertificateArn = givenCertificateArn;
+    }
+
+
+    // This will return the domain name (used in changeResourceRecordSet)
     const createDomain = this.apigateway.createDomainName(createDomainNameParams).promise();
-    return createDomain.then(data => data.distributionDomainName);
+    return createDomain.then(data => data.distributionDomainName || data.regionalDomainName);
   }
 
   /*
@@ -302,9 +324,9 @@ class ServerlessCustomDomain {
         }
         throw new Error('Could not find hosted zone.');
       })
-    .catch((err) => {
-      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
-    });
+      .catch((err) => {
+        throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
+      });
   }
 
   /**
@@ -321,7 +343,7 @@ class ServerlessCustomDomain {
     }
 
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
-        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      && this.serverless.service.custom.customDomain.createRoute53Record === false) {
       return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 

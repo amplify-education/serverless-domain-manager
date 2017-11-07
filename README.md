@@ -59,6 +59,8 @@ custom:
     stage:
     certificateName:
     createRoute53Record: true
+    endpointType:
+    certificateRegion:
 ```
 For example:
 ```yaml
@@ -67,10 +69,16 @@ custom:
     basePath: "dev"
     domainName: serverless.foo.com
     stage: dev
+    endpointType: 'REGIONAL'
+    certificateRegion: 'eu-west-1'
+
 ```
-If certificateName is not provided, the certificate will be chosen using the domain name.
-If certificateName is blank, an error will be thrown.
-If createRoute53Record is blank or not provided, it defaults to true.
+If certificateName is not provided, the certificate will be chosen using the domain name.  
+If certificateName is blank, an error will be thrown.  
+If createRoute53Record is blank or not provided, it defaults to true.  
+`endpointType` - accepts the values `REGIONAL` and `EDGE`. default is `EDGE`.
+`certificateRegion` - The region of the acm certificate, should be used only if `endpointType` is `REGIONAL`.  
+If `endpointType` is `EDGE` it looks for certificates only in `us-east-1`
 
 ## Running
 
@@ -105,7 +113,6 @@ npm install
 
 # Known Issues
 * (5/23/2017) CloudFormation does not support changing the base path from empty to something or vice a versa. You must run `sls remove` to remove the base path mapping.
-* (5/23/2017) Amazon Certificate Manager only allows certificates from the `us-east-1` region certificates for use with CloudFront, and by extension, API Gateway Custom Domains (Results in a BadRequestException: Certificate name must be specified...).
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

@@ -5,8 +5,9 @@ const chalk = require('chalk');
 
 class ServerlessCustomDomain {
 
-  constructor(serverless) {
+  constructor(serverless, options) {
     this.serverless = serverless;
+    this.options = options;
     // Indicate if variables are initialized to avoid run multiples init
     this.initialized = false;
 
@@ -160,10 +161,12 @@ class ServerlessCustomDomain {
     }
 
     let stage = service.custom.customDomain.stage;
-
-    // If stage is not provided, stage will be set based on the provider.
+    /*
+    If stage is not provided, stage will be set based on the user specified value
+    or the stage value of the provider section (which defaults to dev if unset)
+    */
     if (typeof stage === 'undefined') {
-      stage = service.provider.stage;
+      stage = this.options.stage || service.provider.stage;
     }
 
     const dependsOn = [deployId];

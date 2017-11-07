@@ -88,11 +88,11 @@ class ServerlessCustomDomain {
 
   setEndpointType(endpointType = 'EDGE') {
     if (!SUPPORTED_ENDPOINT_TYPES.includes(endpointType)) throw new Error(`${endpointType} is not supported endpointType, use EDGE or REGIONAL.`);
-    this.endpointType = endpointType || 'EDGE';
+    this.endpointType = endpointType;
   }
 
-  setAcmRegion(region) {
-    this.acmRegion = region || 'us-east-1';
+  setAcmRegion(region = 'us-east-1') {
+    this.acmRegion = region;
   }
 
   setUpBasePathMapping() {

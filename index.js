@@ -87,7 +87,7 @@ class ServerlessCustomDomain {
   }
 
   setEndpointType(endpointType = 'EDGE') {
-    if (!SUPPORTED_ENDPOINT_TYPES.includes(endpointType)) throw new Error(`${endpointType} is not supported endpointType, use EDGE or REGIONAL.`)
+    if (!SUPPORTED_ENDPOINT_TYPES.includes(endpointType)) throw new Error(`${endpointType} is not supported endpointType, use EDGE or REGIONAL.`);
     this.endpointType = endpointType || 'EDGE';
   }
 

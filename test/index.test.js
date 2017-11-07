@@ -150,7 +150,7 @@ describe('Custom Domain Plugin', () => {
     });
 
 
-    it('Create a new CNAME', async () => {
+    it('Create a new A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
@@ -166,7 +166,7 @@ describe('Custom Domain Plugin', () => {
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('CREATE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
-      expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal('test_distribution_name');
     });
 
     it('Do not create a Route53 record', async () => {
@@ -222,7 +222,7 @@ describe('Custom Domain Plugin', () => {
       expect(result.domainName).to.equal('test_domain');
     });
 
-    it('Delete CNAME', async () => {
+    it('Delete A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
@@ -238,7 +238,7 @@ describe('Custom Domain Plugin', () => {
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('DELETE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
-      expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal('test_distribution_name');
     });
 
     it('Delete the domain name', async () => {

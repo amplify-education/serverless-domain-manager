@@ -74,9 +74,9 @@ custom:
 
 ```
 
-If certificateName is not provided, the certificate will be chosen using the domain name.
-If certificateName is blank, an error will be thrown.
-If createRoute53Record is blank or not provided, it defaults to true.
+If certificateName is not provided, the certificate will be chosen using the domain name.  
+If certificateName is blank, an error will be thrown.  
+If createRoute53Record is blank or not provided, it defaults to true.  
 Stage is optional, and if not specified will default to the user-provided stage option, or the
 stage specified in the provider section of serverless.yaml (Serverless defaults to 'dev' if this
 is unset).  

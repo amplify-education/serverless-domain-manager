@@ -3,7 +3,10 @@
 const AWS = require('aws-sdk');
 const chalk = require('chalk');
 
-const SUPPORTED_ENDPOINT_TYPES = ['EDGE', 'REGIONAL'];
+const endpointTypes = {
+  edge: 'EDGE',
+  regional: 'REGIONAL',
+};
 
 class ServerlessCustomDomain {
 
@@ -86,9 +89,9 @@ class ServerlessCustomDomain {
     this.targetHostedZoneName = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
   }
 
-  setEndpointType(endpointType = 'EDGE') {
-    if (!SUPPORTED_ENDPOINT_TYPES.includes(endpointType)) throw new Error(`${endpointType} is not supported endpointType, use EDGE or REGIONAL.`);
-    this.endpointType = endpointType;
+  setEndpointType(endpointType = endpointTypes.edge) {
+    if (!Object.keys(endpointTypes).includes(endpointType.toLowerCase())) throw new Error(`${endpointType} is not supported endpointType, use edge or regional.`);
+    this.endpointType = endpointTypes[endpointType];
   }
 
   setAcmRegion(region = 'us-east-1') {
@@ -291,9 +294,9 @@ class ServerlessCustomDomain {
       },
     };
 
-    if (this.endpointType === 'EDGE') {
+    if (this.endpointType === endpointTypes.edge) {
       createDomainNameParams.certificateArn = givenCertificateArn;
-    } else {
+    } else if (this.endpointType === endpointTypes.regional) {
       createDomainNameParams.regionalCertificateArn = givenCertificateArn;
     }
 

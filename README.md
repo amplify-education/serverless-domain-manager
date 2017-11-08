@@ -69,7 +69,7 @@ custom:
     basePath: "dev"
     domainName: serverless.foo.com
     stage: dev
-    endpointType: 'REGIONAL'
+    endpointType: 'regional'
     certificateRegion: 'eu-west-1'
 
 ```
@@ -80,9 +80,9 @@ If createRoute53Record is blank or not provided, it defaults to true.
 Stage is optional, and if not specified will default to the user-provided stage option, or the
 stage specified in the provider section of serverless.yaml (Serverless defaults to 'dev' if this
 is unset).  
-`endpointType` - accepts the values `REGIONAL` and `EDGE`. default is `EDGE`.  
-`certificateRegion` - The region of the acm certificate, should be used only if `endpointType` is `REGIONAL`.  
-If `endpointType` is `EDGE` it looks for certificates only in `us-east-1`
+`endpointType` - accepts the values `regional` and `edge`. default is `edge`.  
+`certificateRegion` - The region of the acm certificate, should be used only if `endpointType` is `regional`.  
+If `endpointType` is `edge` it looks for certificates only in `us-east-1`
 
 
 ## Running

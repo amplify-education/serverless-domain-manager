@@ -89,7 +89,7 @@ describe('Custom Domain Plugin', () => {
         plugin.initializeVariables();
       } catch (err) {
         errored = true;
-        expect(err.message).to.equal('notSupported is not supported endpointType, use EDGE or REGIONAL.');
+        expect(err.message).to.equal('notSupported is not supported endpointType, use edge or regional.');
       }
       expect(errored).to.equal(true);
     });

@@ -162,16 +162,16 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'CREATE');
+      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'UPSERT');
       const changes = result.ChangeBatch.Changes[0];
-      expect(changes.Action).to.equal('CREATE');
+      expect(changes.Action).to.equal('UPSERT');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
       expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
     });
 
     it('Do not create a Route53 record', async () => {
       const plugin = constructPlugin(null, null, true, false);
-      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'CREATE');
+      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'UPSERT');
       expect(result).to.equal('Skipping creation of Route53 record.');
     });
 
@@ -312,7 +312,7 @@ describe('Custom Domain Plugin', () => {
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
       plugin.route53 = new aws.Route53();
       const result = await plugin.createDomain();
-      expect(result).to.equal('Domain was created, may take up to 40 mins to be initialized.');
+      expect(result).to.equal('Domain was created/updated. New domains may take up to 40 min to be initialized.');
     });
 
     afterEach(() => {

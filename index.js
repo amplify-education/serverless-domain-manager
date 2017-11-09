@@ -55,7 +55,7 @@ class ServerlessCustomDomain {
 
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return Promise.all([createDomainName])
-      .then(values => this.changeResourceRecordSet(values[0], 'CREATE'))
+      .then(values => this.changeResourceRecordSet(values[0], 'UPSERT'))
       .then(() => (this.serverless.cli.log('Domain was created, may take up to 40 mins to be initialized.')))
       .catch((err) => {
         throw new Error(`${err} ${this.givenDomainName} was not created.`);
@@ -273,9 +273,12 @@ class ServerlessCustomDomain {
       certificateArn: givenCertificateArn,
     };
 
-    // This will return the distributionDomainName (used in changeResourceRecordSet)
-    const createDomain = this.apigateway.createDomainName(createDomainNameParams).promise();
-    return createDomain.then(data => data.distributionDomainName);
+    /* This will return the distributionDomainName (used in changeResourceRecordSet)
+      if the domain name already exists, the distribution domain name will be returned */
+    return this.getDomain().then(data => data.distributionDomainName).catch(() => {
+      const createDomain = this.apigateway.createDomainName(createDomainNameParams).promise();
+      return createDomain.then(data => data.distributionDomainName);
+    });
   }
 
   /*
@@ -314,13 +317,13 @@ class ServerlessCustomDomain {
    * Can create a new CNAME or delete a CNAME
    *
    * @param distributionDomainName    the domain name of the cloudfront
-   * @param action    CREATE: Creates a CNAME
+   * @param action    UPSERT: Creates a CNAME
    *                  DELETE: Deletes the CNAME
    *                  The CNAME is specified in the serverless file under domainName
    */
   changeResourceRecordSet(distributionDomainName, action) {
-    if (action !== 'DELETE' && action !== 'CREATE') {
-      throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
+    if (action !== 'DELETE' && action !== 'UPSERT') {
+      throw new Error(`${action} is not a valid action. action must be either UPSERT or DELETE`);
     }
 
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
@@ -357,7 +360,7 @@ class ServerlessCustomDomain {
 
       return this.route53.changeResourceRecordSets(params).promise();
     }, () => {
-      if (action === 'CREATE') {
+      if (action === 'UPSERT') {
         throw new Error(`Record set for ${this.givenDomainName} already exists.`);
       }
       throw new Error(`Record set for ${this.givenDomainName} does not exist and cannot be deleted.`);

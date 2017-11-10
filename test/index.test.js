@@ -312,7 +312,7 @@ describe('Custom Domain Plugin', () => {
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
       plugin.route53 = new aws.Route53();
       const result = await plugin.createDomain();
-      expect(result).to.equal('Domain was created/updated. New domains may take up to 40 min to be initialized.');
+      expect(result).to.equal('test_domain was created/updated. New domains may take up to 40 minutes to be initialized.');
     });
 
     afterEach(() => {

@@ -56,7 +56,7 @@ class ServerlessCustomDomain {
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return Promise.all([createDomainName])
       .then(values => this.changeResourceRecordSet(values[0], 'UPSERT'))
-      .then(() => (this.serverless.cli.log('Domain was created/updated. New domains may take up to 40 min to be initialized.')))
+      .then(() => (this.serverless.cli.log(`${this.givenDomainName} was created/updated. New domains may take up to 40 minutes to be initialized.`)))
       .catch((err) => {
         throw new Error(`${err} ${this.givenDomainName} was not created.`);
       });

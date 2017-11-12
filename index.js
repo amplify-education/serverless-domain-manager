@@ -210,8 +210,8 @@ class ServerlessCustomDomain {
   }
 
   /**
- *  Adds the domain name and distribution domain name to the CloudFormation outputs
- */
+   *  Adds the domain name and distribution domain name to the CloudFormation outputs
+   */
   addOutputs(data) {
     const service = this.serverless.service;
     if (!service.provider.compiledCloudFormationTemplate.Outputs) {

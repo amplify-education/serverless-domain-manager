@@ -55,11 +55,15 @@ class ServerlessCustomDomain {
 
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return createDomainName
-      .then(distributionDomainName => this.changeResourceRecordSet(distributionDomainName, 'UPSERT'))
-      .then(() => (this.serverless.cli.log(`${this.givenDomainName} was created/updated. New domains may take up to 40 minutes to be initialized.`)))
       .catch((err) => {
-        throw new Error(`${err} ${this.givenDomainName} was not created.`);
-      });
+        throw new Error(`${err} ${this.givenDomainName} was not created in API Gateway.`);
+      })
+      .then((distributionDomainName) => {
+        this.changeResourceRecordSet(distributionDomainName, 'UPSERT').catch((err) => {
+          throw new Error(`${err} ${this.givenDomainName} was not created in Route53.`);
+        });
+      })
+      .then(() => (this.serverless.cli.log(`${this.givenDomainName} was created/updated. New domains may take up to 40 minutes to be initialized.`)));
   }
 
   deleteDomain() {

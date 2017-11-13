@@ -363,11 +363,6 @@ class ServerlessCustomDomain {
       };
 
       return this.route53.changeResourceRecordSets(params).promise();
-    }, () => {
-      if (action === 'UPSERT') {
-        throw new Error(`Record set for ${this.givenDomainName} already exists.`);
-      }
-      throw new Error(`Record set for ${this.givenDomainName} does not exist and cannot be deleted.`);
     });
   }
 

@@ -306,10 +306,9 @@ class ServerlessCustomDomain {
 
     /* This will return the distributionDomainName (used in changeResourceRecordSet)
       if the domain name already exists, the distribution domain name will be returned */
-    return this.getDomain().then(data => data.distributionDomainName).catch(() => {
-      const createDomain = this.apigateway.createDomainName(createDomainNameParams).promise();
-      return createDomain.then(data => data.distributionDomainName || data.regionalDomainName);
-    });
+    return this.getDomain()
+      .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise())
+      .then(data => data.distributionDomainName || data.regionalDomainName);
   }
 
   /*

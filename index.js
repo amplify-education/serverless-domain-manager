@@ -311,12 +311,12 @@ class ServerlessCustomDomain {
   }
 
   /**
-   * Can create a new CNAME or delete a CNAME
+   * Can create a new A Alias or delete a A Alias
    *
    * @param distributionDomainName    the domain name of the cloudfront
-   * @param action    CREATE: Creates a CNAME
-   *                  DELETE: Deletes the CNAME
-   *                  The CNAME is specified in the serverless file under domainName
+   * @param action    CREATE: Creates a A Alias
+   *                  DELETE: Deletes the A Alias
+   *                  The A Alias is specified in the serverless file under domainName
    */
   changeResourceRecordSet(distributionDomainName, action) {
     /* Constant for the hosted zone of API Gateway CloudFront distributions.

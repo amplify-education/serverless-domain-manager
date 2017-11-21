@@ -368,6 +368,53 @@ class ServerlessCustomDomain {
   }
 
   /**
+   * Delete any legacy CNAME certificates so they can be replaced with A-Alias
+   * records.
+   *
+   * @param distributionDomainName  The domain name of the Cloudfront Distribution
+   */
+  deleteCNAME(distributionDomainName) {
+    if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
+        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      return;
+    }
+
+    this.getHostedZoneId().then((hostedZoneId) => {
+      if (!hostedZoneId) {
+        return;
+      }
+
+      const params = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: 'DELETE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                ResourceRecords: [
+                  {
+                    Value: distributionDomainName,
+                  },
+                ],
+                TTL: 60,
+                Type: 'CNAME',
+              },
+            },
+          ],
+          Comment: 'Created from Serverless Custom Domain Name',
+        },
+        HostedZoneId: hostedZoneId,
+      };
+
+      this.route53.changeResourceRecordSets(params).then(() => {
+        this.serverless.cli.log("Notice: Legacy CNAME record was removed");
+      }).catch(() => {  // Swallow the exception, not an error if it doesn't exist.
+        return;
+      });
+    });
+  }
+
+  /**
    * Deletes the domain names specified in the serverless file
    */
   clearDomainName() {

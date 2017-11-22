@@ -472,7 +472,7 @@ describe('Custom Domain Plugin', () => {
       return plugin.getCertArn().then(() => {
         throw new Error('Test has failed. getCertArn did not catch errors.');
       }).catch((err) => {
-        const expectedErrorMessage = 'Could not find the certificate does_not_exist';
+        const expectedErrorMessage = 'Error: Could not find the certificate does_not_exist.';
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });

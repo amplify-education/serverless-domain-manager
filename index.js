@@ -144,7 +144,7 @@ class ServerlessCustomDomain {
     const service = this.serverless.service;
 
     if (!service.custom.customDomain) {
-      throw new Error('customDomain settings in Serverless are not configured correctly');
+      throw new Error('Error: check that the customDomain section is defined in serverless.yml');
     }
 
     let basePath = service.custom.customDomain.basePath;
@@ -223,7 +223,9 @@ class ServerlessCustomDomain {
 
     const certArn = acm.listCertificates().promise();
 
-    return certArn.then((data) => {
+    return certArn.catch((err) => {
+      throw Error(`${err} Could not list certificates in Certificate Manager.`);
+    }).then((data) => {
       // The more specific name will be the longest
       let nameLength = 0;
       // The arn of the choosen certificate
@@ -261,7 +263,7 @@ class ServerlessCustomDomain {
       }
 
       if (certificateArn == null) {
-        throw Error(`Could not find the certificate ${certificateName}`);
+        throw Error(`Error: Could not find the certificate ${certificateName}.`);
       }
       return certificateArn;
     });
@@ -383,8 +385,8 @@ class ServerlessCustomDomain {
       domainName: this.givenDomainName,
     };
     const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
-    return getDomainPromise.then(data => (data), () => {
-      throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);
+    return getDomainPromise.then(data => (data), (err) => {
+      throw new Error(`${err} ${this.givenDomainName} could not be found in API Gateway.`);
     });
   }
 }

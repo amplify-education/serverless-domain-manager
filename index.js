@@ -292,6 +292,12 @@ class ServerlessCustomDomain {
    * @return hostedZoneId or null if not found or access denied
    */
   getHostedZoneId() {
+    const specificId = this.serverless.service.custom.customDomain.hostedZoneId
+    if (specificId) {
+      this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`)
+      return Promise.resolve(specificId)
+    }
+    
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
 
     return hostedZonePromise

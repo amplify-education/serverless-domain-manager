@@ -337,7 +337,7 @@ describe('Custom Domain Plugin', () => {
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
       plugin.route53 = new aws.Route53();
       const result = await plugin.createDomain();
-      expect(result).to.equal('test_domain was created/updated. New domains may take up to 40 minutes to be initialized.');
+      expect(result).to.equal('\'test_domain\' was created/updated. New domains may take up to 40 minutes to be initialized.');
     });
 
     afterEach(() => {
@@ -497,7 +497,7 @@ describe('Custom Domain Plugin', () => {
       return plugin.getCertArn().then(() => {
         throw new Error('Test has failed. getCertArn did not catch errors.');
       }).catch((err) => {
-        const expectedErrorMessage = 'Could not find the certificate does_not_exist';
+        const expectedErrorMessage = 'Error: Could not find the certificate does_not_exist.';
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });
@@ -514,7 +514,7 @@ describe('Custom Domain Plugin', () => {
       return plugin.getHostedZoneId().then(() => {
         throw new Error('Test has failed, getHostedZone did not catch errors.');
       }).catch((err) => {
-        const expectedErrorMessage = 'Error: Could not find hosted zone. Unable to retrieve Route53 hosted zone id.';
+        const expectedErrorMessage = 'Error: Could not find hosted zone \'test_domain\'';
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });
@@ -530,7 +530,7 @@ describe('Custom Domain Plugin', () => {
       return plugin.domainSummary().then(() => {
         // check if distribution domain name is printed
       }).catch((err) => {
-        const expectedErrorMessage = "TypeError: Cannot read property 'distributionDomainName' of null Domain manager summary logging failed.";
+        const expectedErrorMessage = "Error: Domain manager summary logging failed.\nTypeError: Cannot read property 'distributionDomainName' of null";
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });

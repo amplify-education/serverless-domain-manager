@@ -430,7 +430,7 @@ class ServerlessCustomDomain {
       };
 
       const changeRecords = this.route53.changeResourceRecordSets(params).promise();
-      changeRecords.then((data) => this.serverless.cli.log("Notice: Legacy CNAME record was replaced with an A Alias record"))
+      changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
         .catch(() => {}); // Swallow the error, not an error if it doesn't exist
     });
   }

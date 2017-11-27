@@ -333,7 +333,7 @@ class ServerlessCustomDomain {
     const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
 
     if (action !== 'DELETE' && action !== 'UPSERT') {
-      throw new Error(`${action} is not a valid action. action must be either UPSERT or DELETE`);
+      throw new Error(`Error: ${action} is not a valid action. action must be either UPSERT or DELETE`);
     }
 
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined

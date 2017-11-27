@@ -59,6 +59,7 @@ class ServerlessCustomDomain {
         throw new Error(`Error: '${this.givenDomainName}' was not created in API Gateway.\n${err}`);
       })
       .then((distributionDomainName) => {
+        this.deleteCNAME(distributionDomainName);
         this.changeResourceRecordSet(distributionDomainName, 'UPSERT').catch((err) => {
           throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
         });
@@ -70,6 +71,7 @@ class ServerlessCustomDomain {
     this.initializeVariables();
 
     return this.getDomain().then((data) => {
+      this.deleteCNAME(data.distributionDomainName);
       const promises = [
         this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
         this.clearDomainName(),

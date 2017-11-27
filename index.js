@@ -417,9 +417,9 @@ class ServerlessCustomDomain {
         HostedZoneId: hostedZoneId,
       };
 
-      this.route53.changeResourceRecordSets(params).then(() => {
-        this.serverless.cli.log('Notice: Legacy CNAME record was removed');
-      }).catch(() => {});  // Swallow the exception, not an error if it doesn't exist.
+      const changeRecords = this.route53.changeResourceRecordSets(params).promise();
+      changeRecords.then((data) => this.serverless.cli.log("Notice: Legacy CNAME record was removed."))
+        .catch(() => {}); // Swallow the error, not an error if it doesn't exist
     });
   }
 

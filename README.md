@@ -58,6 +58,7 @@ custom:
     domainName:
     stage:
     certificateName:
+    hostedZoneId:    
     createRoute53Record: true
 ```
 For example:
@@ -74,6 +75,7 @@ If createRoute53Record is blank or not provided, it defaults to true.
 Stage is optional, and if not specified will default to the user-provided stage option, or the
 stage specified in the provider section of serverless.yaml (Serverless defaults to 'dev' if this
 is unset).
+If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one).
 
 ## Running
 

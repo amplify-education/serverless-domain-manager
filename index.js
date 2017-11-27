@@ -3,6 +3,10 @@
 const AWS = require('aws-sdk');
 const chalk = require('chalk');
 
+/* Constant for the hosted zone of API Gateway CloudFront distributions.
+   <http://docs.aws.amazon.com/general/latest/gr/rande.html#cf_region> */
+const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
+
 class ServerlessCustomDomain {
 
   constructor(serverless, options) {
@@ -59,7 +63,7 @@ class ServerlessCustomDomain {
         throw new Error(`Error: '${this.givenDomainName}' was not created in API Gateway.\n${err}`);
       })
       .then((distributionDomainName) => {
-        this.deleteCNAME(distributionDomainName);
+        this.migrateRecordType(distributionDomainName);
         this.changeResourceRecordSet(distributionDomainName, 'UPSERT').catch((err) => {
           throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
         });
@@ -71,7 +75,7 @@ class ServerlessCustomDomain {
     this.initializeVariables();
 
     return this.getDomain().then((data) => {
-      this.deleteCNAME(data.distributionDomainName);
+      this.migrateRecordType(data.distributionDomainName);
       const promises = [
         this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
         this.clearDomainName(),
@@ -330,10 +334,6 @@ class ServerlessCustomDomain {
    *                  The A Alias is specified in the serverless file under domainName
    */
   changeResourceRecordSet(distributionDomainName, action) {
-    /* Constant for the hosted zone of API Gateway CloudFront distributions.
-       <http://docs.aws.amazon.com/general/latest/gr/rande.html#cf_region> */
-    const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
-
     if (action !== 'DELETE' && action !== 'UPSERT') {
       throw new Error(`Error: ${action} is not a valid action. action must be either UPSERT or DELETE`);
     }
@@ -379,12 +379,12 @@ class ServerlessCustomDomain {
   }
 
   /**
-   * Delete any legacy CNAME certificates so they can be replaced with A-Alias
+   * Delete any legacy CNAME certificates, replacing them with A Alias records.
    * records.
    *
    * @param distributionDomainName  The domain name of the Cloudfront Distribution
    */
-  deleteCNAME(distributionDomainName) {
+  migrateRecordType(distributionDomainName) {
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
         && this.serverless.service.custom.customDomain.createRoute53Record === false) {
       return;
@@ -411,14 +411,26 @@ class ServerlessCustomDomain {
                 Type: 'CNAME',
               },
             },
+            {
+              Action: 'CREATE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: distributionDomainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: cloudfrontHostedZoneID,
+                },
+              },
+            },
           ],
-          Comment: 'Created from Serverless Custom Domain Name',
+          Comment: 'Record created by serverless-domain-manager',
         },
         HostedZoneId: hostedZoneId,
       };
 
       const changeRecords = this.route53.changeResourceRecordSets(params).promise();
-      changeRecords.then((data) => this.serverless.cli.log("Notice: Legacy CNAME record was removed."))
+      changeRecords.then((data) => this.serverless.cli.log("Notice: Legacy CNAME record was replaced with an A Alias record"))
         .catch(() => {}); // Swallow the error, not an error if it doesn't exist
     });
   }

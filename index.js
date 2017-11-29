@@ -314,7 +314,7 @@ class ServerlessCustomDomain {
         const targetHostedZone = data.HostedZones
           .filter((hostedZone) => {
             const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            return this.targetHostedZoneName.endsWith(hostedZoneName);
+            return this.givenDomainName.endsWith(hostedZoneName);
           })
           .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
           .shift();
@@ -326,7 +326,7 @@ class ServerlessCustomDomain {
           const endPos = hostedZoneId.length;
           return hostedZoneId.substring(startPos, endPos);
         }
-        throw new Error(`Error: Could not find hosted zone '${this.targetHostedZoneName}'`);
+        throw new Error(`Error: Could not find hosted zone '${this.givenDomainName}'`);
       });
   }
 

@@ -66,11 +66,9 @@ class ServerlessCustomDomain {
         distDomainName = distributionDomainName;
         return this.migrateRecordType(distDomainName);
       })
-      .then(() => {
-        return this.changeResourceRecordSet(distDomainName, 'UPSERT').catch((err) => {
-          throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
-        });
-      })
+      .then(() => this.changeResourceRecordSet(distDomainName, 'UPSERT').catch((err) => {
+        throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
+      }))
       .then(() => (this.serverless.cli.log(`'${this.givenDomainName}' was created/updated. New domains may take up to 40 minutes to be initialized.`)));
   }
 
@@ -399,7 +397,7 @@ class ServerlessCustomDomain {
 
     return this.getHostedZoneId().then((hostedZoneId) => {
       if (!hostedZoneId) {
-        return;
+        return null;
       }
 
       const params = {

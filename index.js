@@ -56,15 +56,18 @@ class ServerlessCustomDomain {
 
   createDomain() {
     this.initializeVariables();
-
+    let distDomainName = null;
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return createDomainName
       .catch((err) => {
         throw new Error(`Error: '${this.givenDomainName}' was not created in API Gateway.\n${err}`);
       })
       .then((distributionDomainName) => {
-        this.migrateRecordType(distributionDomainName);
-        this.changeResourceRecordSet(distributionDomainName, 'UPSERT').catch((err) => {
+        distDomainName = distributionDomainName;
+        return this.migrateRecordType(distDomainName);
+      })
+      .then(() => {
+        return this.changeResourceRecordSet(distDomainName, 'UPSERT').catch((err) => {
           throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
         });
       })
@@ -74,15 +77,19 @@ class ServerlessCustomDomain {
   deleteDomain() {
     this.initializeVariables();
 
+    let distDomainName = null;
     return this.getDomain().then((data) => {
-      this.migrateRecordType(data.distributionDomainName);
+      distDomainName = data.distributionDomainName;
+      return this.migrateRecordType(distDomainName);
+    })
+    .then(() => {
       const promises = [
-        this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
+        this.changeResourceRecordSet(distDomainName, 'DELETE'),
         this.clearDomainName(),
       ];
-
       return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
-    }).catch((err) => {
+    })
+    .catch((err) => {
       throw new Error(`Error: '${this.givenDomainName}' was not deleted.\n${err}`);
     });
   }
@@ -387,10 +394,10 @@ class ServerlessCustomDomain {
   migrateRecordType(distributionDomainName) {
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
         && this.serverless.service.custom.customDomain.createRoute53Record === false) {
-      return;
+      return Promise.resolve();
     }
 
-    this.getHostedZoneId().then((hostedZoneId) => {
+    return this.getHostedZoneId().then((hostedZoneId) => {
       if (!hostedZoneId) {
         return;
       }
@@ -430,7 +437,7 @@ class ServerlessCustomDomain {
       };
 
       const changeRecords = this.route53.changeResourceRecordSets(params).promise();
-      changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
+      return changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
         .catch(() => {}); // Swallow the error, not an error if it doesn't exist
     });
   }

@@ -286,6 +286,12 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
         callback(null, { domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
       });
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+      });
+      AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
+        callback(null, null);
+      });
       const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
@@ -354,7 +360,7 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin(null, null, null);
       plugin.route53 = new aws.Route53();
-      plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
+      plugin.setGivenDomainName('ccc.bbb.aaa.com');
 
       const result = await plugin.getHostedZoneId();
       expect(result).to.equal('test_id_2');

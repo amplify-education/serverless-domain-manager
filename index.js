@@ -94,17 +94,22 @@ class ServerlessCustomDomain {
 
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
-    this.targetHostedZoneName = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
   }
 
   setUpBasePathMapping() {
     this.initializeVariables();
 
+    let domainData = null;
     return this.getDomain().then((data) => {
+      domainData = data;
+      return this.migrateRecordType(data.distributionDomainName);
+    })
+    .then(() => {
       const deploymentId = this.getDeploymentId();
       this.addResources(deploymentId);
-      this.addOutputs(data);
-    }).catch((err) => {
+      this.addOutputs(domainData);
+    })
+    .catch((err) => {
       throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
     });
   }

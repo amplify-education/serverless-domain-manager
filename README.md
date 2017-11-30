@@ -64,7 +64,7 @@ For example:
 ```yaml
 custom:
   customDomain:
-    basePath: "dev"
+    basePath: dev
     domainName: serverless.foo.com
     stage: dev
 ```

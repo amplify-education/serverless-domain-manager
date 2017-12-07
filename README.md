@@ -24,9 +24,10 @@ Make sure you have the following installed before starting:
 The IAM role that is deploying the lambda will need the following permissions:
 ```
 acm:ListCertificates                *
-apigateway:GET                      /domainnames/* 
+apigateway:GET                      /domainnames/*
 apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
+apigateway:POST                     /domainnames/*/basepathmappings
 cloudfront:UpdateDistribution       *
 route53:ListHostedZones             *
 route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}

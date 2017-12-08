@@ -43,9 +43,6 @@ Alternatively you can generate an least privileged IAM Managed Policy for deploy
 ```
 # From npm (recommended)
 npm install serverless-domain-manager --save-dev
-
-# From github
-npm install https://github.com/amplify-education/serverless-domain-manager.git
 ```
 
 Then make the following edits to your serverless.yaml file:

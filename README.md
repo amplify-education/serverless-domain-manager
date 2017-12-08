@@ -48,28 +48,16 @@ npm install https://github.com/amplify-education/serverless-domain-manager.git
 ```
 
 Then make the following edits to your serverless.yaml file:
+
+Add the plugin.
+
 ```yaml
 plugins:
   - serverless-domain-manager
-
-custom:
-  customDomain:
-    domainName:
-    stage:
-    basePath:
-    certificateName:
-    createRoute53Record:
 ```
 
-| Parameter Name | Default Value | Description |
-| --- | --- | --- |
-| `domainName` _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
-| `basePath` | `(none)` | The base path that will prepend all API endpoints. |
-| `stage` | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
-| `certificateName` | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
-| `createRoute53Record` | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to to the generated distribution domain name. |
+Add the plugin configuration (example for `serverless.foo.com/api`).
 
-Example configuration for an API with endpoints located at `serverless.foo.com/api`:
 ```yaml
 custom:
   customDomain:
@@ -79,6 +67,15 @@ custom:
     certificateName: *.foo.com
     createRoute53Record: true
 ```
+
+| Parameter Name | Default Value | Description |
+| --- | --- | --- |
+| domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
+| basePath | `(none)` | The base path that will prepend all API endpoints. |
+| stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
+| certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
+| createRoute53Record | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to to the generated distribution domain name. |
+
 
 ## Running
 

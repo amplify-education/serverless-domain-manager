@@ -27,6 +27,7 @@ acm:ListCertificates                *
 apigateway:GET                      /domainnames/*
 apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
+apigateway:POST                     /domainnames/*/basepathmappings
 cloudfront:UpdateDistribution       *
 route53:ListHostedZones             *
 route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}

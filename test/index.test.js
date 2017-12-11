@@ -97,8 +97,22 @@ describe('Custom Domain Plugin', () => {
       expect(cfTemplat).to.not.equal(undefined);
     });
 
-    it('(none) is added if empty basepath is given', () => {
+    it('(none) is added if basepath is an empty string', () => {
       const emptyPlugin = constructPlugin('', null, true, true);
+      emptyPlugin.addResources(deploymentId);
+      const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
+    });
+
+    it('(none) is added if no value is given for basepath (null)', () => {
+      const emptyPlugin = constructPlugin(null, null, true, true);
+      emptyPlugin.addResources(deploymentId);
+      const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
+    });
+
+    it('(none) is added if basepath attribute is missing (undefined)', () => {
+      const emptyPlugin = constructPlugin(undefined, null, true, true);
       emptyPlugin.addResources(deploymentId);
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');

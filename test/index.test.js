@@ -163,8 +163,30 @@ describe('Custom Domain Plugin', () => {
       expect(result).to.equal('foo');
     });
 
+    it('Migrate legacy CNAME records to A Alias', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+      });
+      AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
+        const changes = params.ChangeBatch.Changes;
+        expect(changes[0].Action).to.equal('DELETE');
+        expect(changes[0].ResourceRecordSet.Type).to.equal('CNAME');
+        expect(changes[0].ResourceRecordSet.Name).to.equal('test_domain');
+        expect(changes[0].ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
 
-    it('Create a new CNAME', async () => {
+        expect(changes[1].Action).to.equal('CREATE');
+        expect(changes[1].ResourceRecordSet.Type).to.equal('A');
+        expect(changes[1].ResourceRecordSet.Name).to.equal('test_domain');
+        expect(changes[1].ResourceRecordSet.AliasTarget.DNSName).to.equal('test_distribution_name');
+        callback(null, null);
+      });
+      const plugin = constructPlugin('test_basepath', null, true, true);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
+      await plugin.migrateRecordType('test_distribution_name');
+    });
+
+    it('Create a new A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
@@ -180,7 +202,7 @@ describe('Custom Domain Plugin', () => {
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('UPSERT');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
-      expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal('test_distribution_name');
     });
 
     it('Do not create a Route53 record', async () => {
@@ -236,7 +258,7 @@ describe('Custom Domain Plugin', () => {
       expect(result.domainName).to.equal('test_domain');
     });
 
-    it('Delete CNAME', async () => {
+    it('Delete A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
@@ -252,7 +274,7 @@ describe('Custom Domain Plugin', () => {
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('DELETE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
-      expect(changes.ResourceRecordSet.ResourceRecords[0].Value).to.equal('test_distribution_name');
+      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal('test_distribution_name');
     });
 
     it('Delete the domain name', async () => {
@@ -277,6 +299,12 @@ describe('Custom Domain Plugin', () => {
     it('setupBasePathMapping', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
         callback(null, { domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
+      });
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+      });
+      AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
+        callback(null, null);
       });
       const plugin = constructPlugin('', null, true, true);
       plugin.apigateway = new aws.APIGateway();
@@ -346,7 +374,7 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin(null, null, null);
       plugin.route53 = new aws.Route53();
-      plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
+      plugin.setGivenDomainName('ccc.bbb.aaa.com');
 
       const result = await plugin.getHostedZoneId();
       expect(result).to.equal('test_id_2');
@@ -522,6 +550,18 @@ describe('Custom Domain Plugin', () => {
         const expectedErrorMessage = "Error: Domain manager summary logging failed.\nTypeError: Cannot read property 'distributionDomainName' of null";
         expect(err.message).to.equal(expectedErrorMessage);
       });
+    });
+    it('Catch failure of record type migration', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+      });
+      AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
+        callback(new Error('CNAME does\'t exist, but that\'s ok'), null);
+      });
+      const plugin = constructPlugin('test_basepath', null, true, true);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
+      await plugin.migrateRecordType('test_distribution_name');
     });
 
     afterEach(() => {

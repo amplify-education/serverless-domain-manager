@@ -165,8 +165,8 @@ class ServerlessCustomDomain {
 
     let basePath = service.custom.customDomain.basePath;
 
-    // Base path cannot be empty, instead it must be (none)
-    if (basePath.trim() === '') {
+    // Check that basePath is either not set, or set to an empty string
+    if (basePath == null || basePath.trim() === '') {
       basePath = '(none)';
     }
 

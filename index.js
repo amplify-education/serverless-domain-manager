@@ -80,13 +80,13 @@ class ServerlessCustomDomain {
       distDomainName = data.distributionDomainName;
       return this.migrateRecordType(distDomainName);
     })
-    .then(() => {
+      .then(() => {
         const promises = [
           this.changeResourceRecordSet(distDomainName, 'DELETE'),
           this.clearDomainName(),
         ];
         return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
-    })
+      })
     .catch((err) => {
       throw new Error(`Error: '${this.givenDomainName}' was not deleted.\n${err}`);
     });
@@ -104,11 +104,11 @@ class ServerlessCustomDomain {
       domainData = data;
       return this.migrateRecordType(data.distributionDomainName);
     })
-    .then(() => {
-      const deploymentId = this.getDeploymentId();
+      .then(() => {
+        const deploymentId = this.getDeploymentId();
         this.addResources(deploymentId);
         this.addOutputs(domainData);
-    })
+      })
     .catch((err) => {
       throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
     });

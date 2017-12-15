@@ -8,7 +8,6 @@ const chalk = require('chalk');
 const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
 
 class ServerlessCustomDomain {
-
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
@@ -87,9 +86,9 @@ class ServerlessCustomDomain {
         ];
         return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
       })
-    .catch((err) => {
-      throw new Error(`Error: '${this.givenDomainName}' was not deleted.\n${err}`);
-    });
+      .catch((err) => {
+        throw new Error(`Error: '${this.givenDomainName}' was not deleted.\n${err}`);
+      });
   }
 
   setGivenDomainName(givenDomainName) {
@@ -109,9 +108,9 @@ class ServerlessCustomDomain {
         this.addResources(deploymentId);
         this.addOutputs(domainData);
       })
-    .catch((err) => {
-      throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
-    });
+      .catch((err) => {
+        throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
+      });
   }
 
   /**
@@ -235,7 +234,7 @@ class ServerlessCustomDomain {
   getCertArn() {
     const acm = new AWS.ACM({
       region: 'us-east-1',
-    });       // us-east-1 is the only region that can be accepted (3/21)
+    }); // us-east-1 is the only region that can be accepted (3/21)
 
     const certArn = acm.listCertificates().promise();
 

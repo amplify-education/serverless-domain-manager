@@ -8,7 +8,6 @@ const chalk = require('chalk');
 const cloudfrontHostedZoneID = 'Z2FDTNDATAQYW2';
 
 class ServerlessCustomDomain {
-
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;

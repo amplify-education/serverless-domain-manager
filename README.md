@@ -24,9 +24,10 @@ Make sure you have the following installed before starting:
 The IAM role that is deploying the lambda will need the following permissions:
 ```
 acm:ListCertificates                *
-apigateway:GET                      /domainnames/* 
+apigateway:GET                      /domainnames/*
 apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
+apigateway:POST                     /domainnames/*/basepathmappings
 cloudfront:UpdateDistribution       *
 route53:ListHostedZones             *
 route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
@@ -41,41 +42,38 @@ Alternatively you can generate an least privileged IAM Managed Policy for deploy
 ## Installing
 ```
 # From npm (recommended)
-npm install serverless-domain-manager
-
-# From github
-npm install https://github.com/amplify-education/serverless-domain-manager.git
+npm install serverless-domain-manager --save-dev
 ```
 
 Then make the following edits to your serverless.yaml file:
+
+Add the plugin.
+
 ```yaml
 plugins:
   - serverless-domain-manager
-
-custom:
-  customDomain:
-    basePath:
-    domainName:
-    stage:
-    certificateName:
-    hostedZoneId:    
-    createRoute53Record: true
 ```
-For example:
+
+Add the plugin configuration (example for `serverless.foo.com/api`).
+
 ```yaml
 custom:
   customDomain:
-    basePath: "dev"
     domainName: serverless.foo.com
-    stage: dev
+    stage: ci
+    basePath: api
+    certificateName: *.foo.com
+    createRoute53Record: true
 ```
-If certificateName is not provided, the certificate will be chosen using the domain name.
-If certificateName is blank, an error will be thrown.
-If createRoute53Record is blank or not provided, it defaults to true.
-Stage is optional, and if not specified will default to the user-provided stage option, or the
-stage specified in the provider section of serverless.yaml (Serverless defaults to 'dev' if this
-is unset).
-If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one).
+
+| Parameter Name | Default Value | Description |
+| --- | --- | --- |
+| domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
+| basePath | `(none)` | The base path that will prepend all API endpoints. |
+| stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
+| certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
+| createRoute53Record | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to the generated distribution domain name. |
+| hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 
 ## Running
 
@@ -94,7 +92,7 @@ To remove the created custom domain:
 serverless delete_domain
 ```
 # How it works
-Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper CNAMEs for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through Cloudfront.
+Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront.
 
 ## Running Tests
 To run the test:

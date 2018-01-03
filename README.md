@@ -77,7 +77,7 @@ custom:
 | createRoute53Record | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to the generated distribution domain name. |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | certificateRegion | `(none)` | The region of the acm certificate, should be used only if `endpointType` is `regional`. If `endpointType` is `edge` it looks for certificates only in `us-east-1` |
-
+| hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 
 ## Running
 

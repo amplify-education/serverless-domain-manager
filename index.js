@@ -78,40 +78,6 @@ class ServerlessCustomDomain {
       .then(() => (this.serverless.cli.log(`'${this.givenDomainName}' was created/updated. New domains may take up to 40 minutes to be initialized.`)));
   }
 
-  getHostedZoneId() {
-    const specificId = this.serverless.service.custom.customDomain.hostedZoneId;
-    if (specificId) {
-      this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`);
-      return Promise.resolve(specificId);
-    }
-
-    const hostedZonePromise = this.route53.listHostedZones({}).promise();
-
-    return hostedZonePromise
-      .catch((err) => {
-        throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
-      })
-      .then((data) => {
-        // Gets the hostzone that is closest match to the custom domain name
-        const targetHostedZone = data.HostedZones
-          .filter((hostedZone) => {
-            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            return this.givenDomainName.endsWith(hostedZoneName);
-          })
-          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-          .shift();
-
-        if (targetHostedZone) {
-          const hostedZoneId = targetHostedZone.Id;
-          // Extracts the hostzone Id
-          const startPos = hostedZoneId.indexOf('e/') + 2;
-          const endPos = hostedZoneId.length;
-          return hostedZoneId.substring(startPos, endPos);
-        }
-        throw new Error(`Error: Could not find hosted zone '${this.givenDomainName}'`);
-      });
-  }
-
   deleteDomain() {
     this.initializeVariables();
 
@@ -160,6 +126,40 @@ class ServerlessCustomDomain {
       })
       .catch((err) => {
         throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
+      });
+  }
+
+  getHostedZoneId() {
+    const specificId = this.serverless.service.custom.customDomain.hostedZoneId;
+    if (specificId) {
+      this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`);
+      return Promise.resolve(specificId);
+    }
+
+    const hostedZonePromise = this.route53.listHostedZones({}).promise();
+
+    return hostedZonePromise
+      .catch((err) => {
+        throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+      })
+      .then((data) => {
+        // Gets the hostzone that is closest match to the custom domain name
+        const targetHostedZone = data.HostedZones
+          .filter((hostedZone) => {
+            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
+            return this.givenDomainName.endsWith(hostedZoneName);
+          })
+          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+          .shift();
+
+        if (targetHostedZone) {
+          const hostedZoneId = targetHostedZone.Id;
+          // Extracts the hostzone Id
+          const startPos = hostedZoneId.indexOf('e/') + 2;
+          const endPos = hostedZoneId.length;
+          return hostedZoneId.substring(startPos, endPos);
+        }
+        throw new Error(`Error: Could not find hosted zone '${this.givenDomainName}'`);
       });
   }
 

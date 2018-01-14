@@ -70,12 +70,46 @@ class ServerlessCustomDomain {
       })
       .then((res) => {
         domain = res;
-        return this.migrateRecordType(domain.domainName);
+        return this.migrateRecordType(domain);
       })
       .then(() => this.changeResourceRecordSet(domain, 'UPSERT').catch((err) => {
         throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
       }))
       .then(() => (this.serverless.cli.log(`'${this.givenDomainName}' was created/updated. New domains may take up to 40 minutes to be initialized.`)));
+  }
+
+  getHostedZoneId() {
+    const specificId = this.serverless.service.custom.customDomain.hostedZoneId;
+    if (specificId) {
+      this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`);
+      return Promise.resolve(specificId);
+    }
+
+    const hostedZonePromise = this.route53.listHostedZones({}).promise();
+
+    return hostedZonePromise
+      .catch((err) => {
+        throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+      })
+      .then((data) => {
+        // Gets the hostzone that is closest match to the custom domain name
+        const targetHostedZone = data.HostedZones
+          .filter((hostedZone) => {
+            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
+            return this.givenDomainName.endsWith(hostedZoneName);
+          })
+          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+          .shift();
+
+        if (targetHostedZone) {
+          const hostedZoneId = targetHostedZone.Id;
+          // Extracts the hostzone Id
+          const startPos = hostedZoneId.indexOf('e/') + 2;
+          const endPos = hostedZoneId.length;
+          return hostedZoneId.substring(startPos, endPos);
+        }
+        throw new Error(`Error: Could not find hosted zone '${this.givenDomainName}'`);
+      });
   }
 
   deleteDomain() {
@@ -343,28 +377,37 @@ class ServerlessCustomDomain {
       return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 
-    const params = {
-      ChangeBatch: {
-        Changes: [
-          {
-            Action: action,
-            ResourceRecordSet: {
-              Name: this.givenDomainName,
-              Type: 'A',
-              AliasTarget: {
-                DNSName: domain.domainName,
-                EvaluateTargetHealth: false,
-                HostedZoneId: domain.hostedZoneId,
+    return this.getHostedZoneId().then((hostedZoneId) => {
+      if (!hostedZoneId) return null;
+
+      const params = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: action,
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: domain.domainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: domain.hostedZoneId,
+                },
               },
             },
-          },
-        ],
-        Comment: 'Record created by serverless-domain-manager',
-      },
-      HostedZoneId: domain.hostedZoneId,
-    };
+          ],
+          Comment: 'Record created by serverless-domain-manager',
+        },
+        HostedZoneId: hostedZoneId,
+      };
 
-    return this.route53.changeResourceRecordSets(params).promise();
+      return this.route53.changeResourceRecordSets(params).promise();
+    }, () => {
+      if (action === 'CREATE') {
+        throw new Error(`Record set for ${this.givenDomainName} already exists.`);
+      }
+      throw new Error(`Record set for ${this.givenDomainName} does not exist and cannot be deleted.`);
+    });
   }
 
   /**
@@ -379,43 +422,47 @@ class ServerlessCustomDomain {
       return Promise.resolve();
     }
 
-    const params = {
-      ChangeBatch: {
-        Changes: [
-          {
-            Action: 'DELETE',
-            ResourceRecordSet: {
-              Name: this.givenDomainName,
-              ResourceRecords: [
-                {
-                  Value: domain.domainName,
-                },
-              ],
-              TTL: 60,
-              Type: 'CNAME',
-            },
-          },
-          {
-            Action: 'CREATE',
-            ResourceRecordSet: {
-              Name: this.givenDomainName,
-              Type: 'A',
-              AliasTarget: {
-                DNSName: domain.domainName,
-                EvaluateTargetHealth: false,
-                HostedZoneId: domain.hostedZoneId,
+    return this.getHostedZoneId().then((hostedZoneId) => {
+      if (!hostedZoneId) return null;
+
+      const params = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: 'DELETE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                ResourceRecords: [
+                  {
+                    Value: domain.domainName,
+                  },
+                ],
+                TTL: 60,
+                Type: 'CNAME',
               },
             },
-          },
-        ],
-        Comment: 'Record created by serverless-domain-manager',
-      },
-      HostedZoneId: domain.hostedZoneId,
-    };
+            {
+              Action: 'CREATE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: domain.domainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: domain.hostedZoneId,
+                },
+              },
+            },
+          ],
+          Comment: 'Record created by serverless-domain-manager',
+        },
+        HostedZoneId: hostedZoneId,
+      };
 
-    const changeRecords = this.route53.changeResourceRecordSets(params).promise();
-    return changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
-      .catch(() => { }); // Swallow the error, not an error if it doesn't exist
+      const changeRecords = this.route53.changeResourceRecordSets(params).promise();
+      return changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
+        .catch(() => { }); // Swallow the error, not an error if it doesn't exist
+    });
   }
 
   /**

@@ -408,7 +408,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_2');
     });
 
@@ -426,7 +426,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_1');
     });
 
@@ -444,7 +444,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_2');
     });
 
@@ -462,7 +462,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_1');
     });
 
@@ -479,7 +479,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.a.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_0');
     });
 
@@ -498,7 +498,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
@@ -517,7 +517,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
@@ -535,7 +535,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
@@ -567,7 +567,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-      return plugin.getHostedZoneId().then(() => {
+      return plugin.getRoute53HostedZoneId().then(() => {
         throw new Error('Test has failed, getHostedZone did not catch errors.');
       }).catch((err) => {
         const expectedErrorMessage = 'Error: Could not find hosted zone \'test_domain\'';

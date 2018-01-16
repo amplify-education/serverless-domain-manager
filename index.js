@@ -128,7 +128,7 @@ class ServerlessCustomDomain {
       });
   }
 
-  getHostedZoneId() {
+  getRoute53HostedZoneId() {
     const specificId = this.serverless.service.custom.customDomain.hostedZoneId;
     if (specificId) {
       this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`);
@@ -376,8 +376,8 @@ class ServerlessCustomDomain {
       return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 
-    return this.getHostedZoneId().then((hostedZoneId) => {
-      if (!hostedZoneId) return null;
+    return this.getRoute53HostedZoneId().then((route53HostedZoneId) => {
+      if (!route53HostedZoneId) return null;
 
       const params = {
         ChangeBatch: {
@@ -397,7 +397,7 @@ class ServerlessCustomDomain {
           ],
           Comment: 'Record created by serverless-domain-manager',
         },
-        HostedZoneId: hostedZoneId,
+        HostedZoneId: route53HostedZoneId,
       };
 
       return this.route53.changeResourceRecordSets(params).promise();
@@ -421,8 +421,8 @@ class ServerlessCustomDomain {
       return Promise.resolve();
     }
 
-    return this.getHostedZoneId().then((hostedZoneId) => {
-      if (!hostedZoneId) return null;
+    return this.getRoute53HostedZoneId().then((route53HostedZoneId) => {
+      if (!route53HostedZoneId) return null;
 
       const params = {
         ChangeBatch: {
@@ -455,7 +455,7 @@ class ServerlessCustomDomain {
           ],
           Comment: 'Record created by serverless-domain-manager',
         },
-        HostedZoneId: hostedZoneId,
+        HostedZoneId: route53HostedZoneId,
       };
 
       const changeRecords = this.route53.changeResourceRecordSets(params).promise();

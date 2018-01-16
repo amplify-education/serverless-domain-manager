@@ -54,7 +54,6 @@ class ServerlessCustomDomain {
       this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
       this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
       this.setAcmRegion(this.serverless.service.custom.customDomain.certificateRegion);
-      this.hostedZoneId = this.serverless.service.custom.customDomain.hostedZoneId;
 
       this.initialized = true;
     }
@@ -356,7 +355,7 @@ class ServerlessCustomDomain {
       if the domain name already exists, the distribution domain name will be returned */
     return this.getDomain()
       .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
-        .then(data => new DomainResponse(data, this.hostedZoneId)));
+        .then(data => new DomainResponse(data)));
   }
 
   /**
@@ -483,7 +482,7 @@ class ServerlessCustomDomain {
     };
 
     return this.apigateway.getDomainName(getDomainNameParams).promise()
-      .then(data => new DomainResponse(data, this.hostedZoneId), (err) => {
+      .then(data => new DomainResponse(data), (err) => {
         throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n${err}`);
       });
   }

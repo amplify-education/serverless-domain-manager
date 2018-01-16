@@ -1,8 +1,8 @@
 class DomainResponse {
-  constructor(data, hostedZoneId) {
+  constructor(data) {
     return {
       domainName: data.distributionDomainName || data.regionalDomainName,
-      hostedZoneId: hostedZoneId || data.distributionHostedZoneId || data.regionalHostedZoneId,
+      hostedZoneId: data.distributionHostedZoneId || data.regionalHostedZoneId,
     };
   }
 }

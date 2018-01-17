@@ -13,8 +13,9 @@ const testCreds = {
   secretAccessKey: 'test_secret',
   sessionToken: 'test_session',
 };
+
 const constructPlugin =
-  (basepath, certName, stage, createRecord, endpointType, certificateRegion) => {
+  (basepath, certName, stage, createRecord, endpointType) => {
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -25,6 +26,7 @@ const constructPlugin =
       providers: {
         aws: {
           getCredentials: () => new aws.Credentials(testCreds),
+          getRegion: () => 'eu-west-1',
         },
       },
       service: {
@@ -44,7 +46,6 @@ const constructPlugin =
             basePath: basepath,
             domainName: 'test_domain',
             endpointType,
-            certificateRegion,
           },
         },
       },

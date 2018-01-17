@@ -53,7 +53,7 @@ class ServerlessCustomDomain {
       this.route53 = new AWS.Route53();
       this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
       this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
-      this.setAcmRegion(this.serverless.service.custom.customDomain.certificateRegion);
+      this.setAcmRegion();
 
       this.initialized = true;
     }
@@ -106,8 +106,12 @@ class ServerlessCustomDomain {
     this.endpointType = endpointTypes[endpointType.toLowerCase()];
   }
 
-  setAcmRegion(region = 'us-east-1') {
-    this.acmRegion = region;
+  setAcmRegion() {
+    if (this.endpointType === endpointTypes.regional) {
+      this.acmRegion = this.serverless.providers.aws.getRegion();
+    } else {
+      this.acmRegion = 'us-east-1';
+    }
   }
 
   setUpBasePathMapping() {

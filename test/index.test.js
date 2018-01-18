@@ -13,54 +13,58 @@ const testCreds = {
   secretAccessKey: 'test_secret',
   sessionToken: 'test_session',
 };
-const constructPlugin = (basepath, certName, stage, createRecord) => {
-  const serverless = {
-    cli: {
-      log(params) { return params; },
-      consoleLog(params) {
-        return params;
+
+const constructPlugin =
+  (basepath, certName, stage, createRecord, endpointType) => {
+    const serverless = {
+      cli: {
+        log(params) { return params; },
+        consoleLog(params) {
+          return params;
+        },
       },
-    },
-    providers: {
-      aws: {
-        getCredentials: () => new aws.Credentials(testCreds),
+      providers: {
+        aws: {
+          getCredentials: () => new aws.Credentials(testCreds),
+          getRegion: () => 'eu-west-1',
+        },
       },
-    },
-    service: {
-      provider: {
-        region: 'us-moon-1',
-        compiledCloudFormationTemplate: {
-          Resources: {
-            Deployment0: {
-              Type: 'AWS::ApiGateway::Deployment',
+      service: {
+        provider: {
+          region: 'us-moon-1',
+          compiledCloudFormationTemplate: {
+            Resources: {
+              Deployment0: {
+                Type: 'AWS::ApiGateway::Deployment',
+              },
             },
           },
+          stage: 'providerStage',
         },
-        stage: 'providerStage',
-      },
-      custom: {
-        customDomain: {
-          basePath: basepath,
-          domainName: 'test_domain',
+        custom: {
+          customDomain: {
+            basePath: basepath,
+            domainName: 'test_domain',
+            endpointType,
+          },
         },
       },
-    },
+    };
+
+    if (certName) {
+      serverless.service.custom.customDomain.certificateName = certName;
+    }
+
+    if (stage) {
+      serverless.service.custom.customDomain.stage = 'test';
+    }
+
+    if (!createRecord) {
+      serverless.service.custom.customDomain.createRoute53Record = createRecord;
+    }
+
+    return new ServerlessCustomDomain(serverless, {});
   };
-
-  if (certName) {
-    serverless.service.custom.customDomain.certificateName = certName;
-  }
-
-  if (stage) {
-    serverless.service.custom.customDomain.stage = 'test';
-  }
-
-  if (!createRecord) {
-    serverless.service.custom.customDomain.createRoute53Record = createRecord;
-  }
-
-  return new ServerlessCustomDomain(serverless, {});
-};
 
 
 describe('Custom Domain Plugin', () => {
@@ -74,6 +78,22 @@ describe('Custom Domain Plugin', () => {
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
     expect(plugin.initialized).to.equal(true);
+  });
+
+  describe('Domain Endpoint types', () => {
+    it('Unsupported endpoint types throw exception', () => {
+      const plugin = constructPlugin({}, 'tests', true, true, 'notSupported');
+      expect(plugin.initialized).to.equal(false);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal('notSupported is not supported endpointType, use edge or regional.');
+      }
+      expect(errored).to.equal(true);
+    });
   });
 
   describe('Set Domain Name and Base Path', () => {
@@ -91,8 +111,12 @@ describe('Custom Domain Plugin', () => {
       expect(cfTemplat).to.not.equal(undefined);
     });
 
-    it('Add Domain Name and Distribution Name to stack output', () => {
-      plugin.addOutputs({ domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
+    it('Add Domain Name, Distribution Name and Regional Name to stack output', () => {
+      plugin.addOutputs({
+        domainName: 'fake_domain',
+        distributionDomainName: 'fake_dist_name',
+        regionalDomainName: 'fake_regional_name',
+      });
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -133,6 +157,8 @@ describe('Custom Domain Plugin', () => {
       const plugin = constructPlugin('', null, true, true);
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
+      plugin.setEndpointType('REGIONAL');
+
       const result = await plugin.getCertArn();
 
       expect(result).to.equal('test_arn');
@@ -157,16 +183,16 @@ describe('Custom Domain Plugin', () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-
       const result = await plugin.createDomainName('fake_cert');
 
-      expect(result).to.equal('foo');
+      expect(result.domainName).to.equal('foo');
     });
 
     it('Migrate legacy CNAME records to A Alias', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
+
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         const changes = params.ChangeBatch.Changes;
         expect(changes[0].Action).to.equal('DELETE');
@@ -183,13 +209,14 @@ describe('Custom Domain Plugin', () => {
       const plugin = constructPlugin('test_basepath', null, true, true);
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
-      await plugin.migrateRecordType('test_distribution_name');
+      await plugin.migrateRecordType({ domainName: 'test_distribution_name', hostedZoneId: 'test_id' });
     });
 
     it('Create a new A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
+
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, params);
       });
@@ -198,7 +225,9 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'UPSERT');
+      const domain = { domainName: 'test_distribution_name', hostedZoneId: 'test_id' };
+
+      const result = await plugin.changeResourceRecordSet(domain, 'UPSERT');
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('UPSERT');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
@@ -246,7 +275,7 @@ describe('Custom Domain Plugin', () => {
   describe('Delete the new domain', () => {
     it('Find available domains', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
-        callback(null, params);
+        callback(null, { distributionDomainName: 'test_domain' });
       });
 
       const plugin = constructPlugin('test_basepath', null, true, true);
@@ -262,6 +291,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
       });
+
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, params);
       });
@@ -270,7 +300,9 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-      const result = await plugin.changeResourceRecordSet('test_distribution_name', 'DELETE');
+      const domain = { domainName: 'test_distribution_name', hostedZoneId: 'test_id' };
+
+      const result = await plugin.changeResourceRecordSet(domain, 'DELETE');
       const changes = result.ChangeBatch.Changes[0];
       expect(changes.Action).to.equal('DELETE');
       expect(changes.ResourceRecordSet.Name).to.equal('test_domain');
@@ -318,7 +350,7 @@ describe('Custom Domain Plugin', () => {
 
     it('deleteDomain', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
-        callback(null, { domainName: 'test_domain', distributionDomainName: 'test_distribution' });
+        callback(null, { distributionDomainName: 'test_distribution', regionalHostedZoneId: 'test_id' });
       });
       AWS.mock('APIGateway', 'deleteDomainName', (params, callback) => {
         callback(null, {});
@@ -340,7 +372,7 @@ describe('Custom Domain Plugin', () => {
     it('createDomain', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
-        callback(null, { distributionDomainName: 'foo' });
+        callback(null, { distributionDomainName: 'foo', regionalHostedZoneId: 'test_id' });
       });
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
@@ -365,7 +397,8 @@ describe('Custom Domain Plugin', () => {
   describe('Select Hosted Zone', () => {
     it('Natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+        callback(null, {
+          HostedZones: [{ Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
           { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
           { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
           { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_3' }],
@@ -376,13 +409,14 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_2');
     });
 
     it('Reverse order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
+        callback(null, {
+          HostedZones: [{ Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
           { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
           { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
           { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }],
@@ -393,13 +427,14 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_1');
     });
 
     it('Random order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
+        callback(null, {
+          HostedZones: [{ Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
           { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
           { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
           { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }],
@@ -410,16 +445,17 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.ccc.bbb.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_2');
     });
 
     it('Sub domain name - only root hosted zones', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
+        callback(null, {
+          HostedZones: [
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
         });
       });
 
@@ -427,15 +463,16 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_1');
     });
 
     it('With matching root and sub hosted zone', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [
-          { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
+        callback(null, {
+          HostedZones: [
+            { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
         });
       });
 
@@ -443,17 +480,18 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('test.a.aaa.com');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_0');
     });
 
     it('Sub domain name - natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
+        callback(null, {
+          HostedZones: [
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
         });
       });
 
@@ -461,17 +499,18 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
     it('Sub domain name - reverse order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
+        callback(null, {
+          HostedZones: [
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
         });
       });
 
@@ -479,16 +518,17 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
     it('Sub domain name - random order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [
-          { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
+        callback(null, {
+          HostedZones: [
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
         });
       });
 
@@ -496,7 +536,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName('bar.foo.bbb.fr');
 
-      const result = await plugin.getHostedZoneId();
+      const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
     });
 
@@ -528,7 +568,7 @@ describe('Custom Domain Plugin', () => {
       plugin.route53 = new aws.Route53();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
 
-      return plugin.getHostedZoneId().then(() => {
+      return plugin.getRoute53HostedZoneId().then(() => {
         throw new Error('Test has failed, getHostedZone did not catch errors.');
       }).catch((err) => {
         const expectedErrorMessage = 'Error: Could not find hosted zone \'test_domain\'';

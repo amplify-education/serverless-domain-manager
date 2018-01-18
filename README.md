@@ -64,6 +64,7 @@ custom:
     basePath: api
     certificateName: *.foo.com
     createRoute53Record: true
+    endpointType: 'regional'
 ```
 
 | Parameter Name | Default Value | Description |
@@ -73,6 +74,7 @@ custom:
 | stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
 | certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
 | createRoute53Record | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to the generated distribution domain name. |
+| endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 
 ## Running
@@ -108,7 +110,7 @@ npm install
 
 # Known Issues
 * (5/23/2017) CloudFormation does not support changing the base path from empty to something or vice a versa. You must run `sls remove` to remove the base path mapping.
-* (5/23/2017) Amazon Certificate Manager only allows certificates from the `us-east-1` region certificates for use with CloudFront, and by extension, API Gateway Custom Domains (Results in a BadRequestException: Certificate name must be specified...).
+* (1/17/2018) The `create_domain` command provided by this plugin does not currently update an existing Custom Domain's configuration. Instead, it only supports updating the Route 53 record pointing to the Custom Domain. For example, one must delete and recreate a Custom Domain to migrate it from regional to edge or vice versa, or to modify the certificate.
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

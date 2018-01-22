@@ -1,6 +1,5 @@
 'use strict';
 
-const AWS = require('aws-sdk');
 const chalk = require('chalk');
 const DomainResponse = require('./DomainResponse');
 
@@ -48,15 +47,15 @@ class ServerlessCustomDomain {
     if (!this.initialized) {
       this.enabled = this.evaluateEnabled();
       if (this.enabled) {
-        // Sets the credentials for AWS resources.
-        const awsCreds = this.serverless.providers.aws.getCredentials();
-        AWS.config.update(awsCreds);
-        this.apigateway = new AWS.APIGateway();
-        this.route53 = new AWS.Route53();
+        this.apigateway = new this.serverless.providers.aws.sdk.APIGateway({
+          region: this.serverless.providers.aws.getRegion(),
+        });
+        this.route53 = new this.serverless.providers.aws.sdk.Route53();
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
       }
+
       this.initialized = true;
     }
   }
@@ -323,7 +322,7 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
-    const acm = new AWS.ACM({
+    const acm = new this.serverless.providers.aws.sdk.ACM({
       region: this.acmRegion,
     });
 

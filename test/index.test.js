@@ -49,9 +49,9 @@ const constructPlugin =
         },
         custom: {
           customDomain: {
-                      basePath: basepath,
-                      domainName: 'test_domain',
-                      endpointType,
+              basePath: basepath,
+              domainName: 'test_domain',
+              endpointType,
                     }
         }
       }

@@ -14,8 +14,14 @@ const testCreds = {
   sessionToken: 'test_session',
 };
 
+const testRoute53Domain = {
+    route53Profile: 'test-profile',
+    route53Region: 'us-moon-42'
+};
+
 const constructPlugin =
   (basepath, certName, stage, createRecord, endpointType) => {
+
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -43,12 +49,12 @@ const constructPlugin =
         },
         custom: {
           customDomain: {
-            basePath: basepath,
-            domainName: 'test_domain',
-            endpointType,
-          },
-        },
-      },
+                      basePath: basepath,
+                      domainName: 'test_domain',
+                      endpointType,
+                    }
+        }
+      }
     };
 
     if (certName) {
@@ -79,6 +85,35 @@ describe('Custom Domain Plugin', () => {
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
     expect(plugin.initialized).to.equal(true);
   });
+
+    it('uses default credentials for route 53', () => {
+        const plugin = constructPlugin({}, 'tests', true, true);
+        expect(plugin.initialized).to.equal(false);
+
+        plugin.initializeVariables();
+
+        const returnedCreds = plugin.route53.config.credentials;
+
+        expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+        expect(returnedCreds.secretAccessKey).to.equal(testCreds.secretAccessKey);
+        expect(plugin.initialized).to.equal(true);
+    });
+
+  it('overrides credentials for route 53', () => {
+      //AWS.mock('SharedIniFileCredentials', 'get', new aws.Credentials(testRoute53Creds));
+
+      const plugin = constructPlugin({}, 'tests', true, true);
+      Object.assign(plugin.serverless.service.custom.customDomain , testRoute53Domain);
+      expect(plugin.initialized).to.equal(false);
+
+      plugin.initializeVariables();
+
+      const returnedCreds = plugin.route53.config.credentials;
+      expect(returnedCreds.profile).to.equal(testRoute53Domain.route53Profile);
+      expect(plugin.route53.config.region).to.equal(testRoute53Domain.route53Region);
+      expect(plugin.initialized).to.equal(true);
+  });
+
 
   describe('Domain Endpoint types', () => {
     it('Unsupported endpoint types throw exception', () => {

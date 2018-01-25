@@ -53,7 +53,7 @@ class ServerlessCustomDomain {
       const domainProfile = this.serverless.service.custom.customDomain.route53Profile;
       if (domainProfile) {
         awsCreds = new AWS.SharedIniFileCredentials({ profile: domainProfile });
-        awsRegion = this.serverless.service.custom.customDomain.route53Region || 'us-east-1';
+        awsRegion = this.serverless.service.custom.customDomain.route53Region || this.serverless.providers.aws.getRegion() || 'us-east-1';
       }
       const options = {
         region: awsRegion,

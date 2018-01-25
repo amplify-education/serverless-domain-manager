@@ -47,19 +47,18 @@ class ServerlessCustomDomain {
   initializeVariables() {
     if (!this.initialized) {
       // Sets the credentials for AWS resources.
-        let awsCreds = this.serverless.providers.aws.getCredentials();
-        let awsRegion = this.serverless.providers.aws.getRegion();
-        AWS.config.update(awsCreds);
-        const domainProfile = this.serverless.service.custom.customDomain.route53Profile;
-        if (domainProfile) {
-            awsCreds = new AWS.SharedIniFileCredentials({profile: domainProfile});
-            awsRegion = this.serverless.service.custom.customDomain.route53Region || "us-east-1";
-
-        }
-      const options = {
-          region: awsRegion,
-          credentials: awsCreds
+      let awsCreds = this.serverless.providers.aws.getCredentials();
+      let awsRegion = this.serverless.providers.aws.getRegion();
+      AWS.config.update(awsCreds);
+      const domainProfile = this.serverless.service.custom.customDomain.route53Profile;
+      if (domainProfile) {
+        awsCreds = new AWS.SharedIniFileCredentials({ profile: domainProfile });
+        awsRegion = this.serverless.service.custom.customDomain.route53Region || 'us-east-1';
       }
+      const options = {
+        region: awsRegion,
+        credentials: awsCreds,
+      };
       this.apigateway = new AWS.APIGateway();
       this.route53 = new AWS.Route53(options);
       this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);

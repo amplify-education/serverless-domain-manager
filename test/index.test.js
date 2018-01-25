@@ -15,13 +15,12 @@ const testCreds = {
 };
 
 const testRoute53Domain = {
-    route53Profile: 'test-profile',
-    route53Region: 'us-moon-42'
+  route53Profile: 'test-profile',
+  route53Region: 'us-moon-42',
 };
 
 const constructPlugin =
   (basepath, certName, stage, createRecord, endpointType) => {
-
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -52,9 +51,9 @@ const constructPlugin =
             basePath: basepath,
             domainName: 'test_domain',
             endpointType,
-                    }
-        }
-      }
+          },
+        },
+      },
     };
 
     if (certName) {
@@ -86,32 +85,30 @@ describe('Custom Domain Plugin', () => {
     expect(plugin.initialized).to.equal(true);
   });
 
-    it('uses default credentials for route 53', () => {
-        const plugin = constructPlugin({}, 'tests', true, true);
-        expect(plugin.initialized).to.equal(false);
+  it('uses default credentials for route 53', () => {
+    const plugin = constructPlugin({}, 'tests', true, true);
+    expect(plugin.initialized).to.equal(false);
 
-        plugin.initializeVariables();
+    plugin.initializeVariables();
 
-        const returnedCreds = plugin.route53.config.credentials;
+    const returnedCreds = plugin.route53.config.credentials;
 
-        expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
-        expect(returnedCreds.secretAccessKey).to.equal(testCreds.secretAccessKey);
-        expect(plugin.initialized).to.equal(true);
-    });
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.secretAccessKey).to.equal(testCreds.secretAccessKey);
+    expect(plugin.initialized).to.equal(true);
+  });
 
   it('overrides credentials for route 53', () => {
-      //AWS.mock('SharedIniFileCredentials', 'get', new aws.Credentials(testRoute53Creds));
+    const plugin = constructPlugin({}, 'tests', true, true);
+    Object.assign(plugin.serverless.service.custom.customDomain, testRoute53Domain);
+    expect(plugin.initialized).to.equal(false);
 
-      const plugin = constructPlugin({}, 'tests', true, true);
-      Object.assign(plugin.serverless.service.custom.customDomain , testRoute53Domain);
-      expect(plugin.initialized).to.equal(false);
+    plugin.initializeVariables();
 
-      plugin.initializeVariables();
-
-      const returnedCreds = plugin.route53.config.credentials;
-      expect(returnedCreds.profile).to.equal(testRoute53Domain.route53Profile);
-      expect(plugin.route53.config.region).to.equal(testRoute53Domain.route53Region);
-      expect(plugin.initialized).to.equal(true);
+    const returnedCreds = plugin.route53.config.credentials;
+    expect(returnedCreds.profile).to.equal(testRoute53Domain.route53Profile);
+    expect(plugin.route53.config.region).to.equal(testRoute53Domain.route53Region);
+    expect(plugin.initialized).to.equal(true);
   });
 
 

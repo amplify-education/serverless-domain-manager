@@ -174,12 +174,15 @@ class ServerlessCustomDomain {
 
     return this.getDomain().then((data) => {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
+
       if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
         this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
         this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
       }
+
       this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
-      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
+      this.serverless.cli.consoleLog(`  ${data.domainName}`);
+
       return true;
     }).catch((err) => {
       throw new Error(`Error: Domain manager summary logging failed.\n${err}`);

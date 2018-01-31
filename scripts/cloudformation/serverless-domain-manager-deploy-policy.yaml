@@ -31,6 +31,10 @@ Resources:
             Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
           - Effect: Allow
             Action:
+              - apigateway:POST
+            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings
+          - Effect: Allow
+            Action:
               - cloudfront:UpdateDistribution
             Resource: '*'
           - Effect: Allow

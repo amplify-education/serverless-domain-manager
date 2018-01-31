@@ -2,9 +2,16 @@
 
 const AWS = require('aws-sdk');
 const chalk = require('chalk');
+const DomainResponse = require('./DomainResponse');
+
+
+const endpointTypes = {
+  edge: 'EDGE',
+  regional: 'REGIONAL',
+};
+
 
 class ServerlessCustomDomain {
-
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
@@ -47,6 +54,8 @@ class ServerlessCustomDomain {
         this.apigateway = new AWS.APIGateway();
         this.route53 = new AWS.Route53();
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+        this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
+        this.setAcmRegion();
       }
       this.initialized = true;
     }
@@ -93,49 +102,116 @@ class ServerlessCustomDomain {
 
   createDomain() {
     this.initializeVariables();
-    if (! this.enabled)
+    if (!this.enabled) {
       return this.reportDisabled();
+    }
+    let domain = null;
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
-    return Promise.all([createDomainName])
-      .then(values => this.changeResourceRecordSet(values[0], 'CREATE'))
-      .then(() => (this.serverless.cli.log('Domain was created, may take up to 40 mins to be initialized.')))
+    return createDomainName
       .catch((err) => {
-        throw new Error(`${err} ${this.givenDomainName} was not created.`);
-      });
+        throw new Error(`Error: '${this.givenDomainName}' was not created in API Gateway.\n${err}`);
+      })
+      .then((res) => {
+        domain = res;
+        return this.migrateRecordType(domain);
+      })
+      .then(() => this.changeResourceRecordSet(domain, 'UPSERT').catch((err) => {
+        throw new Error(`Error: '${this.givenDomainName}' was not created in Route53.\n${err}`);
+      }))
+      .then(() => (this.serverless.cli.log(`'${this.givenDomainName}' was created/updated. New domains may take up to 40 minutes to be initialized.`)));
   }
 
   deleteDomain() {
     this.initializeVariables();
-    if (! this.enabled)
+    if (!this.enabled) {
       return this.reportDisabled();
+    }
+    let domain = null;
     return this.getDomain().then((data) => {
-      const promises = [
-        this.changeResourceRecordSet(data.distributionDomainName, 'DELETE'),
-        this.clearDomainName(),
-      ];
-
-      return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
-    }).catch((err) => {
-      throw new Error(`${err} ${this.givenDomainName} was not deleted.`);
-    });
+      domain = data;
+      return this.migrateRecordType(domain);
+    })
+      .then(() => {
+        const promises = [
+          this.changeResourceRecordSet(domain, 'DELETE'),
+          this.clearDomainName(),
+        ];
+        return (Promise.all(promises).then(() => (this.serverless.cli.log('Domain was deleted.'))));
+      })
+      .catch((err) => {
+        throw new Error(`Error: '${this.givenDomainName}' was not deleted.\n${err}`);
+      });
   }
 
   setGivenDomainName(givenDomainName) {
     this.givenDomainName = givenDomainName;
-    this.targetHostedZoneName = this.givenDomainName.substring(this.givenDomainName.indexOf('.') + 1);
+  }
+
+  setEndpointType(endpointType = endpointTypes.edge) {
+    if (!Object.keys(endpointTypes).includes(endpointType.toLowerCase())) throw new Error(`${endpointType} is not supported endpointType, use edge or regional.`);
+    this.endpointType = endpointTypes[endpointType.toLowerCase()];
+  }
+
+  setAcmRegion() {
+    if (this.endpointType === endpointTypes.regional) {
+      this.acmRegion = this.serverless.providers.aws.getRegion();
+    } else {
+      this.acmRegion = 'us-east-1';
+    }
   }
 
   setUpBasePathMapping() {
     this.initializeVariables();
-    if (! this.enabled)
+    if (!this.enabled) {
       return this.reportDisabled();
+    }
+    let domain = null;
     return this.getDomain().then((data) => {
-      const deploymentId = this.getDeploymentId();
-      this.addResources(deploymentId);
-      this.addOutputs(data);
-    }).catch((err) => {
-      throw new Error(`${err} Try running sls create_domain first.`);
-    });
+      domain = data;
+      return this.migrateRecordType(domain);
+    })
+      .then(() => {
+        const deploymentId = this.getDeploymentId();
+        this.addResources(deploymentId);
+        this.addOutputs(domain);
+      })
+      .catch((err) => {
+        throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
+      });
+  }
+
+  getRoute53HostedZoneId() {
+    const specificId = this.serverless.service.custom.customDomain.hostedZoneId;
+    if (specificId) {
+      this.serverless.cli.log(`Selected specific hostedZoneId ${specificId}`);
+      return Promise.resolve(specificId);
+    }
+
+    const hostedZonePromise = this.route53.listHostedZones({}).promise();
+
+    return hostedZonePromise
+      .catch((err) => {
+        throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+      })
+      .then((data) => {
+        // Gets the hostzone that is closest match to the custom domain name
+        const targetHostedZone = data.HostedZones
+          .filter((hostedZone) => {
+            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
+            return this.givenDomainName.endsWith(hostedZoneName);
+          })
+          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+          .shift();
+
+        if (targetHostedZone) {
+          const hostedZoneId = targetHostedZone.Id;
+          // Extracts the hostzone Id
+          const startPos = hostedZoneId.indexOf('e/') + 2;
+          const endPos = hostedZoneId.length;
+          return hostedZoneId.substring(startPos, endPos);
+        }
+        throw new Error(`Error: Could not find hosted zone '${this.givenDomainName}'`);
+      });
   }
 
   /**
@@ -143,19 +219,23 @@ class ServerlessCustomDomain {
    */
   domainSummary() {
     this.initializeVariables();
-    if (! this.enabled)
+    if (!this.enabled) {
       return this.reportDisabled();
+    }
     return this.getDomain().then((data) => {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
+
       if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
         this.serverless.cli.consoleLog(chalk.yellow('Domain Name'));
         this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
       }
+
       this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
-      this.serverless.cli.consoleLog(`  ${data.distributionDomainName}`);
+      this.serverless.cli.consoleLog(`  ${data.domainName}`);
+
       return true;
     }).catch((err) => {
-      throw new Error(`${err} Domain manager summary logging failed.`);
+      throw new Error(`Error: Domain manager summary logging failed.\n${err}`);
     });
   }
 
@@ -185,13 +265,13 @@ class ServerlessCustomDomain {
     const service = this.serverless.service;
 
     if (!service.custom.customDomain) {
-      throw new Error('customDomain settings in Serverless are not configured correctly');
+      throw new Error('Error: check that the customDomain section is defined in serverless.yml');
     }
 
     let basePath = service.custom.customDomain.basePath;
 
-    // Base path cannot be empty, instead it must be (none)
-    if (basePath.trim() === '') {
+    // Check that basePath is either not set, or set to an empty string
+    if (basePath == null || basePath.trim() === '') {
       basePath = '(none)';
     }
 
@@ -249,8 +329,8 @@ class ServerlessCustomDomain {
     service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
       Value: data.domainName,
     };
-    service.provider.compiledCloudFormationTemplate.Outputs.DistributionDomainName = {
-      Value: data.distributionDomainName,
+    service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {
+      Value: data.hostedZoneId,
     };
   }
 
@@ -259,12 +339,14 @@ class ServerlessCustomDomain {
    */
   getCertArn() {
     const acm = new AWS.ACM({
-      region: 'us-east-1',
-    });       // us-east-1 is the only region that can be accepted (3/21)
+      region: this.acmRegion,
+    });
 
     const certArn = acm.listCertificates().promise();
 
-    return certArn.then((data) => {
+    return certArn.catch((err) => {
+      throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
+    }).then((data) => {
       // The more specific name will be the longest
       let nameLength = 0;
       // The arn of the choosen certificate
@@ -302,7 +384,7 @@ class ServerlessCustomDomain {
       }
 
       if (certificateArn == null) {
-        throw Error(`Could not find the certificate ${certificateName}`);
+        throw Error(`Error: Could not find the certificate ${certificateName}.`);
       }
       return certificateArn;
     });
@@ -315,68 +397,44 @@ class ServerlessCustomDomain {
   createDomainName(givenCertificateArn) {
     const createDomainNameParams = {
       domainName: this.givenDomainName,
-      certificateArn: givenCertificateArn,
+      endpointConfiguration: {
+        types: [this.endpointType],
+      },
     };
 
-    // This will return the distributionDomainName (used in changeResourceRecordSet)
-    const createDomain = this.apigateway.createDomainName(createDomainNameParams).promise();
-    return createDomain.then(data => data.distributionDomainName);
-  }
+    if (this.endpointType === endpointTypes.edge) {
+      createDomainNameParams.certificateArn = givenCertificateArn;
+    } else if (this.endpointType === endpointTypes.regional) {
+      createDomainNameParams.regionalCertificateArn = givenCertificateArn;
+    }
 
-  /*
-   * Gets the HostedZoneId
-   * @return hostedZoneId or null if not found or access denied
-   */
-  getHostedZoneId() {
-    const hostedZonePromise = this.route53.listHostedZones({}).promise();
-
-    return hostedZonePromise
-      .then((data) => {
-        // Gets the hostzone that is closest match to the custom domain name
-        const targetHostedZone = data.HostedZones
-          .filter((hostedZone) => {
-            const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            return this.targetHostedZoneName.endsWith(hostedZoneName);
-          })
-          .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-          .shift();
-
-        if (targetHostedZone) {
-          const hostedZoneId = targetHostedZone.Id;
-          // Extracts the hostzone Id
-          const startPos = hostedZoneId.indexOf('e/') + 2;
-          const endPos = hostedZoneId.length;
-          return hostedZoneId.substring(startPos, endPos);
-        }
-        throw new Error('Could not find hosted zone.');
-      })
-    .catch((err) => {
-      throw new Error(`${err} Unable to retrieve Route53 hosted zone id.`);
-    });
+    /* This will return the distributionDomainName (used in changeResourceRecordSet)
+      if the domain name already exists, the distribution domain name will be returned */
+    return this.getDomain()
+      .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
+        .then(data => new DomainResponse(data)));
   }
 
   /**
-   * Can create a new CNAME or delete a CNAME
+   * Can create a new A Alias or delete a A Alias
    *
-   * @param distributionDomainName    the domain name of the cloudfront
-   * @param action    CREATE: Creates a CNAME
-   *                  DELETE: Deletes the CNAME
-   *                  The CNAME is specified in the serverless file under domainName
+   * @param domain    The domain object contains the domainName and the hostedZoneId
+   * @param action    UPSERT: Creates a A Alias
+   *                  DELETE: Deletes the A Alias
+   *                  The A Alias is specified in the serverless file under domainName
    */
-  changeResourceRecordSet(distributionDomainName, action) {
-    if (action !== 'DELETE' && action !== 'CREATE') {
-      throw new Error(`${action} is not a valid action. action must be either CREATE or DELETE`);
+  changeResourceRecordSet(domain, action) {
+    if (action !== 'DELETE' && action !== 'UPSERT') {
+      throw new Error(`Error: ${action} is not a valid action. action must be either UPSERT or DELETE`);
     }
 
     if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
-        && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      && this.serverless.service.custom.customDomain.createRoute53Record === false) {
       return Promise.resolve().then(() => (this.serverless.cli.log('Skipping creation of Route53 record.')));
     }
 
-    return this.getHostedZoneId().then((hostedZoneId) => {
-      if (!hostedZoneId) {
-        return null;
-      }
+    return this.getRoute53HostedZoneId().then((route53HostedZoneId) => {
+      if (!route53HostedZoneId) return null;
 
       const params = {
         ChangeBatch: {
@@ -385,19 +443,18 @@ class ServerlessCustomDomain {
               Action: action,
               ResourceRecordSet: {
                 Name: this.givenDomainName,
-                ResourceRecords: [
-                  {
-                    Value: distributionDomainName,
-                  },
-                ],
-                TTL: 60,
-                Type: 'CNAME',
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: domain.domainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: domain.hostedZoneId,
+                },
               },
             },
           ],
-          Comment: 'Created from Serverless Custom Domain Name',
+          Comment: 'Record created by serverless-domain-manager',
         },
-        HostedZoneId: hostedZoneId,
+        HostedZoneId: route53HostedZoneId,
       };
 
       return this.route53.changeResourceRecordSets(params).promise();
@@ -406,6 +463,61 @@ class ServerlessCustomDomain {
         throw new Error(`Record set for ${this.givenDomainName} already exists.`);
       }
       throw new Error(`Record set for ${this.givenDomainName} does not exist and cannot be deleted.`);
+    });
+  }
+
+  /**
+   * Delete any legacy CNAME certificates, replacing them with A Alias records.
+   * records.
+   *
+   * @param domain    The domain object contains the domainName and the hostedZoneId
+   */
+  migrateRecordType(domain) {
+    if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
+      && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+      return Promise.resolve();
+    }
+
+    return this.getRoute53HostedZoneId().then((route53HostedZoneId) => {
+      if (!route53HostedZoneId) return null;
+
+      const params = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: 'DELETE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                ResourceRecords: [
+                  {
+                    Value: domain.domainName,
+                  },
+                ],
+                TTL: 60,
+                Type: 'CNAME',
+              },
+            },
+            {
+              Action: 'CREATE',
+              ResourceRecordSet: {
+                Name: this.givenDomainName,
+                Type: 'A',
+                AliasTarget: {
+                  DNSName: domain.domainName,
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: domain.hostedZoneId,
+                },
+              },
+            },
+          ],
+          Comment: 'Record created by serverless-domain-manager',
+        },
+        HostedZoneId: route53HostedZoneId,
+      };
+
+      const changeRecords = this.route53.changeResourceRecordSets(params).promise();
+      return changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
+        .catch(() => { }); // Swallow the error, not an error if it doesn't exist
     });
   }
 
@@ -425,10 +537,11 @@ class ServerlessCustomDomain {
     const getDomainNameParams = {
       domainName: this.givenDomainName,
     };
-    const getDomainPromise = this.apigateway.getDomainName(getDomainNameParams).promise();
-    return getDomainPromise.then(data => (data), () => {
-      throw new Error(`Cannot find specified domain name ${this.givenDomainName}.`);
-    });
+
+    return this.apigateway.getDomainName(getDomainNameParams).promise()
+      .then(data => new DomainResponse(data), (err) => {
+        throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n${err}`);
+      });
   }
 }
 

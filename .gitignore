@@ -1,4 +1,6 @@
 .idea
+.vscode
 node_modules/
 coverage
 npm-debug.log
+*.iml

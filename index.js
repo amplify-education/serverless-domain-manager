@@ -65,27 +65,19 @@ class ServerlessCustomDomain {
    * Determines whether this plug-in should be enabled.
    *
    * This method reads the customDomain property "enabled" to see if this plug-in should be enabled.
-   * If the property's value is undefined, a default value of true is assumed (for backward compatibility).
-   * If the property's value is a string, then it must be either "true" or "false", or an Error will be thrown.
-   * For all other value types, the value's truthiness is evaluated.
-   *
-   * @returns {boolean} true iff enabled
+   * If the property's value is undefined, a default value of true is assumed (for backwards compatibility).
+   * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
    */
   evaluateEnabled() {
-    let enabled = this.serverless.service.custom.customDomain.enabled;
-    if (enabled === undefined)
+    const enabled = this.serverless.service.custom.customDomain.enabled;
+    if (enabled === undefined) {
       return true;
-    if (typeof enabled == 'string') {
-      switch (enabled) {
-        case 'true':
-          return true;
-        case 'false':
-          return false;
-        default:
-          throw new Error("serverless-domain-manager: Ambiguous enablement string: “" + enabled + "”");
-      }
     }
-    return ! ! enabled;
+    if (typeof enabled === 'boolean') {
+      return enabled;
+    } else {
+      throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
+    }
   }
 
   /**
@@ -95,7 +87,7 @@ class ServerlessCustomDomain {
    */
   reportDisabled() {
     return new Promise(resolve => {
-      this.serverless.cli.log("serverless-domain-manager: Custom domain is disabled.");
+      this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.');
       resolve();
     });
   }

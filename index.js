@@ -47,7 +47,7 @@ class ServerlessCustomDomain {
   initializeVariables() {
     if (!this.initialized) {
       this.enabled = this.evaluateEnabled();
-      if (this.isEnabled) {
+      if (this.enabled) {
         // Sets the credentials for AWS resources.
         const awsCreds = this.serverless.providers.aws.getCredentials();
         AWS.config.update(awsCreds);
@@ -65,7 +65,7 @@ class ServerlessCustomDomain {
    * Determines whether this plug-in should be enabled.
    *
    * This method reads the customDomain property "enabled" to see if this plug-in should be enabled.
-   * If the property's value is undefined, a default value of true is assumed (for backwards 
+   * If the property's value is undefined, a default value of true is assumed (for backwards
    * compatibility).
    * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
    */
@@ -76,7 +76,7 @@ class ServerlessCustomDomain {
     }
     if (typeof enabled === 'boolean') {
       return enabled;
-    } 
+    }
     throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
   }
 

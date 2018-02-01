@@ -82,7 +82,7 @@ class ServerlessCustomDomain {
 
   reportDisabled() {
     return Promise.resolve()
-    .then(() => this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.'));
+      .then(() => this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.'));
   }
 
   createDomain() {

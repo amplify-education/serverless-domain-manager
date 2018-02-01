@@ -80,16 +80,9 @@ class ServerlessCustomDomain {
     throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
   }
 
-  /**
-   * Returns a promise that does nothing other than report that this plug-in is disabled.
-   *
-   * @returns {Promise} the promise
-   */
   reportDisabled() {
-    return new Promise((resolve) => {
-      this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.');
-      resolve();
-    });
+    return Promise.resolve()
+    .then(() => this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.'));
   }
 
   createDomain() {

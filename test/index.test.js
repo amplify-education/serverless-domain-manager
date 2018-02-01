@@ -16,6 +16,8 @@ const testCreds = {
 
 const constructPlugin =
   (basepath, certName, stage, createRecord, endpointType) => {
+    aws.config.update(testCreds);
+
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -27,6 +29,11 @@ const constructPlugin =
         aws: {
           getCredentials: () => new aws.Credentials(testCreds),
           getRegion: () => 'eu-west-1',
+          sdk: {
+            APIGateway: aws.APIGateway,
+            ACM: aws.ACM,
+            Route53: aws.Route53,
+          },
         },
       },
       service: {

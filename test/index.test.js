@@ -15,7 +15,7 @@ const testCreds = {
 };
 
 const constructPlugin =
-  (basepath, certName, stage, createRecord, endpointType) => {
+  (basepath, certName, stage, createRecord, endpointType, enabled) => {
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -61,6 +61,10 @@ const constructPlugin =
 
     if (!createRecord) {
       serverless.service.custom.customDomain.createRoute53Record = createRecord;
+    }
+
+    if (enabled !== undefined) {
+      serverless.service.custom.customDomain.enabled = enabled;
     }
 
     return new ServerlessCustomDomain(serverless, {});
@@ -628,6 +632,100 @@ describe('Custom Domain Plugin', () => {
 
     afterEach(() => {
       AWS.restore();
+    });
+  });
+
+  describe('Enable/disable functionality', () => {
+    it('Should enable the plugin by default', () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional');
+
+      plugin.initializeVariables();
+
+      const returnedCreds = plugin.apigateway.config.credentials;
+      expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(true);
+    });
+
+    it('Should enable the plugin when passing a true parameter', () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', true);
+
+      plugin.initializeVariables();
+
+      const returnedCreds = plugin.apigateway.config.credentials;
+      expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(true);
+    });
+
+    it('Should disable the plugin when passing a false parameter', () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      plugin.initializeVariables();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+    });
+
+    it('createDomain should do nothing and report that the plugin is disabled', async () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      const result = await plugin.createDomain();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+
+      expect(result).to.equal('serverless-domain-manager: Custom domain is disabled.');
+    });
+
+    it('deleteDomain should do nothing and report that the plugin is disabled', async () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      const result = await plugin.deleteDomain();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+
+      expect(result).to.equal('serverless-domain-manager: Custom domain is disabled.');
+    });
+
+    it('setUpBasePathMapping should do nothing and report that the plugin is disabled', async () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      const result = await plugin.setUpBasePathMapping();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+
+      expect(result).to.equal('serverless-domain-manager: Custom domain is disabled.');
+    });
+
+    it('domainSummary should do nothing and report that the plugin is disabled', async () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      const result = await plugin.domainSummary();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+
+      expect(result).to.equal('serverless-domain-manager: Custom domain is disabled.');
+    });
+
+
+    it('Should throw an Error when passing a parameter that is not boolean', () => {
+      const stringWithValueTrue = 'true';
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', stringWithValueTrue);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal('serverless-domain-manager: Ambiguous enablement boolean: \'true\'');
+      }
+      expect(errored).to.equal(true);
     });
   });
 });

@@ -46,21 +46,50 @@ class ServerlessCustomDomain {
 
   initializeVariables() {
     if (!this.initialized) {
-      // Sets the credentials for AWS resources.
-      const awsCreds = this.serverless.providers.aws.getCredentials();
-      AWS.config.update(awsCreds);
-      this.apigateway = new AWS.APIGateway();
-      this.route53 = new AWS.Route53();
-      this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
-      this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
-      this.setAcmRegion();
-
+      this.enabled = this.evaluateEnabled();
+      if (this.enabled) {
+        // Sets the credentials for AWS resources.
+        const awsCreds = this.serverless.providers.aws.getCredentials();
+        AWS.config.update(awsCreds);
+        this.apigateway = new AWS.APIGateway();
+        this.route53 = new AWS.Route53();
+        this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+        this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
+        this.setAcmRegion();
+      }
       this.initialized = true;
     }
   }
 
+  /**
+   * Determines whether this plug-in should be enabled.
+   *
+   * This method reads the customDomain property "enabled" to see if this plug-in should be enabled.
+   * If the property's value is undefined, a default value of true is assumed (for backwards
+   * compatibility).
+   * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
+   */
+  evaluateEnabled() {
+    const enabled = this.serverless.service.custom.customDomain.enabled;
+    if (enabled === undefined) {
+      return true;
+    }
+    if (typeof enabled === 'boolean') {
+      return enabled;
+    }
+    throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
+  }
+
+  reportDisabled() {
+    return Promise.resolve()
+      .then(() => this.serverless.cli.log('serverless-domain-manager: Custom domain is disabled.'));
+  }
+
   createDomain() {
     this.initializeVariables();
+    if (!this.enabled) {
+      return this.reportDisabled();
+    }
     let domain = null;
     const createDomainName = this.getCertArn().then(data => this.createDomainName(data));
     return createDomainName
@@ -79,7 +108,9 @@ class ServerlessCustomDomain {
 
   deleteDomain() {
     this.initializeVariables();
-
+    if (!this.enabled) {
+      return this.reportDisabled();
+    }
     let domain = null;
     return this.getDomain().then((data) => {
       domain = data;
@@ -116,7 +147,9 @@ class ServerlessCustomDomain {
 
   setUpBasePathMapping() {
     this.initializeVariables();
-
+    if (!this.enabled) {
+      return this.reportDisabled();
+    }
     let domain = null;
     return this.getDomain().then((data) => {
       domain = data;
@@ -171,7 +204,9 @@ class ServerlessCustomDomain {
    */
   domainSummary() {
     this.initializeVariables();
-
+    if (!this.enabled) {
+      return this.reportDisabled();
+    }
     return this.getDomain().then((data) => {
       this.serverless.cli.consoleLog(chalk.yellow.underline('Serverless Domain Manager Summary'));
 

@@ -254,6 +254,7 @@ class ServerlessCustomDomain {
     const pathmapping = {
       Type: 'AWS::ApiGateway::BasePathMapping',
       DependsOn: dependsOn,
+      DeletionPolicy: 'Retain'
       Properties: {
         BasePath: basePath,
         DomainName: this.givenDomainName,

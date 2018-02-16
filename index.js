@@ -54,6 +54,9 @@ class ServerlessCustomDomain {
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
+        this.acm = new this.serverless.providers.aws.sdk.ACM({
+          region: this.acmRegion,
+        });
       }
       this.initialized = true;
     }
@@ -321,11 +324,7 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
-    const acm = new this.serverless.providers.aws.sdk.ACM({
-      region: this.acmRegion,
-    });
-
-    const certArn = acm.listCertificates().promise();
+    const certArn = this.acm.listCertificates().promise();
 
     return certArn.catch((err) => {
       throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);

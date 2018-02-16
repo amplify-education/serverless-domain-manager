@@ -383,6 +383,9 @@ describe('Custom Domain Plugin', () => {
 
     it('createDomain', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(new Error('domain doesn\'t exist'), {});
+      });
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
         callback(null, { distributionDomainName: 'foo', regionalHostedZoneId: 'test_id' });
       });

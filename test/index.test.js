@@ -167,8 +167,8 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin('', null, true, true);
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
-
       plugin.setEndpointType('REGIONAL');
+      plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
 
@@ -179,6 +179,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPlugin('', 'cert_name', true, true);
+      plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
 
@@ -396,6 +397,7 @@ describe('Custom Domain Plugin', () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
       plugin.route53 = new aws.Route53();
+      plugin.acm = new aws.ACM();
       const result = await plugin.createDomain();
       expect(result).to.equal('\'test_domain\' was created/updated. New domains may take up to 40 minutes to be initialized.');
     });
@@ -561,6 +563,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPlugin('', 'does_not_exist', true, true);
+      plugin.acm = new aws.ACM();
 
       return plugin.getCertArn().then(() => {
         throw new Error('Test has failed. getCertArn did not catch errors.');

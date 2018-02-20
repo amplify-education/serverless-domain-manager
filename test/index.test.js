@@ -16,6 +16,8 @@ const testCreds = {
 
 const constructPlugin =
   (basepath, certName, stage, createRecord, endpointType, enabled) => {
+    aws.config.update(testCreds);
+
     const serverless = {
       cli: {
         log(params) { return params; },
@@ -27,6 +29,11 @@ const constructPlugin =
         aws: {
           getCredentials: () => new aws.Credentials(testCreds),
           getRegion: () => 'eu-west-1',
+          sdk: {
+            APIGateway: aws.APIGateway,
+            ACM: aws.ACM,
+            Route53: aws.Route53,
+          },
         },
       },
       service: {
@@ -160,8 +167,8 @@ describe('Custom Domain Plugin', () => {
 
       const plugin = constructPlugin('', null, true, true);
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
-
       plugin.setEndpointType('REGIONAL');
+      plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
 
@@ -172,6 +179,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPlugin('', 'cert_name', true, true);
+      plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
 
@@ -375,6 +383,9 @@ describe('Custom Domain Plugin', () => {
 
     it('createDomain', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
+      AWS.mock('APIGateway', 'getDomainName', (params, callback) => {
+        callback(new Error('domain doesn\'t exist'), {});
+      });
       AWS.mock('APIGateway', 'createDomainName', (params, callback) => {
         callback(null, { distributionDomainName: 'foo', regionalHostedZoneId: 'test_id' });
       });
@@ -389,6 +400,7 @@ describe('Custom Domain Plugin', () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
       plugin.route53 = new aws.Route53();
+      plugin.acm = new aws.ACM();
       const result = await plugin.createDomain();
       expect(result).to.equal('\'test_domain\' was created/updated. New domains may take up to 40 minutes to be initialized.');
     });
@@ -554,6 +566,7 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPlugin('', 'does_not_exist', true, true);
+      plugin.acm = new aws.ACM();
 
       return plugin.getCertArn().then(() => {
         throw new Error('Test has failed. getCertArn did not catch errors.');

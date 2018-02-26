@@ -47,16 +47,14 @@ class ServerlessCustomDomain {
     if (!this.initialized) {
       this.enabled = this.evaluateEnabled();
       if (this.enabled) {
-        this.apigateway = new this.serverless.providers.aws.sdk.APIGateway({
-          region: this.serverless.providers.aws.getRegion(),
-        });
-        this.route53 = new this.serverless.providers.aws.sdk.Route53();
+        const credentials = this.serverless.providers.aws.getCredentials();
+        this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
+        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
-        this.acm = new this.serverless.providers.aws.sdk.ACM({
-          region: this.acmRegion,
-        });
+        const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
+        this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
       }
 
       this.initialized = true;

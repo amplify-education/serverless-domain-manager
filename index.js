@@ -314,9 +314,11 @@ class ServerlessCustomDomain {
     service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
       Value: data.domainName,
     };
-    service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {
-      Value: data.hostedZoneId,
-    };
+    if (data.hostedZoneId) {
+      service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {
+        Value: data.hostedZoneId,
+      };
+    }
   }
 
   /*

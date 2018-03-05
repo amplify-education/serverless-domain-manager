@@ -1,3 +1,5 @@
+'use strict';
+
 class DomainResponse {
   constructor(data) {
     return {

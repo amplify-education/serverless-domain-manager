@@ -132,9 +132,10 @@ class ServerlessCustomDomain {
     this.givenDomainName = givenDomainName;
   }
 
-  setEndpointType(endpointType = endpointTypes.edge) {
-    if (!Object.keys(endpointTypes).includes(endpointType.toLowerCase())) throw new Error(`${endpointType} is not supported endpointType, use edge or regional.`);
-    this.endpointType = endpointTypes[endpointType.toLowerCase()];
+  setEndpointType(endpointType) {
+    const endpointTypeWithDefault = endpointType || endpointTypes.edge;
+    if (!Object.keys(endpointTypes).includes(endpointTypeWithDefault.toLowerCase())) throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
+    this.endpointType = endpointTypes[endpointTypeWithDefault.toLowerCase()];
   }
 
   setAcmRegion() {

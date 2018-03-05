@@ -132,7 +132,8 @@ class ServerlessCustomDomain {
     this.givenDomainName = givenDomainName;
   }
 
-  setEndpointType(endpointType = endpointTypes.edge) {
+  setEndpointType(endpointType) {
+    endpointType = endpointType || endpointTypes.edge;
     if (!Object.keys(endpointTypes).includes(endpointType.toLowerCase())) throw new Error(`${endpointType} is not supported endpointType, use edge or regional.`);
     this.endpointType = endpointTypes[endpointType.toLowerCase()];
   }

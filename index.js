@@ -219,6 +219,11 @@ class ServerlessCustomDomain {
       this.serverless.cli.consoleLog(chalk.yellow('Distribution Domain Name'));
       this.serverless.cli.consoleLog(`  ${data.domainName}`);
 
+      if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+        this.serverless.cli.consoleLog(chalk.yellow('Endpoint'));
+        this.serverless.cli.consoleLog(`  https://${this.givenDomainName}/${this.serverless.service.custom.customDomain.basePath}`);
+      }
+
       return true;
     }).catch((err) => {
       throw new Error(`Error: Domain manager summary logging failed.\n${err}`);

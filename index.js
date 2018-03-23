@@ -1,5 +1,6 @@
 'use strict';
 
+const AWS = require('aws-sdk');
 const chalk = require('chalk');
 const DomainResponse = require('./DomainResponse');
 
@@ -431,9 +432,9 @@ class ServerlessCustomDomain {
 
       /* This will return the distributionDomainName (used in changeResourceRecordSet)
         if the domain name already exists, the distribution domain name will be returned */
-      return this.getDomain()
-          .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
-          .then(data => new DomainResponse(data)));
+    return this.getDomain()
+        .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
+        .then(data => new DomainResponse(data)));
   }
 
   /**

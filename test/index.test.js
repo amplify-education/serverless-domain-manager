@@ -3,8 +3,22 @@
 const chai = require('chai');
 const AWS = require('aws-sdk-mock');
 const aws = require('aws-sdk');
-const certTestData = require('./test-cert-data.json');
+const certIssuedTestData = require('./test-cert-data-issued.json');
+const certAllTestData = require('./test-cert-data-all.json');
+const pendingCertTestData = require('./test-pending-cert-data.json');
 const ServerlessCustomDomain = require('../index.js');
+
+function certTestData(...args) {
+  if (typeof args[0] === 'function') {
+    const cb = args[0];
+    cb(null, certAllTestData);
+    return;
+  }
+
+  const [params, cb] = args;
+  if (params.CertificateStatuses) cb(null, certIssuedTestData);
+  else cb(() => certAllTestData);
+}
 
 const expect = chai.expect;
 
@@ -572,6 +586,33 @@ describe('Custom Domain Plugin', () => {
         throw new Error('Test has failed. getCertArn did not catch errors.');
       }).catch((err) => {
         const expectedErrorMessage = 'Error: Could not find the certificate does_not_exist.';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    it('If a certificate is found in non ISSUED status when a name is given and no detail was found', () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+
+      const plugin = constructPlugin('', 'cert_pending', true, true);
+
+      return plugin.getCertArn().then(() => {
+        throw new Error('Test has failed. getCertArn did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'The certificate cert_pending was found but is not in the "ISSUED" status';
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    it('If a certificate is found in non ISSUED status when a name is given and detail was found', () => {
+      AWS.mock('ACM', 'listCertificates', certTestData);
+      AWS.mock('ACM', 'describeCertificate', pendingCertTestData);
+
+      const plugin = constructPlugin('', 'cert_pending', true, true);
+
+      return plugin.getCertArn().then(() => {
+        throw new Error('Test has failed. getCertArn did not catch errors.');
+      }).catch((err) => {
+        const expectedErrorMessage = 'The certificate cert_pending was found with a "PENDING" status but was expecting "ISSUED" status';
         expect(err.message).to.equal(expectedErrorMessage);
       });
     });

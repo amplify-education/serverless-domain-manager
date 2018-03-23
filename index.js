@@ -1,5 +1,6 @@
 'use strict';
 
+const AWS = require('aws-sdk');
 const chalk = require('chalk');
 const DomainResponse = require('./DomainResponse');
 
@@ -324,54 +325,90 @@ class ServerlessCustomDomain {
   }
 
   /*
+   * Look through list of certs and see if any match the one we are looking for
+   */
+  findClosestCertificate(data) {
+    let nameLength = 0;
+    let certificateArn = null;
+    let certificateName = this.serverless.service.custom.customDomain.certificateName;
+
+
+    // Checks if a certificate name is given
+    if (certificateName != null) {
+      const foundCertificate = data.CertificateSummaryList
+        .find(certificate => (certificate.DomainName === certificateName));
+
+      if (foundCertificate != null) {
+        certificateArn = foundCertificate.CertificateArn;
+      }
+    } else {
+      certificateName = this.givenDomainName;
+      data.CertificateSummaryList.forEach((certificate) => {
+        let certificateListName = certificate.DomainName;
+
+        // Looks for wild card and takes it out when checking
+        if (certificateListName[0] === '*') {
+          certificateListName = certificateListName.substr(1);
+        }
+
+        // Looks to see if the name in the list is within the given domain
+        // Also checks if the name is more specific than previous ones
+        if (certificateName.includes(certificateListName)
+          && certificateListName.length > nameLength) {
+          nameLength = certificateListName.length;
+          certificateArn = certificate.CertificateArn;
+        }
+      });
+    }
+
+    if (certificateArn == null) {
+      throw Error(`Error: Could not find the certificate ${certificateName}.`);
+    }
+    return certificateArn;
+  }
+
+  /*
    * Obtains the certification arn
    */
   getCertArn() {
-    const certArn = this.acm.listCertificates().promise();
+    const acm = new AWS.ACM({
+      region: 'us-east-1',
+    });       // us-east-1 is the only region that can be accepted (3/21)
 
-    return certArn.catch((err) => {
-      throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
-    }).then((data) => {
-      // The more specific name will be the longest
-      let nameLength = 0;
-      // The arn of the choosen certificate
-      let certificateArn;
-      // The certificate name
-      let certificateName = this.serverless.service.custom.customDomain.certificateName;
+    const issuedCertArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
+    return issuedCertArn.then((data) => {
+      if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
+        this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Valid Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
+      }
+      return this.findClosestCertificate(data);
+    }).catch((err) => {
+      // No cert found in the ISSUED status. Let's look through certs in all other statuses.
+      const certArn = acm.listCertificates().promise();
 
-      // Checks if a certificate name is given
-      if (certificateName != null) {
-        const foundCertificate = data.CertificateSummaryList
-          .find(certificate => (certificate.DomainName === certificateName));
-
-        if (foundCertificate != null) {
-          certificateArn = foundCertificate.CertificateArn;
+      return certArn.then((data) => {
+        if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
+          this.serverless.cli.log(`Found ${data.CertificateSummaryList.length} Certificates: ${JSON.stringify(data.CertificateSummaryList)}`);
         }
-      } else {
-        certificateName = this.givenDomainName;
-        data.CertificateSummaryList.forEach((certificate) => {
-          let certificateListName = certificate.DomainName;
 
-          // Looks for wild card and takes it out when checking
-          if (certificateListName[0] === '*') {
-            certificateListName = certificateListName.substr(1);
-          }
+        return this.findClosestCertificate(data);
+      }).catch(() => {
+        // rethrow the original error
+        throw err;
+      }).then((certificateArn) => {
+        const certificateName = this.serverless.service.custom.customDomain.certificateName;
 
-          // Looks to see if the name in the list is within the given domain
-          // Also checks if the name is more specific than previous ones
-          if (certificateName.includes(certificateListName)
-            && certificateListName.length > nameLength) {
-            nameLength = certificateListName.length;
-            certificateArn = certificate.CertificateArn;
-          }
+        // The cert was found in an invalid status. Let's get the actual status.
+        const describeCert = acm.describeCertificate({
+          CertificateArn: certificateArn,
+        }).promise();
+
+        return describeCert.then((data) => {
+          throw Error(`The certificate ${certificateName} was found with a "${data.Certificate.Status}" status but was expecting "ISSUED" status`);
+        }, () => {
+          throw Error(`The certificate ${certificateName} was found but is not in the "ISSUED" status`);
         });
-      }
-
-      if (certificateArn == null) {
-        throw Error(`Error: Could not find the certificate ${certificateName}.`);
-      }
-      return certificateArn;
+      });
     });
   }
 
@@ -393,10 +430,10 @@ class ServerlessCustomDomain {
       createDomainNameParams.regionalCertificateArn = givenCertificateArn;
     }
 
-    /* This will return the distributionDomainName (used in changeResourceRecordSet)
-      if the domain name already exists, the distribution domain name will be returned */
+      /* This will return the distributionDomainName (used in changeResourceRecordSet)
+        if the domain name already exists, the distribution domain name will be returned */
     return this.getDomain()
-      .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
+        .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
         .then(data => new DomainResponse(data)));
   }
 

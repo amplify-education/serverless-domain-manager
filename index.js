@@ -251,28 +251,11 @@ class ServerlessCustomDomain {
    */
   addResources(deployId) {
     const service = this.serverless.service;
+    const basePathMappings = service.custom.customDomain && service.custom.customDomain.basePathMappings;
 
-    if (!service.custom.customDomain) {
-      throw new Error('Error: check that the customDomain section is defined in serverless.yml');
+    if (!Array.isArray(basePathMappings)) {
+      throw new Error('Error: check that the basePathMappings section is defined in serverless.yml');
     }
-
-    let basePath = service.custom.customDomain.basePath;
-
-    // Check that basePath is either not set, or set to an empty string
-    if (basePath == null || basePath.trim() === '') {
-      basePath = '(none)';
-    }
-
-    let stage = service.custom.customDomain.stage;
-    /*
-    If stage is not provided, stage will be set based on the user specified value
-    or the stage value of the provider section (which defaults to dev if unset)
-    */
-    if (typeof stage === 'undefined') {
-      stage = this.options.stage || service.provider.stage;
-    }
-
-    const dependsOn = [deployId];
 
     // Verify the cloudFormationTemplate exists
     if (!service.provider.compiledCloudFormationTemplate) {
@@ -283,27 +266,45 @@ class ServerlessCustomDomain {
       service.provider.compiledCloudFormationTemplate.Resources = {};
     }
 
+    const dependsOn = [deployId];
+
     // If user define an ApiGatewayStage resources add it into the dependsOn array
     if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
       dependsOn.push('ApiGatewayStage');
     }
 
-    // Creates the pathmapping
-    const pathmapping = {
-      Type: 'AWS::ApiGateway::BasePathMapping',
-      DependsOn: dependsOn,
-      Properties: {
-        BasePath: basePath,
-        DomainName: this.givenDomainName,
-        RestApiId: {
-          Ref: 'ApiGatewayRestApi',
-        },
-        Stage: stage,
-      },
-    };
+    const cloudTemplate = service.provider.compiledCloudFormationTemplate;
 
-    // Creates and sets the resources
-    service.provider.compiledCloudFormationTemplate.Resources.pathmapping = pathmapping;
+    const pathMappings = basePathMappings.reduce((mappings, basePathMapping, i) => {
+      let basePath = basePathMapping.basePath;
+
+      if (basePath == null || basePath.trim() === '') {
+        basePath = '(none)';
+      }
+
+      if (!basePathMapping.stage) {
+        throw new Error('Error: check that the stage is set on every basePathMapping in serverless.yml');
+      }
+
+      const pathMapping = {};
+
+      pathMapping[`PathMapping${i}`] = {
+        Type: 'AWS::ApiGateway::BasePathMapping',
+        DependsOn: dependsOn,
+        Properties: {
+          BasePath: basePath,
+          DomainName: this.givenDomainName,
+          RestApiId: {
+            Ref: 'ApiGatewayRestApi',
+          },
+          Stage: basePathMapping.stage,
+        },
+      };
+
+      return Object.assign(mappings, pathMapping);
+    }, {});
+
+    Object.assign(cloudTemplate.Resources, pathMappings);
   }
 
   /**
@@ -430,10 +431,10 @@ class ServerlessCustomDomain {
       createDomainNameParams.regionalCertificateArn = givenCertificateArn;
     }
 
-      /* This will return the distributionDomainName (used in changeResourceRecordSet)
-        if the domain name already exists, the distribution domain name will be returned */
+    /* This will return the distributionDomainName (used in changeResourceRecordSet)
+      if the domain name already exists, the distribution domain name will be returned */
     return this.getDomain()
-        .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
+      .catch(() => this.apigateway.createDomainName(createDomainNameParams).promise()
         .then(data => new DomainResponse(data)));
   }
 
@@ -539,7 +540,8 @@ class ServerlessCustomDomain {
 
       const changeRecords = this.route53.changeResourceRecordSets(params).promise();
       return changeRecords.then(() => this.serverless.cli.log('Notice: Legacy CNAME record was replaced with an A Alias record'))
-        .catch(() => { }); // Swallow the error, not an error if it doesn't exist
+        .catch(() => {
+        }); // Swallow the error, not an error if it doesn't exist
     });
   }
 

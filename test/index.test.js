@@ -64,9 +64,14 @@ const constructPlugin =
         },
         custom: {
           customDomain: {
-            basePath: basepath,
             domainName: 'test_domain',
             endpointType,
+            basePathMappings: [
+              {
+                basePath: basepath,
+                stage: stage,
+              },
+            ],
           },
         },
       },
@@ -150,28 +155,26 @@ describe('Custom Domain Plugin', () => {
       const emptyPlugin = constructPlugin('', null, true, true);
       emptyPlugin.addResources(deploymentId);
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
+      expect(cf.PathMapping0.Properties.BasePath).to.equal('(none)');
     });
 
     it('(none) is added if no value is given for basepath (null)', () => {
       const emptyPlugin = constructPlugin(null, null, true, true);
       emptyPlugin.addResources(deploymentId);
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
+      expect(cf.PathMapping0.Properties.BasePath).to.equal('(none)');
     });
 
     it('(none) is added if basepath attribute is missing (undefined)', () => {
       const emptyPlugin = constructPlugin(undefined, null, true, true);
       emptyPlugin.addResources(deploymentId);
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      expect(cf.pathmapping.Properties.BasePath).to.equal('(none)');
+      expect(cf.PathMapping0.Properties.BasePath).to.equal('(none)');
     });
 
     it('stage was not given', () => {
       const noStagePlugin = constructPlugin('');
-      noStagePlugin.addResources(deploymentId);
-      const cf = noStagePlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-      expect(cf.pathmapping.Properties.Stage).to.equal('providerStage');
+      expect(() => noStagePlugin.addResources(deploymentId)).to.throw('Error: check that the stage is set on every basePathMapping in serverless.yml');
     });
   });
 
@@ -275,15 +278,15 @@ describe('Custom Domain Plugin', () => {
   describe('Resource ApiGatewayStage overridden', () => {
     const deploymentId = '';
     it('serverless.yml doesn\'t define explicitly the resource ApiGatewayStage', () => {
-      const plugin = constructPlugin('');
+      const plugin = constructPlugin('', null, 'stage');
       plugin.addResources(deploymentId);
       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
 
-      expect(cf.pathmapping.DependsOn).to.be.an('array').to.have.lengthOf(1);
+      expect(cf.PathMapping0.DependsOn).to.be.an('array').to.have.lengthOf(1);
     });
 
     it('serverless.yml defines explicitly the resource ApiGatewayStage', () => {
-      const plugin = constructPlugin('');
+      const plugin = constructPlugin('', null, 'stage');
       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
 
       // Fake the property ApiGatewayStage
@@ -293,8 +296,8 @@ describe('Custom Domain Plugin', () => {
       };
 
       plugin.addResources(deploymentId);
-      expect(cf.pathmapping.DependsOn).to.be.an('array').to.have.lengthOf(2);
-      expect(cf.pathmapping.DependsOn).to.include('ApiGatewayStage');
+      expect(cf.PathMapping0.DependsOn).to.be.an('array').to.have.lengthOf(2);
+      expect(cf.PathMapping0.DependsOn).to.include('ApiGatewayStage');
     });
   });
 

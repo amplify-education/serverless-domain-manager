@@ -163,7 +163,7 @@ class ServerlessCustomDomain {
         this.addOutputs(domain);
       })
       .catch((err) => {
-        throw new Error(`Error: Could not set up base path mapping. Try running sls create_domain first.\n  Error: ${err.message.replace(/^Error: /,'')}`);
+        throw new Error(`Error: Could not set up base path mapping. Try running sls create_domain first.\n  Error: ${err.message.replace(/^Error: /, '')}`);
       });
   }
 
@@ -258,9 +258,10 @@ class ServerlessCustomDomain {
       && service.custom.customDomain.basePathMappings;
     const restApiId = this.serverless.service.provider.apiGatewayRestApiId;
 
-    if (!Array.isArray(basePathMappings)) {
-      throw new Error('Error: check that the basePathMappings section is defined in serverless.yml');
-    }
+    if (!Array.isArray(basePathMappings)) return;
+
+    const basePathMapping = basePathMappings.find(bpm => bpm.stage === this.options.stage || bpm.stage === '*');
+    if (!basePathMapping) return;
 
     // Verify the cloudFormationTemplate exists
     if (!service.provider.compiledCloudFormationTemplate) {
@@ -273,48 +274,43 @@ class ServerlessCustomDomain {
 
     const cloudTemplate = service.provider.compiledCloudFormationTemplate;
 
-    const pathMappings = basePathMappings.reduce((mappings, basePathMapping, i) => {
-      let basePath = basePathMapping.basePath;
+    let basePath = basePathMapping.basePath;
+    if (basePath == null || basePath.trim() === '') {
+      basePath = '(none)';
+    }
 
-      if (basePath == null || basePath.trim() === '') {
-        basePath = '(none)';
-      }
+    if (!basePathMapping.stage) {
+      throw new Error('Error: check that the stage is set on every basePathMapping in serverless.yml');
+    }
 
-      if (!basePathMapping.stage) {
-        throw new Error('Error: check that the stage is set on every basePathMapping in serverless.yml');
-      }
+    const dependsOn = [];
+    const deployId = this.getDeploymentId(basePathMapping.stage);
 
-      // const deployId = this.getDeploymentId(basePathMapping.stage);
-      const dependsOn = []; // [deployId]
+    if (deployId) {
+      dependsOn.push(deployId);
+    }
+    // If user define an ApiGatewayStage resources add it into the dependsOn array
+    if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
+      dependsOn.push('ApiGatewayStage');
+    }
 
-      // If user define an ApiGatewayStage resources add it into the dependsOn array
-      if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
-        dependsOn.push('ApiGatewayStage');
-      }
+    const properties = {
+      BasePath: basePath,
+      DomainName: this.givenDomainName,
+      RestApiId: restApiId || {
+        Ref: 'ApiGatewayRestApi',
+      },
+    };
 
-      const pathMapping = {};
-      const properties = {
-        BasePath: basePath,
-        DomainName: this.givenDomainName,
-        RestApiId: restApiId || {
-          Ref: 'ApiGatewayRestApi',
-        },
-      };
+    if (basePathMapping.stage !== '*') {
+      properties.Stage = basePathMapping.stage;
+    }
 
-      if (basePathMapping.stage !== '*') {
-        properties.Stage = basePathMapping.stage;
-      }
-
-      pathMapping[`PathMapping${i}`] = {
-        Type: 'AWS::ApiGateway::BasePathMapping',
-        DependsOn: dependsOn,
-        Properties: properties,
-      };
-
-      return Object.assign(mappings, pathMapping);
-    }, {});
-
-    Object.assign(cloudTemplate.Resources, pathMappings);
+    cloudTemplate.Resources.PathMapping = {
+      Type: 'AWS::ApiGateway::BasePathMapping',
+      DependsOn: dependsOn,
+      Properties: properties,
+    };
   }
 
   /**
@@ -382,7 +378,7 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
-    const issuedCertArn = this.acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
+    const issuedCertArn = this.acm.listCertificates({CertificateStatuses: ['ISSUED']}).promise();
 
     return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
@@ -570,7 +566,7 @@ class ServerlessCustomDomain {
 
     return this.apigateway.getDomainName(getDomainNameParams).promise()
       .then(data => new DomainResponse(data), (err) => {
-        throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n  Error: ${err.message.replace(/^Error: /,'')}`);
+        throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n  Error: ${err.message.replace(/^Error: /, '')}`);
       });
   }
 }

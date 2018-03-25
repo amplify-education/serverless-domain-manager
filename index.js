@@ -38,7 +38,7 @@ class ServerlessCustomDomain {
     this.hooks = {
       'delete_domain:delete': this.deleteDomain.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
+      'after:package:compileEvents': this.setUpBasePathMapping.bind(this),
       'after:deploy:deploy': this.domainSummary.bind(this),
       'after:info:info': this.domainSummary.bind(this),
     };
@@ -251,7 +251,9 @@ class ServerlessCustomDomain {
    */
   addResources(deployId) {
     const service = this.serverless.service;
-    const basePathMappings = service.custom.customDomain && service.custom.customDomain.basePathMappings;
+    const basePathMappings = service.custom
+      && service.custom.customDomain
+      && service.custom.customDomain.basePathMappings;
 
     if (!Array.isArray(basePathMappings)) {
       throw new Error('Error: check that the basePathMappings section is defined in serverless.yml');

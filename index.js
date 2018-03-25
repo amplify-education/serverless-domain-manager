@@ -54,7 +54,7 @@ class ServerlessCustomDomain {
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
-        const acmCredentials = Object.assign({}, credentials, {region: this.acmRegion});
+        const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
         this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
       }
 
@@ -237,7 +237,7 @@ class ServerlessCustomDomain {
     const deploymentId = Object.keys(cloudTemplate.Resources).find((key) => {
       const resource = cloudTemplate.Resources[key];
       if (resource.Type !== 'AWS::ApiGateway::Deployment') return false;
-      return resource.Properties.StageName === stageName;
+      return resource.Properties && resource.Properties.StageName === stageName;
     });
 
     if (!deploymentId && restApiId) {
@@ -260,7 +260,7 @@ class ServerlessCustomDomain {
 
     if (!Array.isArray(basePathMappings)) return;
 
-    const basePathMapping = basePathMappings.find(bpm => bpm.stage === this.options.stage || bpm.stage === '*');
+    const basePathMapping = basePathMappings.find(bpm => bpm.stage === this.serverless.options.stage || bpm.stage === '*');
     if (!basePathMapping) return;
 
     // Verify the cloudFormationTemplate exists
@@ -300,6 +300,7 @@ class ServerlessCustomDomain {
       RestApiId: restApiId || {
         Ref: 'ApiGatewayRestApi',
       },
+      DependsOn: dependsOn,
     };
 
     if (basePathMapping.stage !== '*') {
@@ -378,7 +379,7 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
-    const issuedCertArn = this.acm.listCertificates({CertificateStatuses: ['ISSUED']}).promise();
+    const issuedCertArn = this.acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
     return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {

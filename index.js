@@ -164,7 +164,7 @@ class ServerlessCustomDomain {
         this.addOutputs(domain);
       })
       .catch((err) => {
-        throw new Error(`Error: Could not set up basepath mapping. Try running sls create_domain first.\n${err}`);
+        throw new Error(`Error: Could not set up base path mapping. Try running sls create_domain first.\n  Error: ${err.message.replace(/^Error: /,'')}`);
       });
   }
 
@@ -240,14 +240,14 @@ class ServerlessCustomDomain {
     });
 
     if (!deploymentId) {
-      throw new Error('Cannot find AWS::ApiGateway::Deployment');
+      throw new Error(`Error: Cannot find AWS::ApiGateway::Deployment. (This means the domain might have been created manually or the name of the service has changed.)`);
     }
     return deploymentId;
   }
 
   /**
-   *  Adds the custom domain, stage, and basepath to the resource section
-   *  @param  deployId    Used to set the timing for creating the basepath
+   *  Adds the custom domain, stage, and base path to the resource section
+   *  @param  deployId    Used to set the timing for creating the base path
    */
   addResources(deployId) {
     const service = this.serverless.service;
@@ -374,11 +374,7 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
-    const acm = new AWS.ACM({
-      region: 'us-east-1',
-    });       // us-east-1 is the only region that can be accepted (3/21)
-
-    const issuedCertArn = acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
+    const issuedCertArn = this.acm.listCertificates({ CertificateStatuses: ['ISSUED'] }).promise();
 
     return issuedCertArn.then((data) => {
       if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
@@ -387,7 +383,7 @@ class ServerlessCustomDomain {
       return this.findClosestCertificate(data);
     }).catch((err) => {
       // No cert found in the ISSUED status. Let's look through certs in all other statuses.
-      const certArn = acm.listCertificates().promise();
+      const certArn = this.acm.listCertificates().promise();
 
       return certArn.then((data) => {
         if (process.env.SLS_DEBUG && Array.isArray(data.CertificateSummaryList)) {
@@ -402,7 +398,7 @@ class ServerlessCustomDomain {
         const certificateName = this.serverless.service.custom.customDomain.certificateName;
 
         // The cert was found in an invalid status. Let's get the actual status.
-        const describeCert = acm.describeCertificate({
+        const describeCert = this.acm.describeCertificate({
           CertificateArn: certificateArn,
         }).promise();
 
@@ -566,7 +562,7 @@ class ServerlessCustomDomain {
 
     return this.apigateway.getDomainName(getDomainNameParams).promise()
       .then(data => new DomainResponse(data), (err) => {
-        throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n${err}`);
+        throw new Error(`Error: '${this.givenDomainName}' could not be found in API Gateway.\n  Error: ${err.message.replace(/^Error: /,'')}`);
       });
   }
 }

@@ -54,7 +54,7 @@ class ServerlessCustomDomain {
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
-        const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
+        const acmCredentials = Object.assign({}, credentials, {region: this.acmRegion});
         this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
       }
 
@@ -159,8 +159,7 @@ class ServerlessCustomDomain {
       return this.migrateRecordType(domain);
     })
       .then(() => {
-        const deploymentId = this.getDeploymentId();
-        this.addResources(deploymentId);
+        this.addResources();
         this.addOutputs(domain);
       })
       .catch((err) => {
@@ -230,30 +229,34 @@ class ServerlessCustomDomain {
   /**
    * Gets the deployment id
    */
-  getDeploymentId() {
+  getDeploymentId(stageName) {
     // Searches for the deployment id from the cloud formation template
     const cloudTemplate = this.serverless.service.provider.compiledCloudFormationTemplate;
+    const restApiId = this.serverless.service.provider.apiGatewayRestApiId;
 
     const deploymentId = Object.keys(cloudTemplate.Resources).find((key) => {
       const resource = cloudTemplate.Resources[key];
-      return resource.Type === 'AWS::ApiGateway::Deployment';
+      if (resource.Type !== 'AWS::ApiGateway::Deployment') return false;
+      return resource.Properties.StageName === stageName;
     });
 
-    if (!deploymentId) {
-      throw new Error(`Error: Cannot find AWS::ApiGateway::Deployment. (This means the domain might have been created manually or the name of the service has changed.)`);
+    if (!deploymentId && restApiId) {
+      return null;
+    } else if (!deploymentId) {
+      throw new Error('Cannot find AWS::ApiGateway::Deployment');
     }
     return deploymentId;
   }
 
   /**
    *  Adds the custom domain, stage, and base path to the resource section
-   *  @param  deployId    Used to set the timing for creating the base path
    */
-  addResources(deployId) {
+  addResources() {
     const service = this.serverless.service;
     const basePathMappings = service.custom
       && service.custom.customDomain
       && service.custom.customDomain.basePathMappings;
+    const restApiId = this.serverless.service.provider.apiGatewayRestApiId;
 
     if (!Array.isArray(basePathMappings)) {
       throw new Error('Error: check that the basePathMappings section is defined in serverless.yml');
@@ -266,13 +269,6 @@ class ServerlessCustomDomain {
 
     if (!service.provider.compiledCloudFormationTemplate.Resources) {
       service.provider.compiledCloudFormationTemplate.Resources = {};
-    }
-
-    const dependsOn = [deployId];
-
-    // If user define an ApiGatewayStage resources add it into the dependsOn array
-    if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
-      dependsOn.push('ApiGatewayStage');
     }
 
     const cloudTemplate = service.provider.compiledCloudFormationTemplate;
@@ -288,19 +284,31 @@ class ServerlessCustomDomain {
         throw new Error('Error: check that the stage is set on every basePathMapping in serverless.yml');
       }
 
+      // const deployId = this.getDeploymentId(basePathMapping.stage);
+      const dependsOn = []; // [deployId]
+
+      // If user define an ApiGatewayStage resources add it into the dependsOn array
+      if (service.provider.compiledCloudFormationTemplate.Resources.ApiGatewayStage) {
+        dependsOn.push('ApiGatewayStage');
+      }
+
       const pathMapping = {};
+      const properties = {
+        BasePath: basePath,
+        DomainName: this.givenDomainName,
+        RestApiId: restApiId || {
+          Ref: 'ApiGatewayRestApi',
+        },
+      };
+
+      if (basePathMapping.stage !== '*') {
+        properties.Stage = basePathMapping.stage;
+      }
 
       pathMapping[`PathMapping${i}`] = {
         Type: 'AWS::ApiGateway::BasePathMapping',
         DependsOn: dependsOn,
-        Properties: {
-          BasePath: basePath,
-          DomainName: this.givenDomainName,
-          RestApiId: {
-            Ref: 'ApiGatewayRestApi',
-          },
-          Stage: basePathMapping.stage,
-        },
+        Properties: properties,
       };
 
       return Object.assign(mappings, pathMapping);

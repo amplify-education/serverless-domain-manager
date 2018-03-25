@@ -260,7 +260,7 @@ class ServerlessCustomDomain {
 
     if (!Array.isArray(basePathMappings)) return;
 
-    const basePathMapping = basePathMappings.find(bpm => bpm.stage === this.serverless.options.stage || bpm.stage === '*');
+    const basePathMapping = basePathMappings.find(bpm => bpm.stage === this.serverless.service.provider.stage || bpm.stage === '*');
     if (!basePathMapping) return;
 
     // Verify the cloudFormationTemplate exists
@@ -277,10 +277,6 @@ class ServerlessCustomDomain {
     let basePath = basePathMapping.basePath;
     if (basePath == null || basePath.trim() === '') {
       basePath = '(none)';
-    }
-
-    if (!basePathMapping.stage) {
-      throw new Error('Error: check that the stage is set on every basePathMapping in serverless.yml');
     }
 
     const dependsOn = [];

@@ -41,9 +41,6 @@ const constructPlugin =
           return params;
         },
       },
-      options: {
-        stage,
-      },
       providers: {
         aws: {
           getCredentials: () => new aws.Credentials(testCreds),
@@ -63,7 +60,7 @@ const constructPlugin =
               Deployment0: {
                 Type: 'AWS::ApiGateway::Deployment',
                 Properties: {
-                  StageName: stage,
+                  StageName: stage || 'test',
                 },
               },
             },
@@ -144,7 +141,7 @@ describe('Custom Domain Plugin', () => {
     });
 
     it('Add Resources to Serverless Config', () => {
-      plugin.addResources(deploymentId);
+      plugin.addResources();
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -160,21 +157,21 @@ describe('Custom Domain Plugin', () => {
     });
 
     it('(none) is added if base path is an empty string', () => {
-      const emptyPlugin = constructPlugin('', null, true, true);
+      const emptyPlugin = constructPlugin('', null, 'providerStage', true);
       emptyPlugin.addResources();
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.PathMapping.Properties.BasePath).to.equal('(none)');
     });
 
-    it('(none) is added if no value is given for basepath (null)', () => {
-      const emptyPlugin = constructPlugin(null, null, true, true);
+    it('(none) is added if no value is given for base path (null)', () => {
+      const emptyPlugin = constructPlugin(null, null, 'providerStage', true);
       emptyPlugin.addResources();
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.PathMapping.Properties.BasePath).to.equal('(none)');
     });
 
     it('(none) is added if base path attribute is missing (undefined)', () => {
-      const emptyPlugin = constructPlugin(undefined, null, true, true);
+      const emptyPlugin = constructPlugin(undefined, null, 'providerStage', true);
       emptyPlugin.addResources();
       const cf = emptyPlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.PathMapping.Properties.BasePath).to.equal('(none)');
@@ -182,7 +179,9 @@ describe('Custom Domain Plugin', () => {
 
     it('stage was not given', () => {
       const noStagePlugin = constructPlugin('');
-      expect(() => noStagePlugin.addResources(deploymentId)).to.throw('Error: check that the stage is set on every basePathMapping in serverless.yml');
+      noStagePlugin.addResources();
+      const cf = noStagePlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+      expect(cf.PathMapping).to.be.undefined;
     });
   });
 
@@ -284,17 +283,16 @@ describe('Custom Domain Plugin', () => {
 
 
   describe('Resource ApiGatewayStage overridden', () => {
-    const deploymentId = '';
     it('serverless.yml doesn\'t define explicitly the resource ApiGatewayStage', () => {
-      const plugin = constructPlugin('', null, 'stage');
-      plugin.addResources(deploymentId);
+      const plugin = constructPlugin('', null, 'providerStage');
+      plugin.addResources();
       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
 
       expect(cf.PathMapping.DependsOn).to.be.an('array').to.have.lengthOf(1);
     });
 
     it('serverless.yml defines explicitly the resource ApiGatewayStage', () => {
-      const plugin = constructPlugin('', null, 'stage');
+      const plugin = constructPlugin('', null, 'providerStage');
       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
 
       // Fake the property ApiGatewayStage
@@ -303,7 +301,7 @@ describe('Custom Domain Plugin', () => {
         Properties: {},
       };
 
-      plugin.addResources(deploymentId);
+      plugin.addResources();
       expect(cf.PathMapping.DependsOn).to.be.an('array').to.have.lengthOf(2);
       expect(cf.PathMapping.DependsOn).to.include('ApiGatewayStage');
     });

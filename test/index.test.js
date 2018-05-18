@@ -284,6 +284,29 @@ describe('Custom Domain Plugin', () => {
     });
   });
 
+  describe('Provider apiGateway is set', () => {
+    const deploymentId = '';
+    it('serverless.yml doesn\'t define explicitly the apiGateway', () => {
+      const plugin = constructPlugin('');
+      plugin.addResources(deploymentId);
+      const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+      expect(cf.pathmapping.Properties.RestApiId).to.deep.equal({ Ref: 'ApiGatewayRestApi' });
+    });
+
+    it('serverless.yml defines explicitly the apiGateway', () => {
+      const plugin = constructPlugin('');
+
+      // Fake the serverless config apiGateway
+      plugin.serverless.service.provider.apiGateway = { restApiId: 'apigatewayref' };
+
+      const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+
+      plugin.addResources(deploymentId);
+      expect(cf.pathmapping.Properties.RestApiId).to.equal('apigatewayref');
+    });
+  });
+
   describe('Delete the new domain', () => {
     it('Find available domains', async () => {
       AWS.mock('APIGateway', 'getDomainName', (params, callback) => {

@@ -287,6 +287,14 @@ class ServerlessCustomDomain {
       dependsOn.push('ApiGatewayStage');
     }
 
+    let apiGatewayRef = { Ref: 'ApiGatewayRestApi' };
+
+    // If user has specified an existing API Gateway API, then attach to that
+    if (service.provider.apiGateway) {
+      this.serverless.cli.log(`Mapping custom domain to existing API ${service.provider.apiGateway.restApiId}.`);
+      apiGatewayRef = service.provider.apiGateway.restApiId;
+    }
+
     // Creates the pathmapping
     const pathmapping = {
       Type: 'AWS::ApiGateway::BasePathMapping',
@@ -294,9 +302,7 @@ class ServerlessCustomDomain {
       Properties: {
         BasePath: basePath,
         DomainName: this.givenDomainName,
-        RestApiId: {
-          Ref: 'ApiGatewayRestApi',
-        },
+        RestApiId: apiGatewayRef,
         Stage: stage,
       },
     };

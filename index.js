@@ -51,6 +51,7 @@ class ServerlessCustomDomain {
         this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
         this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+        this.setHostedZonePrivate(this.serverless.service.custom.customDomain.hostedZonePrivate);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
         const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
@@ -132,6 +133,10 @@ class ServerlessCustomDomain {
     this.givenDomainName = givenDomainName;
   }
 
+  setHostedZonePrivate(hostedZonePrivate) {
+    this.hostedZonePrivate = hostedZonePrivate;
+  }
+
   setEndpointType(endpointType) {
     const endpointTypeWithDefault = endpointType || endpointTypes.edge;
     const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
@@ -174,6 +179,13 @@ class ServerlessCustomDomain {
       return Promise.resolve(specificId);
     }
 
+    const filterZone = this.hostedZonePrivate !== undefined;
+    if (filterZone && this.hostedZonePrivate) {
+      this.serverless.cli.log('Filtering to only private zones.');
+    } else if (filterZone && !this.hostedZonePrivate) {
+      this.serverless.cli.log('Filtering to only public zones.');
+    }
+
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
 
     return hostedZonePromise
@@ -185,7 +197,9 @@ class ServerlessCustomDomain {
         const targetHostedZone = data.HostedZones
           .filter((hostedZone) => {
             const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            return this.givenDomainName.endsWith(hostedZoneName);
+            const privateFilter = filterZone ?
+              this.hostedZonePrivate === hostedZone.Config.PrivateZone : true;
+            return this.givenDomainName.endsWith(hostedZoneName) && privateFilter;
           })
           .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
           .shift();

@@ -204,7 +204,7 @@ describe('Custom Domain Plugin', () => {
 
     it('Migrate legacy CNAME records to A Alias', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
 
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
@@ -228,7 +228,7 @@ describe('Custom Domain Plugin', () => {
 
     it('Create a new A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
 
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
@@ -326,7 +326,7 @@ describe('Custom Domain Plugin', () => {
 
     it('Delete A Alias Record', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
 
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
@@ -370,7 +370,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, { domainName: 'fake_domain', distributionDomainName: 'fake_dist_name' });
       });
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, null);
@@ -393,7 +393,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, {});
       });
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, params);
@@ -415,7 +415,7 @@ describe('Custom Domain Plugin', () => {
         callback(null, { distributionDomainName: 'foo', regionalHostedZoneId: 'test_id' });
       });
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(null, params);
@@ -439,10 +439,10 @@ describe('Custom Domain Plugin', () => {
     it('Natural order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
-          HostedZones: [{ Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
-          { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_3' }],
+          HostedZones: [{ Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2', Config: { PrivateZone: false } },
+            { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } }],
         });
       });
 
@@ -457,10 +457,10 @@ describe('Custom Domain Plugin', () => {
     it('Reverse order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
-          HostedZones: [{ Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
-          { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }],
+          HostedZones: [{ Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_2', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } }],
         });
       });
 
@@ -475,10 +475,10 @@ describe('Custom Domain Plugin', () => {
     it('Random order', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
-          HostedZones: [{ Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0' },
-          { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1' },
-          { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2' },
-          { Name: 'aaa.com.', Id: '/hostedzone/test_id_3' }],
+          HostedZones: [{ Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'ddd.ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'ccc.bbb.aaa.com.', Id: '/hostedzone/test_id_2', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } }],
         });
       });
 
@@ -494,9 +494,9 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
           HostedZones: [
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_3' }],
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } }],
         });
       });
 
@@ -512,8 +512,8 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
           HostedZones: [
-            { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1' }],
+            { Name: 'a.aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } }],
         });
       });
 
@@ -529,10 +529,10 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
           HostedZones: [
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' }],
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4', Config: { PrivateZone: false } }],
         });
       });
 
@@ -548,10 +548,10 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
           HostedZones: [
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' },
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' }],
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } },
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'ccc.com.', Id: '/hostedzone/test_id_4', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } }],
         });
       });
 
@@ -567,9 +567,9 @@ describe('Custom Domain Plugin', () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
         callback(null, {
           HostedZones: [
-            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1' },
-            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0' },
-            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3' }],
+            { Name: 'bbb.fr.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } },
+            { Name: 'foo.bbb.fr.', Id: '/hostedzone/test_id_3', Config: { PrivateZone: false } }],
         });
       });
 
@@ -579,6 +579,41 @@ describe('Custom Domain Plugin', () => {
 
       const result = await plugin.getRoute53HostedZoneId();
       expect(result).to.equal('test_id_3');
+    });
+
+    it('Private zone domain name', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {
+          HostedZones: [
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: true } }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('aaa.com');
+      plugin.setHostedZonePrivate(true);
+
+      const result = await plugin.getRoute53HostedZoneId();
+      expect(result).to.equal('test_id_0');
+    });
+
+    it('Undefined hostedZonePrivate should still allow private domains', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {
+          HostedZones: [
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: true } },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('aaa.com');
+
+      const result = await plugin.getRoute53HostedZoneId();
+      expect(result).to.equal('test_id_0');
     });
 
     afterEach(() => {
@@ -635,7 +670,7 @@ describe('Custom Domain Plugin', () => {
     });
     it('Catch failure of record type migration', async () => {
       AWS.mock('Route53', 'listHostedZones', (params, callback) => {
-        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id' }] });
+        callback(null, { HostedZones: [{ Name: 'test_domain', Id: 'test_id', Config: { PrivateZone: false } }] });
       });
       AWS.mock('Route53', 'changeResourceRecordSets', (params, callback) => {
         callback(new Error('CNAME does\'t exist, but that\'s ok'), null);

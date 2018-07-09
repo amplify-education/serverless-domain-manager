@@ -73,6 +73,7 @@ custom:
 | basePath | `(none)` | The base path that will prepend all API endpoints. |
 | stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
 | certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
+| certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
 | createRoute53Record | `true` | Toggles whether or not the plugin will create a CNAME record in Route53 mapping the `domainName` to the generated distribution domain name. |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |

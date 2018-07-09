@@ -15,7 +15,7 @@ const testCreds = {
 };
 
 const constructPlugin =
-  (basepath, certName, stage, createRecord, endpointType, enabled) => {
+  (basepath, certName, stage, createRecord, endpointType, enabled, certArn) => {
     aws.config.update(testCreds);
 
     const serverless = {
@@ -60,6 +60,10 @@ const constructPlugin =
 
     if (certName) {
       serverless.service.custom.customDomain.certificateName = certName;
+    }
+
+    if (certArn) {
+      serverless.service.custom.customDomain.certificateArn = certArn;
     }
 
     if (stage) {
@@ -162,20 +166,18 @@ describe('Custom Domain Plugin', () => {
   });
 
   describe('Create a New Domain Name', () => {
-    it('Get the certificate arn', async () => {
+    it('Get a given certificate arn', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
-      const plugin = constructPlugin('', null, true, true);
-      plugin.setGivenDomainName(plugin.serverless.service.custom.customDomain.domainName);
-      plugin.setEndpointType('REGIONAL');
+      const plugin = constructPlugin('', null, true, true, 'REGIONAL', true, 'test_given_arn');
       plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
 
-      expect(result).to.equal('test_arn');
+      expect(result).to.equal('test_given_arn');
     });
 
-    it('Get a given certificate arn', async () => {
+    it('Get a given certificate name', async () => {
       AWS.mock('ACM', 'listCertificates', certTestData);
 
       const plugin = constructPlugin('', 'cert_name', true, true);
@@ -183,7 +185,7 @@ describe('Custom Domain Plugin', () => {
 
       const result = await plugin.getCertArn();
 
-      expect(result).to.equal('test_given_arn');
+      expect(result).to.equal('test_given_cert_name');
     });
 
     it('Create a domain name', async () => {

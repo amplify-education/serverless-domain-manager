@@ -88,7 +88,7 @@ serverless create_domain
 
 To deploy with the custom domain:
 ```
-severless deploy
+serverless deploy
 ```
 
 To remove the created custom domain:

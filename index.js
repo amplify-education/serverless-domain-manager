@@ -333,6 +333,12 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
+    const specificCertificateArn = this.serverless.service.custom.customDomain.certificateArn;
+    if (specificCertificateArn) {
+      this.serverless.cli.log(`Selected specific certificateArn ${specificCertificateArn}`);
+      return Promise.resolve(specificCertificateArn);
+    }
+
     const certArn = this.acm.listCertificates().promise();
 
     return certArn.catch((err) => {

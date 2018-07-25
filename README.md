@@ -62,7 +62,7 @@ custom:
     domainName: serverless.foo.com
     stage: ci
     basePath: api
-    certificateName: *.foo.com
+    certificateName: '*.foo.com'
     createRoute53Record: true
     endpointType: 'regional'
 ```

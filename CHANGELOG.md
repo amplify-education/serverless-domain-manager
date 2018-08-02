@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 
+## [2.6.3] - 2018-08-02
+
+### Changed
+- Updated README to reflect the current behavior of creating A Alias records instead of CNAMEs.
+
 ## [2.6.2] - 2018-07-25
 
 ### Added

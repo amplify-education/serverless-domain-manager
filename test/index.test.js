@@ -721,7 +721,7 @@ describe('Custom Domain Plugin', () => {
       expect(plugin.enabled).to.equal(true);
     });
 
-    it('Should enable the plugin when passing a true parameter', () => {
+    it('Should enable the plugin when passing a true parameter with type boolean', () => {
       const plugin = constructPlugin('', null, 'stage', true, 'regional', true);
 
       plugin.initializeVariables();
@@ -733,8 +733,29 @@ describe('Custom Domain Plugin', () => {
       expect(plugin.enabled).to.equal(true);
     });
 
-    it('Should disable the plugin when passing a false parameter', () => {
+    it('Should enable the plugin when passing a true parameter with type string', () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', 'true');
+
+      plugin.initializeVariables();
+
+      const returnedCreds = plugin.apigateway.config.credentials;
+      expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(true);
+    });
+
+    it('Should disable the plugin when passing a false parameter with type boolean', () => {
       const plugin = constructPlugin('', null, 'stage', true, 'regional', false);
+
+      plugin.initializeVariables();
+
+      expect(plugin.initialized).to.equal(true);
+      expect(plugin.enabled).to.equal(false);
+    });
+
+    it('Should disable the plugin when passing a false parameter with type string', () => {
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', 'false');
 
       plugin.initializeVariables();
 
@@ -788,15 +809,15 @@ describe('Custom Domain Plugin', () => {
 
 
     it('Should throw an Error when passing a parameter that is not boolean', () => {
-      const stringWithValueTrue = 'true';
-      const plugin = constructPlugin('', null, 'stage', true, 'regional', stringWithValueTrue);
+      const stringWithValueYes = 'yes';
+      const plugin = constructPlugin('', null, 'stage', true, 'regional', stringWithValueYes);
 
       let errored = false;
       try {
         plugin.initializeVariables();
       } catch (err) {
         errored = true;
-        expect(err.message).to.equal('serverless-domain-manager: Ambiguous enablement boolean: \'true\'');
+        expect(err.message).to.equal('serverless-domain-manager: Ambiguous enablement boolean: \'yes\'');
       }
       expect(errored).to.equal(true);
     });

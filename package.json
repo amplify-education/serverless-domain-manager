@@ -39,7 +39,7 @@
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.3",
     "istanbul": "^0.4.5",
-    "mocha": "^2.2.5"
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "aws-sdk": "^2.177.0",

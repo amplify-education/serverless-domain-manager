@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.5] - 2018-08-27
+
+### Changed
+- Fixed security vulnerability by updated mocha@5.2.0.
+
 ## [2.6.4] - 2018-08-27
 
 ### Changed

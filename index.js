@@ -77,6 +77,10 @@ class ServerlessCustomDomain {
     }
     if (typeof enabled === 'boolean') {
       return enabled;
+    } else if (typeof enabled === 'string' && enabled === 'true') {
+      return true;
+    } else if (typeof enabled === 'string' && enabled === 'false') {
+      return false;
     }
     throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
   }

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.4] - 2018-08-27
+
+### Changed
+- Allowed `enabled` option to accept strings as well as booleans.
+- Updated unit tests.
+- Updated README to reflect changes made to the `enabled` option.
 
 ## [2.6.3] - 2018-08-02
 

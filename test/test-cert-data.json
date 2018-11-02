@@ -5,8 +5,12 @@
       "DomainName": "test_domain"
     },
     {
-      "CertificateArn": "test_given_arn",
+      "CertificateArn": "test_given_cert_name",
       "DomainName": "cert_name"
+    },
+    {
+      "CertificateArn": "test_given_arn",
+      "DomainName": "other_cert_name"
     }
   ]
 }

@@ -37,7 +37,7 @@ class ServerlessCustomDomain {
     this.hooks = {
       'delete_domain:delete': this.deleteDomain.bind(this),
       'create_domain:create': this.createDomain.bind(this),
-      'after:package:compileEvents': this.setUpBasePathMapping.bind(this),
+      'before:deploy:deploy': this.setUpBasePathMapping.bind(this),
       'after:deploy:deploy': this.domainSummary.bind(this),
       'after:info:info': this.domainSummary.bind(this),
     };
@@ -51,6 +51,7 @@ class ServerlessCustomDomain {
         this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
         this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.setGivenDomainName(this.serverless.service.custom.customDomain.domainName);
+        this.setHostedZonePrivate(this.serverless.service.custom.customDomain.hostedZonePrivate);
         this.setEndpointType(this.serverless.service.custom.customDomain.endpointType);
         this.setAcmRegion();
         const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
@@ -76,6 +77,10 @@ class ServerlessCustomDomain {
     }
     if (typeof enabled === 'boolean') {
       return enabled;
+    } else if (typeof enabled === 'string' && enabled === 'true') {
+      return true;
+    } else if (typeof enabled === 'string' && enabled === 'false') {
+      return false;
     }
     throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: '${enabled}'`);
   }
@@ -132,10 +137,15 @@ class ServerlessCustomDomain {
     this.givenDomainName = givenDomainName;
   }
 
+  setHostedZonePrivate(hostedZonePrivate) {
+    this.hostedZonePrivate = hostedZonePrivate;
+  }
+
   setEndpointType(endpointType) {
     const endpointTypeWithDefault = endpointType || endpointTypes.edge;
-    if (!Object.keys(endpointTypes).includes(endpointTypeWithDefault.toLowerCase())) throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
-    this.endpointType = endpointTypes[endpointTypeWithDefault.toLowerCase()];
+    const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
+    if (!endpointTypeToUse) throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
+    this.endpointType = endpointTypeToUse;
   }
 
   setAcmRegion() {
@@ -173,6 +183,13 @@ class ServerlessCustomDomain {
       return Promise.resolve(specificId);
     }
 
+    const filterZone = this.hostedZonePrivate !== undefined;
+    if (filterZone && this.hostedZonePrivate) {
+      this.serverless.cli.log('Filtering to only private zones.');
+    } else if (filterZone && !this.hostedZonePrivate) {
+      this.serverless.cli.log('Filtering to only public zones.');
+    }
+
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
 
     return hostedZonePromise
@@ -184,7 +201,9 @@ class ServerlessCustomDomain {
         const targetHostedZone = data.HostedZones
           .filter((hostedZone) => {
             const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            return this.givenDomainName.endsWith(hostedZoneName);
+            const privateFilter = filterZone ?
+              this.hostedZonePrivate === hostedZone.Config.PrivateZone : true;
+            return this.givenDomainName.endsWith(hostedZoneName) && privateFilter;
           })
           .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
           .shift();
@@ -291,6 +310,14 @@ class ServerlessCustomDomain {
       dependsOn.push('ApiGatewayStage');
     }
 
+    let apiGatewayRef = { Ref: 'ApiGatewayRestApi' };
+
+    // If user has specified an existing API Gateway API, then attach to that
+    if (service.provider.apiGateway) {
+      this.serverless.cli.log(`Mapping custom domain to existing API ${service.provider.apiGateway.restApiId}.`);
+      apiGatewayRef = service.provider.apiGateway.restApiId;
+    }
+
     // Creates the pathmapping
     const pathmapping = {
       Type: 'AWS::ApiGateway::BasePathMapping',
@@ -298,9 +325,7 @@ class ServerlessCustomDomain {
       Properties: {
         BasePath: basePath,
         DomainName: this.givenDomainName,
-        RestApiId: {
-          Ref: 'ApiGatewayRestApi',
-        },
+        RestApiId: apiGatewayRef,
         Stage: stage,
       },
     };
@@ -331,6 +356,12 @@ class ServerlessCustomDomain {
    * Obtains the certification arn
    */
   getCertArn() {
+    const specificCertificateArn = this.serverless.service.custom.customDomain.certificateArn;
+    if (specificCertificateArn) {
+      this.serverless.cli.log(`Selected specific certificateArn ${specificCertificateArn}`);
+      return Promise.resolve(specificCertificateArn);
+    }
+
     const certArn = this.acm.listCertificates().promise();
 
     return certArn.catch((err) => {

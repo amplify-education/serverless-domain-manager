@@ -357,7 +357,7 @@ class ServerlessCustomDomain {
       return Promise.resolve(specificCertificateArn);
     }
 
-    const certArn = this.acm.listCertificates({CertificateStatuses: ['PENDING_VALIDATION', 'ISSUED', 'INACTIVE']}).promise();
+    const certArn = this.acm.listCertificates({ CertificateStatuses: ['PENDING_VALIDATION', 'ISSUED', 'INACTIVE'] }).promise();
 
     return certArn.catch((err) => {
       throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
@@ -369,11 +369,11 @@ class ServerlessCustomDomain {
       // The certificate name
       let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
-      const certificates = data.CertificateSummaryList
+      const certificates = data.CertificateSummaryList;
 
       // Checks if a certificate name is given
       if (certificateName != null) {
-        const foundCertificate = data.CertificateSummaryList
+        const foundCertificate = certificates
           .find(certificate => (certificate.DomainName === certificateName));
 
         if (foundCertificate != null) {
@@ -381,7 +381,7 @@ class ServerlessCustomDomain {
         }
       } else {
         certificateName = this.givenDomainName;
-        data.CertificateSummaryList.forEach((certificate) => {
+        certificates.forEach((certificate) => {
           let certificateListName = certificate.DomainName;
 
           // Looks for wild card and takes it out when checking

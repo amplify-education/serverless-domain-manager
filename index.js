@@ -357,7 +357,7 @@ class ServerlessCustomDomain {
       return Promise.resolve(specificCertificateArn);
     }
 
-    const certArn = this.acm.listCertificates().promise();
+    const certArn = this.acm.listCertificates({CertificateStatuses: ['PENDING_VALIDATION', 'ISSUED', 'INACTIVE']}).promise();
 
     return certArn.catch((err) => {
       throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
@@ -369,6 +369,7 @@ class ServerlessCustomDomain {
       // The certificate name
       let certificateName = this.serverless.service.custom.customDomain.certificateName;
 
+      const certificates = data.CertificateSummaryList
 
       // Checks if a certificate name is given
       if (certificateName != null) {

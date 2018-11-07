@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.6] - 2018-11-07
+
+### Changed
+- Updated certificate selection to only use unexpired certificates.
+
 ## [2.6.5] - 2018-08-27
 
 ### Changed

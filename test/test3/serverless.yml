@@ -1,5 +1,4 @@
-# TEST 3
-# Serverless Domain Manager
+# Enabled with custom stage and empty basepath
 service: serverless-hello-world-test3
 provider:
   name: aws
@@ -21,8 +20,3 @@ custom:
     domainName: test3.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
-    # endpointType: regional
-    # certificateName: ''
-    # certificateArn: "(none)"
-    # createRoute53Record: true
-    # enabled: true

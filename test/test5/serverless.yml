@@ -1,5 +1,4 @@
-# TEST 5
-# Serverless Domain Manager
+# Enabled with regional endpoint, custom stage, empty basepath
 service: serverless-hello-world-test5
 provider:
   name: aws
@@ -22,7 +21,3 @@ custom:
     stage: test
     basePath: ''
     endpointType: regional
-    # certificateName: ''
-    # certificateArn: "(none)"
-    # createRoute53Record: true
-    # enabled: false

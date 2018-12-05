@@ -1,5 +1,4 @@
-# TEST 1
-# Serverless Domain Manager
+# Enabled with default values
 service: serverless-hello-world-test1
 provider:
   name: aws
@@ -18,10 +17,3 @@ plugins:
 custom:
   customDomain:
     domainName: test1.${env:TEST_DOMAIN}
-    # stage: dev
-    # basePath: ''
-    # endpointType: regional
-    # certificateName: ''
-    # certificateArn: "(none)"
-    # createRoute53Record: true
-    # enabled: true

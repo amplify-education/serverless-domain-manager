@@ -4,7 +4,7 @@ const chai = require('chai');
 const AWS = require('aws-sdk-mock');
 const aws = require('aws-sdk');
 const certTestData = require('./test-cert-data.json');
-const ServerlessCustomDomain = require('../index.js');
+const ServerlessCustomDomain = require('../../index.js');
 
 const expect = chai.expect;
 

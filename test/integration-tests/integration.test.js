@@ -17,7 +17,7 @@ function sleep(seconds) {
 }
 
 async function linkPackages() {
-  return new Promise((resolve, reject) => { // eslint-disable no-unused-vars
+  return new Promise((resolve, reject) => {
     exec('npm link serverless-domain-manager', (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
@@ -101,7 +101,7 @@ async function getBasePath(url) {
 
 function deployLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd test/${folderName} && sls create_domain && sls deploy`, (err, stdout, stderr) => {
+    exec(`cd test/integration-tests/${folderName} && sls create_domain && sls deploy`, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -138,7 +138,7 @@ async function verifyDnsPropogation(url, enabled) {
 
 function removeLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd test/${folderName} && sls delete_domain && sls remove`, (err, stdout, stderr) => {
+    exec(`cd test/integration-tests/${folderName} && sls delete_domain && sls remove`, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }

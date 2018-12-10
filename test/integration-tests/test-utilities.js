@@ -54,10 +54,10 @@ async function getEndpointType(url) {
     domainName: url,
   };
   try {
-    let result = await apiGateway.getDomainName(params).promise();
-    return Promise.resolve(result.endpointConfiguration.types[0]);
+    const result = await apiGateway.getDomainName(params).promise();
+    return result.endpointConfiguration.types[0];
   } catch (err) {
-    return Promise.resolve(null);
+    return null;
   }
 }
 
@@ -66,10 +66,10 @@ async function getStage(url) {
     domainName: url,
   };
   try {
-    let result = await apiGateway.getBasePathMappings(params).promise();
-    return Promise.resolve(result.items[0].stage);
+    const result = await apiGateway.getBasePathMappings(params).promise();
+    return result.items[0].stage;
   } catch (err) {
-    return Promise.resolve(null);
+    return null;
   }
 }
 
@@ -78,10 +78,10 @@ async function getBasePath(url) {
     domainName: url,
   };
   try {
-    let result = await apiGateway.getBasePathMappings(params).promise();
-    return Promise.resolve(result.items[0].basePath);
+    const result = await apiGateway.getBasePathMappings(params).promise();
+    return result.items[0].basePath;
   } catch (err) {
-    return Promise.resolve(null);
+    return null;
   }
 }
 

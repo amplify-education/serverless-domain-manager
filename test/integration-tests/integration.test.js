@@ -64,17 +64,17 @@ const testCases = [
     testEndpoint: 'REGIONAL',
     testURL: `https://test6.${TEST_DOMAIN}/hello-world`,
   },
-]
+];
 
 
-describe('Integration Tests', function () {
+describe('Integration Tests', function () { // eslint-disable-line func-names
   this.timeout(SIX_HOURS); // 6 hours to allow for dns to propogate
 
   before(async () => {
     await utilities.linkPackages();
   });
 
-  describe('Domain Manager Is Enabled', function () {
+  describe('Domain Manager Is Enabled', function () { // eslint-disable-line func-names
     this.timeout(SIX_HOURS);
 
     itParam('${value.testDescription}', testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
@@ -96,7 +96,7 @@ describe('Integration Tests', function () {
     });
   });
 
-  describe('Domain Manager Is Not Enabled', function () {
+  describe('Domain Manager Is Not Enabled', function () { // eslint-disable-line func-names
     this.timeout(5 * 60 * 1000); // 5 minutes in milliseconds
     const testName = 'test7';
     const testURL = `${testName}.${TEST_DOMAIN}`;

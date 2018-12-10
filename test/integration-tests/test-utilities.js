@@ -171,9 +171,9 @@ async function verifyDnsPropogation(url, enabled) {
 function removeLambdas(folderName) {
   return new Promise((resolve, reject) => {
     shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain && sls remove`, { silent: true }, (err, stdout, stderr) => {
-    if (err || stderr) {
-      return resolve(false);
-    }
+      if (err || stderr) {
+        return resolve(false);
+      }
       return resolve(true);
     });
   });
@@ -195,8 +195,7 @@ async function createResources(folderName, url, enabled) {
   }
   if (created && dnsVerified) {
     console.debug('\tResources Created');
-  }
-  else {
+  } else {
     console.debug('\tResources Failed to Create');
   }
   return created && dnsVerified;
@@ -213,8 +212,7 @@ async function destroyResources(folderName, url) {
   const removed = await removeLambdas(folderName);
   if (removed) {
     console.debug('\tResources Cleaned Up');
-  }
-  else {
+  } else {
     console.debug('\tFailed to Clean Up Resources');
   }
   return removed;

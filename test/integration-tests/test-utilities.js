@@ -17,12 +17,19 @@ const apiGateway = new aws.APIGateway({
   ),
 });
 
-
+/**
+ * Stops event thread execution for given number of seconds.
+ * @param seconds
+ * @returns {Promise<any>} Resolves after given number of seconds.
+ */
 function sleep(seconds) {
   return new Promise(resolve => setTimeout(resolve, 1000 * seconds));
 }
 
-
+/**
+ * Links current serverless-domain-manager to global node_modules in order to run tests.
+ * @returns {Promise<boolean>} Resolves true if successfully linked, else false.
+ */
 async function linkPackages() {
   return new Promise((resolve, reject) => {
     exec('npm link serverless-domain-manager', (err, stdout, stderr) => {
@@ -34,6 +41,11 @@ async function linkPackages() {
   });
 }
 
+/**
+ * Curls the given URL to see if it exists
+ * @param url
+ * @returns {Promise<Number|null>} Resolves to status code if exists, else null.
+ */
 async function curlUrl(url) {
   let response = null;
   response = await request.get({
@@ -49,6 +61,11 @@ async function curlUrl(url) {
   return Promise.resolve(response.statusCode);
 }
 
+/**
+ * Gets endpoint type of given URL from AWS
+ * @param url
+ * @returns {Promise<String|null>} Resolves to String if endpoint exists, else null.
+ */
 async function getEndpointType(url) {
   const params = {
     domainName: url,
@@ -61,6 +78,11 @@ async function getEndpointType(url) {
   }
 }
 
+/**
+ * Gets stage of given URL from AWS
+ * @param url
+ * @returns {Promise<String|null>} Resolves to String if stage exists, else null.
+ */
 async function getStage(url) {
   const params = {
     domainName: url,
@@ -73,6 +95,11 @@ async function getStage(url) {
   }
 }
 
+/**
+ * Gets basePath of given URL from AWS
+ * @param url
+ * @returns {Promise<String|null>} Resolves to String if basePath exists, else null.
+ */
 async function getBasePath(url) {
   const params = {
     domainName: url,
@@ -85,9 +112,14 @@ async function getBasePath(url) {
   }
 }
 
+/**
+ * Creates the lambda function and associated domain name in given folder
+ * @param folderName
+ * @returns {Promise<boolean>} Resolves true if lambda deployed, else false.
+ */
 function deployLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd test/integration-tests/${folderName} && sls create_domain && sls deploy`, (err, stdout, stderr) => {
+    exec(`cd 'test/integration-tests/${folderName}' && sls create_domain && sls deploy`, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -96,6 +128,11 @@ function deployLambdas(folderName) {
   });
 }
 
+/**
+ * Looks up DNS records for the given url
+ * @param url
+ * @returns {Promise<boolean>} Resolves true if DNS records exist, else false.
+ */
 function dnsLookup(url) {
   return new Promise((resolve, reject) => {
     dns.resolveAny(url, (err, ret) => {
@@ -107,6 +144,12 @@ function dnsLookup(url) {
   });
 }
 
+/**
+ * Periodically calls dnsLookup until records found or 40 minutes elapse.
+ * @param url
+ * @param enabled
+ * @returns {Promise<boolean>} Resolves true if records found, else false.
+ */
 async function verifyDnsPropogation(url, enabled) {
   console.debug('\tWaiting for DNS to Propogate...');
   let numRetries = 0;
@@ -122,9 +165,14 @@ async function verifyDnsPropogation(url, enabled) {
   return dnsPropogated;
 }
 
+/**
+ * Removes the lambda function and associated domain name from given folder
+ * @param folderName
+ * @returns {Promise<boolean>} Resolves to true if lambda removed, else false.
+ */
 function removeLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd test/integration-tests/${folderName} && sls delete_domain && sls remove`, (err, stdout, stderr) => {
+    exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain && sls remove`, (err, stdout, stderr) => {
     if (err || stderr) {
       return resolve(false);
     }
@@ -133,6 +181,13 @@ function removeLambdas(folderName) {
   });
 }
 
+/**
+ * Wraps creation of testing resources.
+ * @param folderName
+ * @param url
+ * @param enabled
+ * @returns {Promise<boolean>} Resolves true if resources created, else false.
+ */
 async function createResources(folderName, url, enabled) {
   console.debug(`\tCreating Resources for ${url}`);
   const created = await deployLambdas(folderName);
@@ -149,6 +204,12 @@ async function createResources(folderName, url, enabled) {
   return created && dnsVerified;
 }
 
+/**
+ * Wraps deletion of testing resources.
+ * @param folderName
+ * @param url
+ * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
+ */
 async function destroyResources(folderName, url) {
   console.debug(`\tCleaning Up Resources for ${url}`);
   const removed = await removeLambdas(folderName);
@@ -158,18 +219,19 @@ async function destroyResources(folderName, url) {
   else {
     console.debug('\tFailed to Clean Up Resources');
   }
+  return removed;
 }
 
 module.exports = {
-  curlUrl: curlUrl,
-  createResources: createResources,
-  destroyResources: destroyResources,
-  verifyDnsPropogation: verifyDnsPropogation,
-  dnsLookup: dnsLookup,
-  deployLambdas: deployLambdas,
-  getEndpointType: getEndpointType,
-  getBasePath: getBasePath,
-  getStage: getStage,
-  linkPackages: linkPackages,
-  sleep: sleep
-}
+  curlUrl,
+  createResources,
+  destroyResources,
+  verifyDnsPropogation,
+  dnsLookup,
+  deployLambdas,
+  getEndpointType,
+  getBasePath,
+  getStage,
+  linkPackages,
+  sleep,
+};

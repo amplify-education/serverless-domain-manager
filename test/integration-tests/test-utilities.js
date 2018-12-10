@@ -140,12 +140,24 @@ async function createResources(folderName, url, enabled) {
   if (created) {
     dnsVerified = await verifyDnsPropogation(url, enabled);
   }
+  if (created && dnsVerified) {
+    console.debug('\tResources Created');
+  }
+  else {
+    console.debug('\tResources Failed to Create');
+  }
   return created && dnsVerified;
 }
 
 async function destroyResources(folderName, url) {
   console.debug(`\tCleaning Up Resources for ${url}`);
-  return await removeLambdas(folderName);;
+  const removed = await removeLambdas(folderName);
+  if (removed) {
+    console.debug('\tResources Cleaned Up');
+  }
+  else {
+    console.debug('\tFailed to Clean Up Resources');
+  }
 }
 
 module.exports = {

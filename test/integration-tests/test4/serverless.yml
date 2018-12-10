@@ -1,4 +1,4 @@
-# Enabled with Regional Endpoint, Custom BasePath
+# Enabled with regional endpoint, custom basePath
 service: serverless-hello-world-test4
 provider:
   name: aws

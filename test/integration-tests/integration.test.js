@@ -68,14 +68,14 @@ const testCases = [
 
 
 describe('Integration Tests', function () {
-  this.timeout(21600000); // 6 hours to allow for dns to propogate
+  this.timeout(6 * 60 * 60 * 1000); // 6 hours to allow for dns to propogate
 
   before(async () => {
     await utilities.linkPackages();
   });
 
   describe('Domain Manager Is Enabled', function () {
-    this.timeout(21600000); // 6 hours
+    this.timeout(6 * 60 * 60 * 1000); // 6 hours in milliseconds
 
     itParam('${value.testDescription}', testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
       const created = await utilities.createResources(value.testFolder, value.testDomain, true);
@@ -92,12 +92,12 @@ describe('Integration Tests', function () {
         const status = await utilities.curlUrl(value.testURL);
         expect(status).to.equal(200);
       }
-      // await utilities.destroyResources(value.testFolder, value.testDomain);
+      await utilities.destroyResources(value.testFolder, value.testDomain);
     });
   });
 
   describe('Domain Manager Is Not Enabled', function () {
-    this.timeout(2700000); // 45 minutes
+    this.timeout(5 * 60 * 1000); // 5 minutes in milliseconds
     const testName = 'test7';
     const testURL = `${testName}.${TEST_DOMAIN}`;
 

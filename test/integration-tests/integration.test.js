@@ -8,7 +8,7 @@ const utilities = require('./test-utilities');
 const expect = chai.expect;
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN;
-
+const SIX_HOURS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 const testCases = [
   {
     testDescription: 'Enabled with default values',
@@ -68,14 +68,14 @@ const testCases = [
 
 
 describe('Integration Tests', function () {
-  this.timeout(6 * 60 * 60 * 1000); // 6 hours to allow for dns to propogate
+  this.timeout(SIX_HOURS); // 6 hours to allow for dns to propogate
 
   before(async () => {
     await utilities.linkPackages();
   });
 
   describe('Domain Manager Is Enabled', function () {
-    this.timeout(6 * 60 * 60 * 1000); // 6 hours in milliseconds
+    this.timeout(SIX_HOURS);
 
     itParam('${value.testDescription}', testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
       const created = await utilities.createResources(value.testFolder, value.testDomain, true);

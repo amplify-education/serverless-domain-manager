@@ -5,11 +5,9 @@
 const request = require('request-promise-native');
 const aws = require('aws-sdk');
 const dns = require('dns');
-const exec = require('child_process').exec;
+const shell = require('shelljs');
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
-
-
 const apiGateway = new aws.APIGateway({
   region: 'us-west-2',
   credentials: new aws.SharedIniFileCredentials(
@@ -32,7 +30,7 @@ function sleep(seconds) {
  */
 async function linkPackages() {
   return new Promise((resolve, reject) => {
-    exec('npm link serverless-domain-manager', (err, stdout, stderr) => {
+    shell.exec('npm link serverless-domain-manager', { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -119,7 +117,7 @@ async function getBasePath(url) {
  */
 function deployLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd 'test/integration-tests/${folderName}' && sls create_domain && sls deploy`, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain && sls deploy`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -172,7 +170,7 @@ async function verifyDnsPropogation(url, enabled) {
  */
 function removeLambdas(folderName) {
   return new Promise((resolve, reject) => {
-    exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain && sls remove`, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain && sls remove`, { silent: true }, (err, stdout, stderr) => {
     if (err || stderr) {
       return resolve(false);
     }

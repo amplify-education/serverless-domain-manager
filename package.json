@@ -39,12 +39,13 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.3",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "mocha-param": "^2.0.0",
-    "serverless-domain-manager": "."
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
+    "serverless-domain-manager": ".",
+    "shelljs": "^0.8.3"
   },
   "dependencies": {
     "aws-sdk": "^2.177.0",

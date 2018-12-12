@@ -15,7 +15,7 @@ const apiGateway = new aws.APIGateway({
   ),
 });
 
-class CreationError extends Error {};
+class CreationError extends Error {}
 
 
 /**

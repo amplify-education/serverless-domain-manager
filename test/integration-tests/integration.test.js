@@ -3,7 +3,7 @@
 const chai = require('chai');
 const itParam = require('mocha-param');
 const utilities = require('./test-utilities');
-const randomstring = require('randomstring')
+const randomstring = require('randomstring');
 
 const expect = chai.expect;
 

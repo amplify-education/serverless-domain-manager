@@ -1,7 +1,5 @@
 'use strict';
 
-/* eslint-disable no-console, no-unused-vars, func-names, no-await-in-loop */
-
 const request = require('request-promise-native');
 const aws = require('aws-sdk');
 const dns = require('dns');
@@ -32,7 +30,7 @@ function sleep(seconds) {
  * @returns {Promise<boolean>} Resolves true if successfully linked, else false.
  */
 async function linkPackages() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     shell.exec('npm link serverless-domain-manager', { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
@@ -53,7 +51,7 @@ async function curlUrl(url) {
     url,
     resolveWithFullResponse: true,
   })
-  .catch((err) => {
+  .catch((err) => { // eslint-disable-line no-unused-vars
     response = null;
   });
   if (response === undefined || response === null) {
@@ -116,10 +114,11 @@ async function getBasePath(url) {
 /**
  * Creates the lambda function and associated domain name in given folder
  * @param folderName
+ * @param randString
  * @returns {Promise<boolean>} Resolves true if lambda deployed, else false.
  */
 function deployLambdas(folderName, randString) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${randString} && sls deploy --RANDOM_STRING ${randString} `, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
@@ -135,8 +134,8 @@ function deployLambdas(folderName, randString) {
  * @returns {Promise<boolean>} Resolves true if DNS records exist, else false.
  */
 function dnsLookup(url) {
-  return new Promise((resolve, reject) => {
-    dns.resolveAny(url, (err, ret) => {
+  return new Promise((resolve) => {
+    dns.resolveAny(url, (err) => {
       if (err) {
         return resolve(false);
       }
@@ -152,19 +151,19 @@ function dnsLookup(url) {
  * @returns {Promise<boolean>} Resolves true if records found, else false.
  */
 async function verifyDnsPropogation(url, enabled) {
-  console.debug('\tWaiting for DNS to Propogate...');
+  console.debug('\tWaiting for DNS to Propogate...'); // eslint-disable-line no-console
   if (!enabled) {
     return true;
   }
   let numRetries = 0;
   let dnsPropogated = false;
   while (numRetries < 40 && !dnsPropogated && enabled) {
-    dnsPropogated = await dnsLookup(url);
+    dnsPropogated = await dnsLookup(url); // eslint-disable-line no-await-in-loop
     if (dnsPropogated) {
       break;
     }
     numRetries += 1;
-    await sleep(60);
+    await sleep(60); // eslint-disable-line no-await-in-loop
   }
   return dnsPropogated;
 }
@@ -175,7 +174,7 @@ async function verifyDnsPropogation(url, enabled) {
  * @returns {Promise<boolean>} Resolves to true if lambda removed, else false.
  */
 function removeLambdas(folderName) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain && sls remove`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
@@ -194,16 +193,16 @@ function removeLambdas(folderName) {
  * @returns {Promise<boolean>} Resolves true if resources created, else false.
  */
 async function createResources(folderName, url, randString, enabled) {
-  console.debug(`\tCreating Resources for ${url}`);
+  console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
   const created = await deployLambdas(folderName, randString);
   let dnsVerified = false;
   if (created) {
     dnsVerified = await verifyDnsPropogation(url, enabled);
   }
   if (created && dnsVerified) {
-    console.debug('\tResources Created');
+    console.debug('\tResources Created'); // eslint-disable-line no-console
   } else {
-    console.debug('\tResources Failed to Create');
+    console.debug('\tResources Failed to Create'); // eslint-disable-line no-console
   }
   return created && dnsVerified;
 }
@@ -215,12 +214,12 @@ async function createResources(folderName, url, randString, enabled) {
  * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
  */
 async function destroyResources(folderName, url) {
-  console.debug(`\tCleaning Up Resources for ${url}`);
+  console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
   const removed = await removeLambdas(folderName);
   if (removed) {
-    console.debug('\tResources Cleaned Up');
+    console.debug('\tResources Cleaned Up'); // eslint-disable-line no-console
   } else {
-    console.debug('\tFailed to Clean Up Resources');
+    console.debug('\tFailed to Clean Up Resources'); // eslint-disable-line no-console
   }
   return removed;
 }

@@ -105,7 +105,7 @@ To run unit tests:
 npm test
 ```
 
-To run integration tests:
+To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). Then, 
 ```
 npm run integration-test
 ```

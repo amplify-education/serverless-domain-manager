@@ -18,57 +18,57 @@ const RANDOM_STRING = randomstring.generate({
 const testCases = [
   {
     testDescription: 'Enabled with default values',
-    testFolder: 'test1',
-    testDomain: `test1-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-default',
+    testDomain: `enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: '(none)',
     testEndpoint: 'EDGE',
-    testURL: `https://test1-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with custom basepath',
-    testFolder: 'test2',
-    testDomain: `test2-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-basepath',
+    testDomain: `enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: 'api',
     testEndpoint: 'EDGE',
-    testURL: `https://test2-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
+    testURL: `https://enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testDescription: 'Enabled with custom stage and empty basepath',
-    testFolder: 'test3',
-    testDomain: `test3-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-stage-basepath',
+    testDomain: `enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'test',
     testBasePath: '(none)',
     testEndpoint: 'EDGE',
-    testURL: `https://test3-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint, custom basePath',
-    testFolder: 'test4',
-    testDomain: `test4-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-regional-basepath',
+    testDomain: `enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: 'api',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test4-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
+    testURL: `https://enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint, custom stage, empty basepath',
-    testFolder: 'test5',
-    testDomain: `test5-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-regional-stage-basepath',
+    testDomain: `enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'test',
     testBasePath: '(none)',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test5-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint and empty basepath',
-    testFolder: 'test6',
-    testDomain: `test6-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testFolder: 'enabled-regional-empty-basepath',
+    testDomain: `enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: '(none)',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test6-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
 ];
 
@@ -107,7 +107,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
 
   describe('Domain Manager Is Not Enabled', function () { // eslint-disable-line func-names
     this.timeout(5 * 60 * 1000); // 5 minutes in milliseconds
-    const testName = 'test7';
+    const testName = 'disabled';
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
 
     before(async () => {

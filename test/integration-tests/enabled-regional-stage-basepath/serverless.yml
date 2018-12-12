@@ -1,9 +1,10 @@
-# Enabled with regional endpoint and empty basepath
-service: serverless-hello-world-test6
+# Enabled with regional endpoint, custom stage, empty basepath
+service: enabled-regional-stage-basepath
 provider:
   name: aws
   runtime: nodejs6.10
   region: us-west-2
+  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -16,6 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test6-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: enabled-regional-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: test
     basePath: ''
     endpointType: regional

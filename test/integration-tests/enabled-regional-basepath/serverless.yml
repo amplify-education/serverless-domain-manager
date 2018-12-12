@@ -1,5 +1,5 @@
-# Enabled with custom basepath
-service: serverless-hello-world-test2
+# Enabled with regional endpoint, custom basePath
+service: enabled-regional-basepath
 provider:
   name: aws
   runtime: nodejs6.10
@@ -16,5 +16,6 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test2-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: enabled-regional-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
+    endpointType: regional

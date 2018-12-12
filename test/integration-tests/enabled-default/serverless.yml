@@ -1,10 +1,9 @@
-# Enabled with custom stage and empty basepath
-service: serverless-hello-world-test3
+# Enabled with default values
+service: enabled-default
 provider:
   name: aws
   runtime: nodejs6.10
   region: us-west-2
-  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -17,6 +16,4 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test3-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    stage: test
-    basePath: ''
+    domainName: enabled-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}

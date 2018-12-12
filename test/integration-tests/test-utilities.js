@@ -57,7 +57,7 @@ async function curlUrl(url) {
   if (response === undefined || response === null) {
     return null;
   }
-  return Promise.resolve(response.statusCode);
+  return response.statusCode;
 }
 
 /**

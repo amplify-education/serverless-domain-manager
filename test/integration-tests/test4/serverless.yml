@@ -16,6 +16,6 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test4.${env:TEST_DOMAIN}
+    domainName: test4-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
     endpointType: regional

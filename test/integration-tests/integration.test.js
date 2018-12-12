@@ -2,67 +2,73 @@
 
 const chai = require('chai');
 const itParam = require('mocha-param');
-
 const utilities = require('./test-utilities');
+const randomstring = require('randomstring')
 
 const expect = chai.expect;
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN;
 const SIX_HOURS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+const RANDOM_STRING = randomstring.generate({
+  length: 5,
+  charset: 'alphanumeric',
+  capitalization: 'lowercase',
+});
+
 const testCases = [
   {
     testDescription: 'Enabled with default values',
     testFolder: 'test1',
-    testDomain: `test1.${TEST_DOMAIN}`,
+    testDomain: `test1-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: '(none)',
     testEndpoint: 'EDGE',
-    testURL: `https://test1.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://test1-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with custom basepath',
     testFolder: 'test2',
-    testDomain: `test2.${TEST_DOMAIN}`,
+    testDomain: `test2-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: 'api',
     testEndpoint: 'EDGE',
-    testURL: `https://test2.${TEST_DOMAIN}/api/hello-world`,
+    testURL: `https://test2-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testDescription: 'Enabled with custom stage and empty basepath',
     testFolder: 'test3',
-    testDomain: `test3.${TEST_DOMAIN}`,
+    testDomain: `test3-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'test',
     testBasePath: '(none)',
     testEndpoint: 'EDGE',
-    testURL: `https://test3.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://test3-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint, custom basePath',
     testFolder: 'test4',
-    testDomain: `test4.${TEST_DOMAIN}`,
+    testDomain: `test4-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: 'api',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test4.${TEST_DOMAIN}/api/hello-world`,
+    testURL: `https://test4-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint, custom stage, empty basepath',
     testFolder: 'test5',
-    testDomain: `test5.${TEST_DOMAIN}`,
+    testDomain: `test5-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'test',
     testBasePath: '(none)',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test5.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://test5-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testDescription: 'Enabled with regional endpoint and empty basepath',
     testFolder: 'test6',
-    testDomain: `test6.${TEST_DOMAIN}`,
+    testDomain: `test6-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testStage: 'dev',
     testBasePath: '(none)',
     testEndpoint: 'REGIONAL',
-    testURL: `https://test6.${TEST_DOMAIN}/hello-world`,
+    testURL: `https://test6-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
 ];
 
@@ -78,8 +84,11 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     this.timeout(SIX_HOURS);
 
     itParam('${value.testDescription}', testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
-      const created = await utilities.createResources(value.testFolder, value.testDomain, true);
-      if (created) {
+      const created = await utilities.createResources(value.testFolder,
+          value.testDomain, RANDOM_STRING, true);
+      if (!created) {
+        throw new utilities.CreationError('Resources failed to create.');
+      } else {
         const stage = await utilities.getStage(value.testDomain);
         expect(stage).to.equal(value.testStage);
 
@@ -99,10 +108,13 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
   describe('Domain Manager Is Not Enabled', function () { // eslint-disable-line func-names
     this.timeout(5 * 60 * 1000); // 5 minutes in milliseconds
     const testName = 'test7';
-    const testURL = `${testName}.${TEST_DOMAIN}`;
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
 
     before(async () => {
-      await utilities.createResources(testName, testURL, false);
+      const created = await utilities.createResources(testName, testURL, RANDOM_STRING, false);
+      if (!created) {
+        throw new utilities.CreationError('Resources failed to create.');
+      }
     });
 
     it('Does not create a domain', async () => {

@@ -17,6 +17,6 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test3.${env:TEST_DOMAIN}
+    domainName: test3-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     stage: test
     basePath: ''

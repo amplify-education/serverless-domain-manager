@@ -28,7 +28,7 @@
   "bin": {},
   "scripts": {
     "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha test/unit-tests -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
-    "integration-test": "node ./node_modules/istanbul/lib/cli.js cover _mocha test/integration-tests -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
+    "integration-test": "node ./node_modules/istanbul/lib/cli.js test _mocha test/integration-tests -- -R spec",
     "lint": "eslint ."
   },
   "devDependencies": {
@@ -42,6 +42,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "mocha-param": "^2.0.0",
+    "randomstring": "^1.1.5",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "serverless-domain-manager": ".",

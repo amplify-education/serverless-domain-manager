@@ -15,6 +15,9 @@ const apiGateway = new aws.APIGateway({
   ),
 });
 
+class CreationError extends Error {};
+
+
 /**
  * Stops event thread execution for given number of seconds.
  * @param seconds
@@ -115,9 +118,9 @@ async function getBasePath(url) {
  * @param folderName
  * @returns {Promise<boolean>} Resolves true if lambda deployed, else false.
  */
-function deployLambdas(folderName) {
+function deployLambdas(folderName, randString) {
   return new Promise((resolve, reject) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain && sls deploy`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${randString} && sls deploy --RANDOM_STRING ${randString} `, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -150,6 +153,9 @@ function dnsLookup(url) {
  */
 async function verifyDnsPropogation(url, enabled) {
   console.debug('\tWaiting for DNS to Propogate...');
+  if (!enabled) {
+    return true;
+  }
   let numRetries = 0;
   let dnsPropogated = false;
   while (numRetries < 40 && !dnsPropogated && enabled) {
@@ -183,12 +189,13 @@ function removeLambdas(folderName) {
  * Wraps creation of testing resources.
  * @param folderName
  * @param url
+ * @param randString
  * @param enabled
  * @returns {Promise<boolean>} Resolves true if resources created, else false.
  */
-async function createResources(folderName, url, enabled) {
+async function createResources(folderName, url, randString, enabled) {
   console.debug(`\tCreating Resources for ${url}`);
-  const created = await deployLambdas(folderName);
+  const created = await deployLambdas(folderName, randString);
   let dnsVerified = false;
   if (created) {
     dnsVerified = await verifyDnsPropogation(url, enabled);
@@ -230,4 +237,5 @@ module.exports = {
   getStage,
   linkPackages,
   sleep,
+  CreationError,
 };

@@ -16,4 +16,4 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: test1.${env:TEST_DOMAIN}
+    domainName: test1-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}

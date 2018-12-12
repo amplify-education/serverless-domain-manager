@@ -119,7 +119,7 @@ npm install
 ```
 
 ## Writing Integration Tests
-Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder `test<#>` in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.js`.
+Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.js`.
 
 
 # Known Issues

@@ -1,0 +1,22 @@
+# Enabled with custom stage and empty basepath
+service: enabled-stage-basepath
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: enabled-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: test
+    basePath: ''

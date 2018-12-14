@@ -72,7 +72,8 @@ class ServerlessCustomDomain {
    * If no customDomain object exists, an exception is thrown.
    */
   evaluateEnabled() {
-    if (typeof this.serverless.service.custom.customDomain === 'undefined') {
+    if (typeof this.serverless.service.custom === 'undefined'
+      || typeof this.serverless.service.custom.customDomain === 'undefined') {
       throw new Error('serverless-domain-manager: Plugin configuration is missing.');
     }
 

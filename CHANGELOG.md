@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [2.7.0] - 2018-12-14
+## [2.6.9] - 2018-12-17
 
 ### Added
 - Check to ensure plugin configuration exists and throw an error if it does not.

@@ -25,51 +25,51 @@ const testCases = [
     testEndpoint: 'EDGE',
     testURL: `https://enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
-  // {
-  //   testDescription: 'Enabled with custom basepath',
-  //   testFolder: 'enabled-basepath',
-  //   testDomain: `enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
-  //   testStage: 'dev',
-  //   testBasePath: 'api',
-  //   testEndpoint: 'EDGE',
-  //   testURL: `https://enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
-  // },
-  // {
-  //   testDescription: 'Enabled with custom stage and empty basepath',
-  //   testFolder: 'enabled-stage-basepath',
-  //   testDomain: `enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
-  //   testStage: 'test',
-  //   testBasePath: '(none)',
-  //   testEndpoint: 'EDGE',
-  //   testURL: `https://enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
-  // },
-  // {
-  //   testDescription: 'Enabled with regional endpoint, custom basePath',
-  //   testFolder: 'enabled-regional-basepath',
-  //   testDomain: `enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
-  //   testStage: 'dev',
-  //   testBasePath: 'api',
-  //   testEndpoint: 'REGIONAL',
-  //   testURL: `https://enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
-  // },
-  // {
-  //   testDescription: 'Enabled with regional endpoint, custom stage, empty basepath',
-  //   testFolder: 'enabled-regional-stage-basepath',
-  //   testDomain: `enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
-  //   testStage: 'test',
-  //   testBasePath: '(none)',
-  //   testEndpoint: 'REGIONAL',
-  //   testURL: `https://enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
-  // },
-  // {
-  //   testDescription: 'Enabled with regional endpoint and empty basepath',
-  //   testFolder: 'enabled-regional-empty-basepath',
-  //   testDomain: `enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
-  //   testStage: 'dev',
-  //   testBasePath: '(none)',
-  //   testEndpoint: 'REGIONAL',
-  //   testURL: `https://enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
-  // },
+  {
+    testDescription: 'Enabled with custom basepath',
+    testFolder: 'enabled-basepath',
+    testDomain: `enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'dev',
+    testBasePath: 'api',
+    testEndpoint: 'EDGE',
+    testURL: `https://enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
+  },
+  {
+    testDescription: 'Enabled with custom stage and empty basepath',
+    testFolder: 'enabled-stage-basepath',
+    testDomain: `enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'test',
+    testBasePath: '(none)',
+    testEndpoint: 'EDGE',
+    testURL: `https://enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+  },
+  {
+    testDescription: 'Enabled with regional endpoint, custom basePath',
+    testFolder: 'enabled-regional-basepath',
+    testDomain: `enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'dev',
+    testBasePath: 'api',
+    testEndpoint: 'REGIONAL',
+    testURL: `https://enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
+  },
+  {
+    testDescription: 'Enabled with regional endpoint, custom stage, empty basepath',
+    testFolder: 'enabled-regional-stage-basepath',
+    testDomain: `enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'test',
+    testBasePath: '(none)',
+    testEndpoint: 'REGIONAL',
+    testURL: `https://enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+  },
+  {
+    testDescription: 'Enabled with regional endpoint and empty basepath',
+    testFolder: 'enabled-regional-empty-basepath',
+    testDomain: `enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'dev',
+    testBasePath: '(none)',
+    testEndpoint: 'REGIONAL',
+    testURL: `https://enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+  },
 ];
 
 
@@ -123,8 +123,38 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL);
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
     });
   });
+
+  describe('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = 'basepath-mapping';
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      // Perform sequence of commands to replicate basepath mapping issue
+      // Sleep for a min b/w commands in order to avoid rate limiting.
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+    });
+
+    it('Creates a basepath mapping', async () => {
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal('(none)');
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+    });
+  });
+
 });
 

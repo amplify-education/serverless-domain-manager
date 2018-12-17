@@ -69,8 +69,14 @@ class ServerlessCustomDomain {
    * If the property's value is undefined, a default value of true is assumed (for backwards
    * compatibility).
    * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
+   * If no customDomain object exists, an exception is thrown.
    */
   evaluateEnabled() {
+    if (typeof this.serverless.service.custom === 'undefined'
+      || typeof this.serverless.service.custom.customDomain === 'undefined') {
+      throw new Error('serverless-domain-manager: Plugin configuration is missing.');
+    }
+
     const enabled = this.serverless.service.custom.customDomain.enabled;
     if (enabled === undefined) {
       return true;

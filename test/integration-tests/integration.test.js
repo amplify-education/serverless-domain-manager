@@ -155,6 +155,5 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
       await utilities.destroyResources(testName, testURL, RANDOM_STRING);
     });
   });
-
 });
 

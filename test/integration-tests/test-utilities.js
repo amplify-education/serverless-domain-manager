@@ -119,7 +119,7 @@ async function getBasePath(url) {
  */
 function slsCreateDomain(folderName, randString) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${randString}`, { silent: false }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -136,7 +136,7 @@ function slsCreateDomain(folderName, randString) {
  */
 function slsDeploy(folderName, randString) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${randString}`, { silent: false }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -205,7 +205,7 @@ async function verifyDnsPropogation(url, enabled) {
  */
 function slsDeleteDomain(folderName, randString) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${randString}`, { silent: false }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -222,7 +222,7 @@ function slsDeleteDomain(folderName, randString) {
  */
 function slsRemove(folderName, randString) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${randString}`, { silent: false }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }

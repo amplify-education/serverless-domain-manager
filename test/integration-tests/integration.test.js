@@ -127,6 +127,10 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
   });
 
+  /**
+   * skipping this test because this exists to replicate a known issue
+   * the following test is a workaround
+   */
   describe.skip('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
     this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
     const testName = 'basepath-mapping';

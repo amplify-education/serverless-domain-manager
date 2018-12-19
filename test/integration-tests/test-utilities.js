@@ -114,12 +114,12 @@ async function getBasePath(url) {
 /**
  * Runs `sls create_domain` for the given folder
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<any>}
  */
-function slsCreateDomain(folderName, randString) {
+function slsCreateDomain(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -131,12 +131,12 @@ function slsCreateDomain(folderName, randString) {
 /**
  * Runs `sls deploy` for the given folder
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<any>}
  */
-function slsDeploy(folderName, randString) {
+function slsDeploy(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -148,12 +148,12 @@ function slsDeploy(folderName, randString) {
 /**
  * Runs both `sls create_domain` and `sls deploy`
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<*>}
  */
-async function deployLambdas(folderName, randString) {
-  const created = await slsCreateDomain(folderName, randString);
-  const deployed = await slsDeploy(folderName, randString);
+async function deployLambdas(folderName, domainIdentifier) {
+  const created = await slsCreateDomain(folderName, domainIdentifier);
+  const deployed = await slsDeploy(folderName, domainIdentifier);
   return created && deployed;
 }
 
@@ -200,12 +200,12 @@ async function verifyDnsPropogation(url, enabled) {
 /**
  * Runs `sls delete_domain` for the given folder
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<any>}
  */
-function slsDeleteDomain(folderName, randString) {
+function slsDeleteDomain(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -217,12 +217,12 @@ function slsDeleteDomain(folderName, randString) {
 /**
  * Runs `sls remove` for the given folder
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<any>}
  */
-function slsRemove(folderName, randString) {
+function slsRemove(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${randString}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -234,12 +234,12 @@ function slsRemove(folderName, randString) {
 /**
  * Runs both `sls delete_domain` and `sls remove`
  * @param folderName
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<*>}
  */
-async function removeLambdas(folderName, randString) {
-  const deleted = await slsDeleteDomain(folderName, randString);
-  const removed = await slsRemove(folderName, randString);
+async function removeLambdas(folderName, domainIdentifier) {
+  const deleted = await slsDeleteDomain(folderName, domainIdentifier);
+  const removed = await slsRemove(folderName, domainIdentifier);
   return deleted && removed;
 }
 
@@ -247,13 +247,13 @@ async function removeLambdas(folderName, randString) {
  * Wraps creation of testing resources.
  * @param folderName
  * @param url
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @param enabled
  * @returns {Promise<boolean>} Resolves true if resources created, else false.
  */
-async function createResources(folderName, url, randString, enabled) {
+async function createResources(folderName, url, domainIdentifier, enabled) {
   console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
-  const created = await deployLambdas(folderName, randString);
+  const created = await deployLambdas(folderName, domainIdentifier);
   let dnsVerified = false;
   if (created) {
     dnsVerified = await verifyDnsPropogation(url, enabled);
@@ -270,12 +270,12 @@ async function createResources(folderName, url, randString, enabled) {
  * Wraps deletion of testing resources.
  * @param folderName
  * @param url
- * @param randString
+ * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
  * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
  */
-async function destroyResources(folderName, url, randString) {
+async function destroyResources(folderName, url, domainIdentifier) {
   console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
-  const removed = await removeLambdas(folderName, randString);
+  const removed = await removeLambdas(folderName, domainIdentifier);
   if (removed) {
     console.debug('\tResources Cleaned Up'); // eslint-disable-line no-console
   } else {

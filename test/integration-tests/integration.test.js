@@ -127,7 +127,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
   });
 
-  describe('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
+  describe.skip('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
     this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
     const testName = 'basepath-mapping';
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;

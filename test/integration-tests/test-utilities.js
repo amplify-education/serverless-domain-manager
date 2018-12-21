@@ -114,7 +114,7 @@ async function getBasePath(url) {
 /**
  * Runs `sls create_domain` for the given folder
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<any>}
  */
 function slsCreateDomain(folderName, domainIdentifier) {
@@ -131,7 +131,7 @@ function slsCreateDomain(folderName, domainIdentifier) {
 /**
  * Runs `sls deploy` for the given folder
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<any>}
  */
 function slsDeploy(folderName, domainIdentifier) {
@@ -148,7 +148,7 @@ function slsDeploy(folderName, domainIdentifier) {
 /**
  * Runs both `sls create_domain` and `sls deploy`
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<*>}
  */
 async function deployLambdas(folderName, domainIdentifier) {
@@ -200,7 +200,7 @@ async function verifyDnsPropogation(url, enabled) {
 /**
  * Runs `sls delete_domain` for the given folder
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<any>}
  */
 function slsDeleteDomain(folderName, domainIdentifier) {
@@ -217,7 +217,7 @@ function slsDeleteDomain(folderName, domainIdentifier) {
 /**
  * Runs `sls remove` for the given folder
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<any>}
  */
 function slsRemove(folderName, domainIdentifier) {
@@ -234,7 +234,7 @@ function slsRemove(folderName, domainIdentifier) {
 /**
  * Runs both `sls delete_domain` and `sls remove`
  * @param folderName
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<*>}
  */
 async function removeLambdas(folderName, domainIdentifier) {
@@ -247,7 +247,7 @@ async function removeLambdas(folderName, domainIdentifier) {
  * Wraps creation of testing resources.
  * @param folderName
  * @param url
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @param enabled
  * @returns {Promise<boolean>} Resolves true if resources created, else false.
  */
@@ -270,7 +270,7 @@ async function createResources(folderName, url, domainIdentifier, enabled) {
  * Wraps deletion of testing resources.
  * @param folderName
  * @param url
- * @param domainIdentifier Random alphanumeric string to identify particular run of integration tests.
+ * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
  */
 async function destroyResources(folderName, url, domainIdentifier) {

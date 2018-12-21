@@ -126,6 +126,7 @@ Unit tests are found in `test/unit-tests`. Integration tests are found in `test/
 * (5/23/2017) CloudFormation does not support changing the base path from empty to something or vice a versa. You must run `sls remove` to remove the base path mapping.
 * (1/17/2018) The `create_domain` command provided by this plugin does not currently update an existing Custom Domain's configuration. Instead, it only supports updating the Route 53 record pointing to the Custom Domain. For example, one must delete and recreate a Custom Domain to migrate it from regional to edge or vice versa, or to modify the certificate.
 * (8/22/2018) Creating a custom domain creates a CloudFront Distribution behind the scenes for fronting your API Gateway. This CloudFront Distribution is managed by AWS and cannot be viewed/managed by you. This is not a bug, but a quirk of how the Custom Domain feature works in API Gateway.
+* (12/19/2018) Recreating a custom domain after deleting it does not work if the basePathMapping is not set. The workaround is to always run `sls remove` when running `sls delete_domain`.
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

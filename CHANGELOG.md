@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.10] - 2018-12-17
+
+### Added
+- Integration test to replicate issue where basepath mapping is not set when recreating a domain.
+
+### Changed
+- Separated out `sls` commands in utility functions for integration tests.
+
+
 ## [2.6.9] - 2018-12-17
 
 ### Added

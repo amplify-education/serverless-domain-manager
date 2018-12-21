@@ -101,7 +101,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
         const status = await utilities.curlUrl(value.testURL);
         expect(status).to.equal(200);
       }
-      await utilities.destroyResources(value.testFolder, value.testDomain);
+      await utilities.destroyResources(value.testFolder, value.testDomain, RANDOM_STRING);
     });
   });
 
@@ -123,8 +123,103 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL);
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+    });
+  });
+
+  /**
+   * skipping this test because this exists to replicate a known issue
+   */
+  describe.skip('Basepath Mapping Is Empty', function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = 'null-basepath-mapping';
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      // Perform sequence of commands to replicate basepath mapping issue
+      // Sleep for a min b/w commands in order to avoid rate limiting.
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+    });
+
+    it('Creates a basepath mapping', async () => {
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal('(none)');
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+    });
+  });
+
+  /**
+   * skipping due to same issue as test above
+   */
+  describe.skip('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = 'basepath-mapping';
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      // Perform sequence of commands to replicate basepath mapping issue
+      // Sleep for a min b/w commands in order to avoid rate limiting.
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+    });
+
+    it('Creates a basepath mapping', async () => {
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal('(none)');
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+    });
+  });
+
+
+  describe('Basepath Mapping Is Empty And Fix Works', function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = 'null-basepath-mapping';
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      // Perform sequence of commands to replicate basepath mapping issue
+      // Sleep for a min b/w commands in order to avoid rate limiting.
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsRemove(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.sleep(60);
+      await utilities.slsDeploy(testName, RANDOM_STRING);
+    });
+
+    it('Creates a basepath mapping', async () => {
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal('(none)');
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
     });
   });
 });
-

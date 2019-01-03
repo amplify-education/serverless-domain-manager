@@ -197,6 +197,7 @@ class ServerlessCustomDomain {
     }
 
     const hostedZonePromise = this.route53.listHostedZones({}).promise();
+    const givenDomainNameReverse = this.givenDomainName.split('.').reverse();
 
     return hostedZonePromise
       .catch((err) => {
@@ -207,9 +208,20 @@ class ServerlessCustomDomain {
         const targetHostedZone = data.HostedZones
           .filter((hostedZone) => {
             const hostedZoneName = hostedZone.Name.endsWith('.') ? hostedZone.Name.slice(0, -1) : hostedZone.Name;
-            const privateFilter = filterZone ?
-              this.hostedZonePrivate === hostedZone.Config.PrivateZone : true;
-            return this.givenDomainName.endsWith(hostedZoneName) && privateFilter;
+            if (!filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone) {
+              const hostedZoneNameReverse = hostedZoneName.split('.').reverse();
+
+              if (givenDomainNameReverse.length === 1
+                || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
+                for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
+                  if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
+                    return false;
+                  }
+                }
+                return true;
+              }
+            }
+            return false;
           })
           .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
           .shift();

@@ -616,6 +616,24 @@ describe('Custom Domain Plugin', () => {
       expect(result).to.equal('test_id_0');
     });
 
+    it('Sub domain name - non domain matching prefix', async () => {
+      AWS.mock('Route53', 'listHostedZones', (params, callback) => {
+        callback(null, {
+          HostedZones: [
+            { Name: 'aaaa.com.', Id: '/hostedzone/test_id_2', Config: { PrivateZone: false } },
+            { Name: 'aaa.com.', Id: '/hostedzone/test_id_1', Config: { PrivateZone: false } },
+            { Name: 'bbb.aaa.com.', Id: '/hostedzone/test_id_0', Config: { PrivateZone: false } }],
+        });
+      });
+
+      const plugin = constructPlugin(null, null, null);
+      plugin.route53 = new aws.Route53();
+      plugin.setGivenDomainName('ccc-bbb.aaa.com');
+
+      const result = await plugin.getRoute53HostedZoneId();
+      expect(result).to.equal('test_id_1');
+    });
+
     afterEach(() => {
       AWS.restore();
     });

@@ -163,6 +163,24 @@ describe('Custom Domain Plugin', () => {
       const cf = noStagePlugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
       expect(cf.pathmapping.Properties.Stage).to.equal('providerStage');
     });
+
+    it('references the id of the API being created', () => {
+      plugin.addResources(deploymentId);
+      const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
+      expect(cf.pathmapping.Properties.RestApiId).to.deep.equal({ Ref: 'ApiGatewayRestApi' });
+    });
+
+    it('uses existing API id when defined in provider data', () => {
+      const apiIdExistingPlugin = constructPlugin('test_basepath', null, true, true);
+      apiIdExistingPlugin.serverless.service.provider.apiGateway = {
+        restApiId: 'some-id',
+      };
+      apiIdExistingPlugin.addResources(deploymentId);
+      const cf = apiIdExistingPlugin.serverless.service.provider.compiledCloudFormationTemplate
+        .Resources;
+      expect(cf.pathmapping.Properties.RestApiId).to.equal('some-id');
+    });
   });
 
   describe('Create a New Domain Name', () => {

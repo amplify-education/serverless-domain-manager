@@ -314,7 +314,7 @@ class ServerlessCustomDomain {
     let apiGatewayRef = { Ref: 'ApiGatewayRestApi' };
 
     // If user has specified an existing API Gateway API, then attach to that
-    if (service.provider.apiGateway) {
+    if (service.provider.apiGateway && service.provider.apiGateway.restApiId) {
       this.serverless.cli.log(`Mapping custom domain to existing API ${service.provider.apiGateway.restApiId}.`);
       apiGatewayRef = service.provider.apiGateway.restApiId;
     }

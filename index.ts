@@ -1,37 +1,13 @@
 "use strict";
 
 import chalk from "chalk";
+import DomainResponse = require("./DomainResponse");
 import { ServerlessInstance, ServerlessOptions } from "./types";
 
 const endpointTypes = {
     edge: "EDGE",
     regional: "REGIONAL",
 };
-
-/**
- * Wrapper class for Custom Domain information
- */
-class DomainResponse {
-
-    public domainName: string;
-    public hostedZoneId: string;
-
-    /**
-     * Sometimes, the getDomainName call doesn't return either a distributionHostedZoneId or a regionalHostedZoneId.
-     * AFAICT, this only happens with edge-optimized endpoints.
-     * The hostedZoneId for these endpoints is always the one below.
-     * Docs: https://docs.aws.amazon.com/general/latest/gr/rande.html#apigateway_region
-     * PR: https://github.com/amplify-education/serverless-domain-manager/pull/171
-     */
-    private defaultHostedZoneId: string = "Z2FDTNDATAQYW2";
-
-    constructor(data: any) {
-        this.domainName = data.distributionDomainName || data.regionalDomainName;
-        this.hostedZoneId = data.distributionHostedZoneId ||
-            data.regionalHostedZoneId ||
-            this.defaultHostedZoneId;
-    }
-}
 
 class ServerlessCustomDomain {
 
@@ -160,9 +136,7 @@ class ServerlessCustomDomain {
         this.initializeVariables();
         // make aws call to get domain name
         const domainInfo = await this.getDomainInfo();
-        if (domainInfo) {
-            this.printDomainSummary(domainInfo);
-        }
+        this.printDomainSummary(domainInfo);
     }
 
     /**
@@ -305,17 +279,13 @@ class ServerlessCustomDomain {
      * Gets domain info as DomainResponse object if domain exists, otherwise returns false
      */
     private async getDomainInfo(): Promise<DomainResponse> {
-        return this.apigateway.getDomainName({domainName: this.givenDomainName}).promise()
-            .then((data, err) => {
-                if (data) {
-                    return new DomainResponse(data);
-                } else if (err) {
-                    return false;
-                }
-            })
-            .catch(() => {
-                return false;
-            });
+        let domainInfo;
+        try {
+            domainInfo = await this.apigateway.getDomainName({domainName: this.givenDomainName}).promise();
+            return new DomainResponse(domainInfo);
+        } catch (err) {
+            throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
+        }
     }
 
     /**

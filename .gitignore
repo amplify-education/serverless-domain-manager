@@ -7,4 +7,5 @@ npm-debug.log
 *.iml
 index.js
 types.js
+DomainResponse.js
 **/.serverless

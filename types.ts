@@ -1,47 +1,46 @@
-export interface ServerlessInstance {
+export interface ServerlessInstance { // tslint:disable-line
     service: {
         service: string
         provider: {
             stage: string
             stackName: string
             compiledCloudFormationTemplate: {
-                Outputs: any
-            }
+                Outputs: any,
+            },
         }
         custom: {
             customDomain: {
-                domainName: string
-                basePath: string|undefined
-                stage: string|undefined
-                certificateName: string|undefined
-                certificateArn: string|undefined
-                createRoute53Record: boolean|undefined
-                endpointType: string|undefined
-                hostedZoneId: string|undefined
-                hostedZonePrivate: string|undefined
-                enabled: boolean|string|undefined
-
-            }
-        }
-    }
+                domainName: string,
+                basePath: string | undefined,
+                stage: string | undefined,
+                certificateName: string | undefined,
+                certificateArn: string | undefined,
+                createRoute53Record: boolean | undefined,
+                endpointType: string | undefined,
+                hostedZoneId: string | undefined,
+                hostedZonePrivate: string | undefined,
+                enabled: boolean | string | undefined,
+            },
+        },
+    };
     providers: {
         aws: {
             sdk: {
-                APIGateway: any
-                Route53: any
-                CloudFormation: any
-                ACM: any
+                APIGateway: any,
+                Route53: any,
+                CloudFormation: any,
+                ACM: any,
             }
-            getCredentials()
-            getRegion()
-        }
-    }
+            getCredentials(),
+            getRegion(),
+        },
+    };
     cli: {
-        log(str: string)
-        consoleLog(str: any)
-    }
+        log(str: string),
+        consoleLog(str: any),
+    };
 }
 
-export interface ServerlessOptions {
-    stage: string
+export interface ServerlessOptions { // tslint:disable-line
+    stage: string;
 }

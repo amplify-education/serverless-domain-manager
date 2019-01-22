@@ -29,7 +29,7 @@
   "scripts": {
     "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha test/unit-tests -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
     "integration-test": "node ./node_modules/istanbul/lib/cli.js test _mocha test/integration-tests -- -R spec",
-    "lint": "eslint ."
+    "lint": "tslint --project ."
   },
   "devDependencies": {
     "aws-sdk-mock": "^1.7.0",

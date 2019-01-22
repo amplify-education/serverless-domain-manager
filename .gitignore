@@ -5,7 +5,4 @@ coverage
 npm-debug.log
 .DS_Store
 *.iml
-index.js
-types.js
-DomainResponse.js
 **/.serverless

@@ -57,7 +57,7 @@ class ServerlessCustomDomain {
         this.hooks = {
             "after:deploy:deploy": this.setupBasePathMapping.bind(this),
             "after:info:info": this.domainSummary.bind(this),
-            "after:remove:remove": this.removeBasePathMapping.bind(this),
+            "before:remove:remove": this.removeBasePathMapping.bind(this),
             "create_domain:create": this.createDomain.bind(this),
             "delete_domain:delete": this.deleteDomain.bind(this),
         };
@@ -74,13 +74,10 @@ class ServerlessCustomDomain {
             return;
         }
         const certArn = await this.getCertArn();
-        if (!await this.getDomainInfo()) {
-            const domainInfo = await this.createCustomDomain(certArn);
-            await this.changeResourceRecordSet("UPSERT", domainInfo);
-            this.serverless.cli.log(`Custom domain ${this.givenDomainName} created.`);
-        } else {
-            this.serverless.cli.log(`Custom domain ${this.givenDomainName} already exists.`);
-        }
+        const domainInfo = await this.createCustomDomain(certArn);
+        await this.changeResourceRecordSet("UPSERT", domainInfo);
+        this.serverless.cli.log(`Custom domain ${this.givenDomainName} was created/updated.
+      New domains may take up to 40 minutes to be initialized.`);
     }
 
     /**
@@ -225,26 +222,20 @@ class ServerlessCustomDomain {
             return this.serverless.service.custom.customDomain.certificateArn;
         }
 
-        const certArn = this.acm.listCertificates(
-            {CertificateStatuses: ["PENDING_VALIDATION", "ISSUED", "INACTIVE"]}).promise();
-
-        return certArn.catch((err) => {
-            throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
-        }).then((data) => {
+        let certificateArn; // The arn of the choosen certificate
+        let certificateName = this.serverless.service.custom.customDomain.certificateName; // The certificate name
+        let certData;
+        try {
+            certData = await this.acm.listCertificates(
+                { CertificateStatuses: ["PENDING_VALIDATION", "ISSUED", "INACTIVE"] }).promise();
             // The more specific name will be the longest
             let nameLength = 0;
-            // The arn of the choosen certificate
-            let certificateArn;
-            // The certificate name
-            let certificateName = this.serverless.service.custom.customDomain.certificateName;
-
-            const certificates = data.CertificateSummaryList;
+            const certificates = certData.CertificateSummaryList;
 
             // Checks if a certificate name is given
             if (certificateName != null) {
                 const foundCertificate = certificates
                     .find((certificate) => (certificate.DomainName === certificateName));
-
                 if (foundCertificate != null) {
                     certificateArn = foundCertificate.CertificateArn;
                 }
@@ -252,12 +243,10 @@ class ServerlessCustomDomain {
                 certificateName = this.givenDomainName;
                 certificates.forEach((certificate) => {
                     let certificateListName = certificate.DomainName;
-
                     // Looks for wild card and takes it out when checking
                     if (certificateListName[0] === "*") {
                         certificateListName = certificateListName.substr(1);
                     }
-
                     // Looks to see if the name in the list is within the given domain
                     // Also checks if the name is more specific than previous ones
                     if (certificateName.includes(certificateListName)
@@ -267,12 +256,13 @@ class ServerlessCustomDomain {
                     }
                 });
             }
-
-            if (certificateArn == null) {
-                throw Error(`Error: Could not find the certificate ${certificateName}.`);
-            }
-            return certificateArn;
-        });
+        } catch (err) {
+            throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
+        }
+        if (certificateArn == null) {
+            throw Error(`Error: Could not find the certificate ${certificateName}.`);
+        }
+        return certificateArn;
     }
 
     /**
@@ -281,7 +271,7 @@ class ServerlessCustomDomain {
     private async getDomainInfo(): Promise<DomainResponse> {
         let domainInfo;
         try {
-            domainInfo = await this.apigateway.getDomainName({domainName: this.givenDomainName}).promise();
+            domainInfo = await this.apigateway.getDomainName({ domainName: this.givenDomainName }).promise();
             return new DomainResponse(domainInfo);
         } catch (err) {
             throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
@@ -339,9 +329,10 @@ class ServerlessCustomDomain {
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainResponse object containing info about custom domain
      */
-    private async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<boolean|void> {
+    private async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<boolean | void> {
         if (action !== "UPSERT" && action !== "DELETE") {
-            throw new Error(`Error: Invalid action "${action}" when changing Route53 Record. Action must be either UPSERT or DELETE.\n`);
+            throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
+        Action must be either UPSERT or DELETE.\n`);
         }
 
         if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
@@ -397,32 +388,48 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("Filtering to only public zones.");
         }
 
-        return this.route53.listHostedZones({}).promise()
-            .catch((err) => {
-                throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
-            })
-            .then((data) => {
-                // Gets the hostzone that is closest match to the custom domain name
-                const targetHostedZone = data.HostedZones
-                    .filter((hostedZone) => {
-                        const hostedZoneName = hostedZone.Name.endsWith(".") ?
-                            hostedZone.Name.slice(0, -1) : hostedZone.Name;
-                        const privateFilter = filterZone ?
-                            this.hostedZonePrivate === hostedZone.Config.PrivateZone : true;
-                        return this.givenDomainName.endsWith(hostedZoneName) && privateFilter;
-                    })
-                    .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-                    .shift();
+        let hostedZoneData;
+        const givenDomainNameReverse = this.givenDomainName.split(".").reverse();
 
-                if (targetHostedZone) {
-                    const hostedZoneId = targetHostedZone.Id;
-                    // Extracts the hostzone Id
-                    const startPos = hostedZoneId.indexOf("e/") + 2;
-                    const endPos = hostedZoneId.length;
-                    return hostedZoneId.substring(startPos, endPos);
-                }
-                throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
-            });
+        try {
+            hostedZoneData = await this.route53.listHostedZones({}).promise();
+            const targetHostedZone = hostedZoneData.HostedZones
+                .filter((hostedZone) => {
+                    let hostedZoneName;
+                    if (hostedZone.Name.endsWith(".")) {
+                        hostedZoneName = hostedZone.Name.slice(0, -1);
+                    } else {
+                        hostedZoneName = hostedZone.Name;
+                    }
+                    if (!filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone) {
+                        const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
+
+                        if (givenDomainNameReverse.length === 1
+                            || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
+                            for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
+                                if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+                .shift();
+
+            if (targetHostedZone) {
+                const hostedZoneId = targetHostedZone.Id;
+                // Extracts the hostzone Id
+                const startPos = hostedZoneId.indexOf("e/") + 2;
+                const endPos = hostedZoneId.length;
+                return hostedZoneId.substring(startPos, endPos);
+            }
+        } catch (err) {
+            throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+        }
+        throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
     }
 
     /**
@@ -452,7 +459,8 @@ class ServerlessCustomDomain {
     private async getRestApiId(): Promise<string> {
         const params = {
             StackName:
-                this.serverless.service.provider.stackName || `${this.serverless.service.service}-${this.stage}`};
+                this.serverless.service.provider.stackName || `${this.serverless.service.service}-${this.stage}`,
+        };
 
         let response;
         try {

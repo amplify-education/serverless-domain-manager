@@ -324,7 +324,7 @@ class ServerlessCustomDomain {
 
         // Make API call
         try {
-            await this.apigateway.deleteDomainName(params).promise();
+            return await this.apigateway.deleteDomainName(params).promise();
         } catch {
             throw new Error(`Error: Failed to delete custom domain ${this.givenDomainName}\n`);
         }
@@ -335,7 +335,7 @@ class ServerlessCustomDomain {
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainResponse object containing info about custom domain
      */
-    public async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<boolean | void> {
+    public async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<any> {
         if (action !== "UPSERT" && action !== "DELETE") {
             throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
                 Action must be either UPSERT or DELETE.\n`);
@@ -344,7 +344,7 @@ class ServerlessCustomDomain {
         if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
             && this.serverless.service.custom.customDomain.createRoute53Record === false) {
             this.serverless.cli.log("Skipping creation of Route53 record.");
-            return;
+            return false;
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId();
@@ -370,11 +370,10 @@ class ServerlessCustomDomain {
         };
         // Make API call
         try {
-            await this.route53.changeResourceRecordSets(params).promise();
+            return await this.route53.changeResourceRecordSets(params).promise();
         } catch (err) {
             throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainName}\n`);
         }
-        return true;
     }
 
     /**

@@ -18,7 +18,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 createRoute53Record: boolean | undefined,
                 endpointType: string | undefined,
                 hostedZoneId: string | undefined,
-                hostedZonePrivate: string | undefined,
+                hostedZonePrivate: boolean | undefined,
                 enabled: boolean | string | undefined,
             },
         },

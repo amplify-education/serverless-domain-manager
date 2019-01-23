@@ -88,10 +88,11 @@ class ServerlessCustomDomain {
                 this.reportDisabled();
                 return;
             }
-            yield this.createBasePathMapping();
+            const basePathCreated = yield this.createBasePathMapping();
             const domainInfo = yield this.getDomainInfo();
             this.addOutputs(domainInfo);
             yield this.printDomainSummary(domainInfo);
+            return basePathCreated;
         });
     }
     /**
@@ -105,7 +106,7 @@ class ServerlessCustomDomain {
                 this.reportDisabled();
                 return;
             }
-            yield this.deleteBasePathMapping();
+            return yield this.deleteBasePathMapping();
         });
     }
     /**
@@ -115,9 +116,12 @@ class ServerlessCustomDomain {
     domainSummary() {
         return __awaiter(this, void 0, void 0, function* () {
             this.initializeVariables();
-            // make aws call to get domain name
+            if (!this.enabled) {
+                this.reportDisabled();
+                return;
+            }
             const domainInfo = yield this.getDomainInfo();
-            this.printDomainSummary(domainInfo);
+            return this.printDomainSummary(domainInfo);
         });
     }
     /**
@@ -505,6 +509,7 @@ class ServerlessCustomDomain {
         }
         this.serverless.cli.consoleLog(chalk_1.default.yellow("Distribution Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
+        return true;
     }
 }
 module.exports = ServerlessCustomDomain;

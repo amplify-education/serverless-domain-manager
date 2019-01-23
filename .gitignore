@@ -6,3 +6,7 @@ npm-debug.log
 .DS_Store
 *.iml
 **/.serverless
+index.js
+types.js
+DomainResponse.js
+.nyc_output/

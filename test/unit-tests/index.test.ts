@@ -631,7 +631,7 @@ describe("Custom Domain Plugin", () => {
   });
 
   describe("Error Catching", () => {
-    it("If a certificate cannot be found when a name is given", () => {
+    it("If a certificate cannot be found when a name is given", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
       const options = {
@@ -649,7 +649,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Fail getHostedZone", () => {
+    it("Fail getHostedZone", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, { HostedZones: [{ Name: "no_hosted_zone", Id: "test_id" }] });
       });
@@ -666,7 +666,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Domain summary failed", () => {
+    it("Domain summary failed", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, null);
       });
@@ -688,7 +688,7 @@ describe("Custom Domain Plugin", () => {
   });
 
   describe("Summary Printing", () => {
-    it("Prints Summary", () => {
+    it("Prints Summary", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: params, distributionDomainName: "test_distributed_domain_name" });
       });

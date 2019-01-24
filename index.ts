@@ -31,8 +31,8 @@ class ServerlessCustomDomain {
     public enabled: boolean;
     public givenDomainName: string;
     public hostedZonePrivate: boolean;
+    public basePath: string;
     private endpointType: string;
-    private basePath: string;
     private stage: string;
 
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
@@ -80,6 +80,7 @@ class ServerlessCustomDomain {
         await this.changeResourceRecordSet("UPSERT", domainInfo);
         this.serverless.cli.log(`Custom domain ${this.givenDomainName} was created/updated.
             New domains may take up to 40 minutes to be initialized.`);
+        return true;
     }
 
     /**
@@ -96,6 +97,7 @@ class ServerlessCustomDomain {
         await this.deleteCustomDomain();
         await this.changeResourceRecordSet("DELETE", domainInfo);
         this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
+        return true;
     }
 
     /**
@@ -112,7 +114,7 @@ class ServerlessCustomDomain {
         const domainInfo = await this.getDomainInfo();
         this.addOutputs(domainInfo);
         await this.printDomainSummary(domainInfo);
-        return basePathCreated;
+        return basePathCreated ? true : false;
     }
 
     /**
@@ -440,7 +442,7 @@ class ServerlessCustomDomain {
     /**
      * Creates basepath mapping
      */
-    public async createBasePathMapping(): Promise<boolean> {
+    public async createBasePathMapping(): Promise<any> {
         const restApiId = await this.getRestApiId();
         const params = {
             basePath: this.basePath,
@@ -449,13 +451,15 @@ class ServerlessCustomDomain {
             stage: this.stage,
         };
         // Make API call
+        let created;
         try {
-            await this.apigateway.createBasePathMapping(params).promise();
+            created =  await this.apigateway.createBasePathMapping(params).promise();
             this.serverless.cli.log("Created basepath mapping.");
         } catch (err) {
+            console.log(err);
             throw new Error(`Error: Unable to create basepath mapping.\n`);
         }
-        return true;
+        return created;
     }
 
     /**

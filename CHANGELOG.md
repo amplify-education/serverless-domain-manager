@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.0.0] - 2019-01-24
+
+### Changed
+- Refactored from Javascript into Typescript
+- Created BasePathMapping through API rather than through CloudFormation
+
+### Removed
+- Support for migrating CNAMEs to A Alias Records
+
 ## [2.6.10] - 2018-12-17
 
 ### Added

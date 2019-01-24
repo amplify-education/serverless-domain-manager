@@ -456,7 +456,6 @@ class ServerlessCustomDomain {
             created =  await this.apigateway.createBasePathMapping(params).promise();
             this.serverless.cli.log("Created basepath mapping.");
         } catch (err) {
-            console.log(err);
             throw new Error(`Error: Unable to create basepath mapping.\n`);
         }
         return created;

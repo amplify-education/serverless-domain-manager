@@ -517,7 +517,6 @@ describe("Custom Domain Plugin", () => {
       });
 
       const plugin = constructPlugin({ domainName: "test_domain"});
-      // plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -541,7 +540,6 @@ describe("Custom Domain Plugin", () => {
       });
 
       const plugin = constructPlugin({ domainName: "test_domain" });
-      // plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.acm = new aws.ACM();

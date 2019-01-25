@@ -290,13 +290,13 @@ async function destroyResources(folderName, url, domainIdentifier) {
  * @return {Object} Contains restApiId and resourceId
  */
 async function setupApiGatewayResources(randString) {
-  const restApiInfo = await apiGateway.createRestApi( { name: `rest-api-${randString}` } ).promise();
+  const restApiInfo = await apiGateway.createRestApi({ name: `rest-api-${randString}` }).promise();
   const restApiId = restApiInfo.id;
-  const resourceInfo = await apiGateway.getResources( { restApiId } ).promise();
+  const resourceInfo = await apiGateway.getResources({ restApiId }).promise();
   const resourceId = resourceInfo.items[0].id;
   shell.env.REST_API_ID = restApiId;
   shell.env.RESOURCE_ID = resourceId;
-  return {restApiId, resourceId};
+  return { restApiId, resourceId };
 }
 
 /**

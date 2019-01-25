@@ -1,0 +1,23 @@
+# Enabled with default values
+service: enabled-custom-apigateway
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: us-west-2
+  apiGateway:
+    restApiId: ${env:REST_API_ID}
+    restApiResources:
+      'hello-world': ${env:RESOURCE_ID}
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}

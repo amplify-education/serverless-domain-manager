@@ -4,6 +4,7 @@ const chai = require('chai');
 const itParam = require('mocha-param');
 const utilities = require('./test-utilities');
 const randomstring = require('randomstring');
+const dns = require('dns');
 
 const expect = chai.expect;
 
@@ -24,6 +25,16 @@ const testCases = [
     testBasePath: '(none)',
     testEndpoint: 'EDGE',
     testURL: `https://enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
+  },
+  {
+    testDescription: 'Enabled with custom api gateway',
+    testFolder: 'enabled-custom-apigateway',
+    testDomain: `enabled-custom-apigateway-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testStage: 'dev',
+    testBasePath: '(none)',
+    testEndpoint: 'EDGE',
+    testURL: `https://enabled-custom-apigateway-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    createApiGateway: true,
   },
   {
     testDescription: 'Enabled with custom basepath',
@@ -84,6 +95,10 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     this.timeout(SIX_HOURS);
 
     itParam('${value.testDescription}', testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
+      let restApiInfo;
+      if (value.createApiGateway) {
+        restApiInfo = await utilities.setupApiGatewayResources(RANDOM_STRING);
+      }
       const created = await utilities.createResources(value.testFolder,
           value.testDomain, RANDOM_STRING, true);
       if (!created) {
@@ -102,6 +117,9 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
         expect(status).to.equal(200);
       }
       await utilities.destroyResources(value.testFolder, value.testDomain, RANDOM_STRING);
+      if (value.createApiGateway) {
+        await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
+      }
     });
   });
 

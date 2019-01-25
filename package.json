@@ -29,7 +29,7 @@
   "scripts": {
     "test": "tsc --project . && nyc mocha -r ts-node/register test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
     "integration-test": "node ./node_modules/istanbul/lib/cli.js test _mocha test/integration-tests -- -R spec",
-    "lint": "tslint --project . && tslint --project ./test/unit-tests/"
+    "lint": "tslint --project ."
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

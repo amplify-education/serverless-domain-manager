@@ -4,7 +4,6 @@ const chai = require('chai');
 const itParam = require('mocha-param');
 const utilities = require('./test-utilities');
 const randomstring = require('randomstring');
-const dns = require('dns');
 
 const expect = chai.expect;
 

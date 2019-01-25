@@ -370,7 +370,7 @@ describe("Custom Domain Plugin", () => {
 //   });
 
   describe("Gets Rest API correctly", () => {
-    it("Fetches restApiId correctly when no ApiGateway specified", async () => {
+    it("Fetches restApiId correctly when no ApiGateway specified", async () =>{
       AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
         callback(null, {
           StackResources:

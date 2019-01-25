@@ -66,6 +66,9 @@ const constructPlugin = (customDomainOptions) => {
         },
       },
       provider: {
+        apiGateway: {
+          restApiId: null,
+        },
         compiledCloudFormationTemplate: {
           Outputs: null,
         },
@@ -136,26 +139,6 @@ describe("Custom Domain Plugin", () => {
       expect(result.domainName).to.equal("test_domain");
       expect(result.restApiId).to.equal("test_rest_api_id");
       expect(result.basePath).to.equal("test_basepath");
-    });
-
-    it("Fetches restApiId correctly", async () => {
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {StackResources:
-          [
-            { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            { LogicalResourceId: "LambdaPermission", PhysicalResourceId: "test_permission" },
-            { LogicalResourceId: "ApiGatewayResourceHello", PhysicalResourceId: "test_api_resource" },
-          ],
-        });
-      });
-      const plugin = constructPlugin({
-        basePath: "test_basepath",
-        domainName: "test_domain",
-      });
-      plugin.cloudformation = new aws.CloudFormation();
-
-      const result = await plugin.getRestApiId();
-      expect(result).to.equal("test_rest_api_id");
     });
 
     it("Add Domain Name and HostedZoneId to stack output", () => {
@@ -386,28 +369,39 @@ describe("Custom Domain Plugin", () => {
 //     });
 //   });
 
-//   describe("Provider apiGateway is set", () => {
-//     const deploymentId = "";
-//     it("serverless.yml doesn\"t define explicitly the apiGateway", () => {
-//       const plugin = constructPlugin("");
-//       plugin.addResources(deploymentId);
-//       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
+  describe("Gets Rest API correctly", () => {
+    it("Fetches restApiId correctly when no ApiGateway specified", async () => {
+      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
+        callback(null, {
+          StackResources:
+            [
+              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
+              { LogicalResourceId: "LambdaPermission", PhysicalResourceId: "test_permission" },
+              { LogicalResourceId: "ApiGatewayResourceHello", PhysicalResourceId: "test_api_resource" },
+            ],
+        });
+      });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+      });
+      plugin.cloudformation = new aws.CloudFormation();
 
-//       expect(cf.pathmapping.Properties.RestApiId).to.deep.equal({ Ref: "ApiGatewayRestApi" });
-//     });
+      const result = await plugin.getRestApiId();
+      expect(result).to.equal("test_rest_api_id");
+    });
 
-//     it("serverless.yml defines explicitly the apiGateway", () => {
-//       const plugin = constructPlugin("");
-
-//       // Fake the serverless config apiGateway
-//       plugin.serverless.service.provider.apiGateway = { restApiId: "apigatewayref" };
-
-//       const cf = plugin.serverless.service.provider.compiledCloudFormationTemplate.Resources;
-
-//       plugin.addResources(deploymentId);
-//       expect(cf.pathmapping.Properties.RestApiId).to.equal("apigatewayref");
-//     });
-//   });
+    it("serverless.yml defines explicitly the apiGateway", async () => {
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+      });
+      plugin.cloudformation = new aws.CloudFormation();
+      plugin.serverless.service.provider.apiGateway.restApiId = "test_rest_api_id";
+      const result = await plugin.getRestApiId();
+      expect(result).to.equal("test_rest_api_id");
+    });
+  });
 
   describe("Delete the new domain", () => {
     it("Find available domains", async () => {

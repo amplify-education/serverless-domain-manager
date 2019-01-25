@@ -465,6 +465,12 @@ class ServerlessCustomDomain {
      * Gets rest API id from CloudFormation stack
      */
     public async getRestApiId(): Promise<string> {
+        if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
+            this.serverless.cli.log(`Mapping custom domain to existing API
+                ${this.serverless.service.provider.apiGateway.restApiId}.`);
+            return this.serverless.service.provider.apiGateway.restApiId;
+        }
+
         const params = {
             StackName:
                 this.serverless.service.provider.stackName || `${this.serverless.service.service}-${this.stage}`,

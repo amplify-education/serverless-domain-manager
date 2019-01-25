@@ -7,6 +7,9 @@ export interface ServerlessInstance { // tslint:disable-line
             compiledCloudFormationTemplate: {
                 Outputs: any,
             },
+            apiGateway: {
+                restApiId: string,
+            },
         }
         custom: {
             customDomain: {

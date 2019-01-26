@@ -15,6 +15,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 - Support for migrating CNAMEs to A Alias Records
 
+
+## [2.6.13] - 2019-01-25
+
+### Added
+- Created integration test for custom API field being set.
+
+
+## [2.6.12] - 2019-01-18
+
+### Changed
+- Implemented a better hosted zone matching algorithm to break domain into parts.
+
+
+## [2.6.11] - 2019-01-10
+
+### Changed
+- Fixes bug where having any custom data defined in provider data will trigger a ValidationError because the existing API id is null or undefined.
+
+
 ## [2.6.10] - 2018-12-17
 
 ### Added

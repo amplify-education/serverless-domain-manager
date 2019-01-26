@@ -238,8 +238,8 @@ function slsRemove(folderName, domainIdentifier) {
  * @returns {Promise<*>}
  */
 async function removeLambdas(folderName, domainIdentifier) {
-  const deleted = await slsDeleteDomain(folderName, domainIdentifier);
   const removed = await slsRemove(folderName, domainIdentifier);
+  const deleted = await slsDeleteDomain(folderName, domainIdentifier);
   return deleted && removed;
 }
 

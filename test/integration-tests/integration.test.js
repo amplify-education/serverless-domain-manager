@@ -127,10 +127,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
   });
 
-  /**
-   * skipping this test because this exists to replicate a known issue
-   */
-  describe.skip('Basepath Mapping Is Empty', function () { // eslint-disable-line func-names
+  describe('Basepath Mapping Is Empty', function () { // eslint-disable-line func-names
     this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
     const testName = 'null-basepath-mapping';
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
@@ -159,10 +156,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
     });
   });
 
-  /**
-   * skipping due to same issue as test above
-   */
-  describe.skip('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
+  describe('Basepath Mapping Is Set', function () { // eslint-disable-line func-names
     this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
     const testName = 'basepath-mapping';
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
@@ -183,7 +177,7 @@ describe('Integration Tests', function () { // eslint-disable-line func-names
 
     it('Creates a basepath mapping', async () => {
       const basePath = await utilities.getBasePath(testURL);
-      expect(basePath).to.equal('(none)');
+      expect(basePath).to.equal('api');
     });
 
     after(async () => {

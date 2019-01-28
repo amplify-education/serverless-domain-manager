@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-const request = require('request-promise-native');
-const aws = require('aws-sdk');
-const dns = require('dns');
-const shell = require('shelljs');
+const request = require("request-promise-native");
+const aws = require("aws-sdk");
+const dns = require("dns");
+const shell = require("shelljs");
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
-  region: 'us-west-2',
+  region: "us-west-2",
   credentials: new aws.SharedIniFileCredentials(
     { profile: AWS_PROFILE },
   ),
@@ -31,7 +31,7 @@ function sleep(seconds) {
  */
 async function linkPackages() {
   return new Promise((resolve) => {
-    shell.exec('npm link serverless-domain-manager', { silent: true }, (err, stdout, stderr) => {
+    shell.exec("npm link serverless-domain-manager", { silent: true }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -180,7 +180,7 @@ function dnsLookup(url) {
  * @returns {Promise<boolean>} Resolves true if records found, else false.
  */
 async function verifyDnsPropogation(url, enabled) {
-  console.debug('\tWaiting for DNS to Propogate...'); // eslint-disable-line no-console
+  console.debug("\tWaiting for DNS to Propogate..."); // eslint-disable-line no-console
   if (!enabled) {
     return true;
   }
@@ -259,9 +259,9 @@ async function createResources(folderName, url, domainIdentifier, enabled) {
     dnsVerified = await verifyDnsPropogation(url, enabled);
   }
   if (created && dnsVerified) {
-    console.debug('\tResources Created'); // eslint-disable-line no-console
+    console.debug("\tResources Created"); // eslint-disable-line no-console
   } else {
-    console.debug('\tResources Failed to Create'); // eslint-disable-line no-console
+    console.debug("\tResources Failed to Create"); // eslint-disable-line no-console
   }
   return created && dnsVerified;
 }
@@ -277,9 +277,9 @@ async function destroyResources(folderName, url, domainIdentifier) {
   console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
   const removed = await removeLambdas(folderName, domainIdentifier);
   if (removed) {
-    console.debug('\tResources Cleaned Up'); // eslint-disable-line no-console
+    console.debug("\tResources Cleaned Up"); // eslint-disable-line no-console
   } else {
-    console.debug('\tFailed to Clean Up Resources'); // eslint-disable-line no-console
+    console.debug("\tFailed to Clean Up Resources"); // eslint-disable-line no-console
   }
   return removed;
 }

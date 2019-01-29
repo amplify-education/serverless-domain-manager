@@ -42,6 +42,7 @@
     "@types/mocha": "^5.2.5",
     "aws-sdk-mock": "^1.7.0",
     "chai": "^3.5.0",
+    "chai-spies": "^1.0.0",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "mocha-param": "^2.0.0",
@@ -58,6 +59,7 @@
     "wrappy": "^1.0.2"
   },
   "dependencies": {
+    "@types/chai-spies": "^1.0.0",
     "aws-sdk": "^2.177.0",
     "chalk": "^2.4.1"
   }

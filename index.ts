@@ -87,7 +87,7 @@ class ServerlessCustomDomain {
         const certArn = await this.getCertArn();
         const domainInfo = await this.createCustomDomain(certArn);
         await this.changeResourceRecordSet("UPSERT", domainInfo);
-        return this.serverless.cli.log(
+        this.serverless.cli.log(
             `Custom domain ${this.givenDomainName} was created/updated.
             New domains may take up to 40 minutes to be initialized.`,
         );
@@ -110,36 +110,35 @@ class ServerlessCustomDomain {
         }
         await this.deleteCustomDomain();
         await this.changeResourceRecordSet("DELETE", domainInfo);
-        return this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
+        this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
     }
 
     /**
      * Lifecycle function to create basepath mapping
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
-    public async setupBasePathMapping(): Promise<boolean> {
-        const basePathCreated = await this.createBasePathMapping();
+    public async setupBasePathMapping(): Promise<void> {
+        await this.createBasePathMapping();
         const domainInfo = await this.getDomainInfo();
         this.addOutputs(domainInfo);
         await this.printDomainSummary(domainInfo);
-        return basePathCreated ? true : false;
     }
 
     /**
      * Lifecycle function to delete basepath mapping
      * Wraps deletion of basepath mapping
      */
-    public async removeBasePathMapping(): Promise<boolean> {
-        return await this.deleteBasePathMapping();
+    public async removeBasePathMapping(): Promise<void> {
+        await this.deleteBasePathMapping();
     }
 
     /**
      * Lifecycle function to print domain summary
      * Wraps printing of all domain manager related info
      */
-    public async domainSummary(): Promise<boolean> {
+    public async domainSummary(): Promise<void> {
         const domainInfo = await this.getDomainInfo();
-        return this.printDomainSummary(domainInfo);
+        this.printDomainSummary(domainInfo);
     }
 
     /**
@@ -323,7 +322,7 @@ class ServerlessCustomDomain {
 
         // Make API call
         try {
-            return await this.apigateway.deleteDomainName(params).promise();
+            await this.apigateway.deleteDomainName(params).promise();
         } catch {
             throw new Error(`Error: Failed to delete custom domain ${this.givenDomainName}\n`);
         }
@@ -369,7 +368,7 @@ class ServerlessCustomDomain {
         };
         // Make API call
         try {
-            return await this.route53.changeResourceRecordSets(params).promise();
+            await this.route53.changeResourceRecordSets(params).promise();
         } catch (err) {
             throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainName}\n`);
         }
@@ -448,14 +447,12 @@ class ServerlessCustomDomain {
             stage: this.stage,
         };
         // Make API call
-        let created;
         try {
-            created =  await this.apigateway.createBasePathMapping(params).promise();
+            await this.apigateway.createBasePathMapping(params).promise();
             this.serverless.cli.log("Created basepath mapping.");
         } catch (err) {
             throw new Error(`Error: Unable to create basepath mapping.\n`);
         }
-        return created;
     }
 
     /**
@@ -488,7 +485,7 @@ class ServerlessCustomDomain {
     /**
      * Deletes basepath mapping
      */
-    public async deleteBasePathMapping(): Promise<boolean> {
+    public async deleteBasePathMapping(): Promise<void> {
         const params = {
             basePath: this.basePath,
             domainName: this.givenDomainName,
@@ -500,7 +497,6 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Unable to delete basepath mapping.\n`);
         }
-        return true;
     }
 
     /**
@@ -524,7 +520,7 @@ class ServerlessCustomDomain {
     /**
      * Prints out a summary of all domain manager related info
      */
-    private printDomainSummary(domainInfo: DomainResponse): boolean {
+    private printDomainSummary(domainInfo: DomainResponse): void {
         this.serverless.cli.consoleLog(chalk.yellow.underline("Serverless Domain Manager Summary"));
 
         if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
@@ -534,7 +530,6 @@ class ServerlessCustomDomain {
 
         this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
-        return true;
     }
 }
 

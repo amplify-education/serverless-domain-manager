@@ -1,10 +1,14 @@
 import * as aws from "aws-sdk";
 import * as AWS from "aws-sdk-mock";
-import { expect } from "chai";
+import chai = require("chai");
+import spies = require("chai-spies");
 import "mocha";
 import DomainResponse = require("../../DomainResponse");
 import ServerlessCustomDomain = require("../../index");
 import { ServerlessInstance, ServerlessOptions } from "../../types";
+
+const expect = chai.expect;
+chai.use(spies);
 
 const certTestData = {
   CertificateSummaryList: [
@@ -22,7 +26,7 @@ const certTestData = {
     },
   ],
 };
-
+let consoleOutput = [];
 const testCreds = {
   accessKeyId: "test_key",
   secretAccessKey: "test_secret",
@@ -35,8 +39,8 @@ const constructPlugin = (customDomainOptions) => {
 
   const serverless = {
     cli: {
-      log(str: string) { return str; },
-      consoleLog(str: any) { return str; },
+      log(str: string) { consoleOutput.push(str); },
+      consoleLog(str: any) { consoleOutput.push(str); },
     },
     providers: {
       aws: {
@@ -129,16 +133,20 @@ describe("Custom Domain Plugin", () => {
         basePath: "test_basepath",
         domainName: "test_domain",
       });
+      plugin.initializeVariables();
       plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.createBasePathMapping();
-      // verify that api was called with right arguments
-      expect(result.domainName).to.equal("test_domain");
-      expect(result.restApiId).to.equal("test_rest_api_id");
-      expect(result.basePath).to.equal("test_basepath");
+      await plugin.createBasePathMapping();
+      expect(spy).to.have.been.called.with({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     it("Add Domain Name and HostedZoneId to stack output", () => {
@@ -175,9 +183,15 @@ describe("Custom Domain Plugin", () => {
       plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.createBasePathMapping();
-      expect(result.basePath).to.equal("(none)");
+      await plugin.createBasePathMapping();
+      expect(spy).to.have.been.called.with({
+        basePath: "(none)",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     it("(none) is added if no value is given for basepath (null)", async () => {
@@ -201,9 +215,15 @@ describe("Custom Domain Plugin", () => {
       plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.createBasePathMapping();
-      expect(result.basePath).to.equal("(none)");
+      await plugin.createBasePathMapping();
+      expect(spy).to.have.been.called.with({
+        basePath: "(none)",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     it("(none) is added if basepath attribute is missing (undefined)", async () => {
@@ -226,9 +246,15 @@ describe("Custom Domain Plugin", () => {
       plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.createBasePathMapping();
-      expect(result.basePath).to.equal("(none)");
+      await plugin.createBasePathMapping();
+      expect(spy).to.have.been.called.with({
+        basePath: "(none)",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     it("stage was not given", async () => {
@@ -251,13 +277,20 @@ describe("Custom Domain Plugin", () => {
       plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.createBasePathMapping();
-      expect(result.stage).to.equal("test");
+      await plugin.createBasePathMapping();
+      expect(spy).to.have.been.called.with({
+        basePath: "(none)",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -304,7 +337,7 @@ describe("Custom Domain Plugin", () => {
 
     it("Create a new A Alias Record", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
-        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_id", Config: { PrivateZone: false } }] });
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
 
       AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
@@ -314,6 +347,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({ basePath: "test_basepath" });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test_domain";
+      const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
       const domain = new DomainResponse(
         {
@@ -322,11 +356,29 @@ describe("Custom Domain Plugin", () => {
         },
       );
 
-      const result = await plugin.changeResourceRecordSet("UPSERT", domain);
-      const changes = result.ChangeBatch.Changes[0];
-      expect(changes.Action).to.equal("UPSERT");
-      expect(changes.ResourceRecordSet.Name).to.equal("test_domain");
-      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal("test_distribution_name");
+      await plugin.changeResourceRecordSet("UPSERT", domain);
+
+      const expectedParams = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "A",
+              },
+            },
+          ],
+          Comment: "Record created by serverless-domain-manager",
+        },
+        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+      };
+      expect(spy).to.have.been.called.with(expectedParams);
     });
 
     it("Do not create a Route53 record", async () => {
@@ -340,6 +392,7 @@ describe("Custom Domain Plugin", () => {
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -387,6 +440,10 @@ describe("Custom Domain Plugin", () => {
       const result = await plugin.getRestApiId();
       expect(result).to.equal("custom_test_rest_api_id");
     });
+
+    afterEach(() => {
+      consoleOutput = [];
+    });
   });
 
   describe("Delete the new domain", () => {
@@ -409,7 +466,7 @@ describe("Custom Domain Plugin", () => {
 
     it("Delete A Alias Record", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
-        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_id", Config: { PrivateZone: false } }] });
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
 
       AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
@@ -422,17 +479,36 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
       const domain = new DomainResponse({
         distributionDomainName: "test_distribution_name",
         distributionHostedZoneId: "test_id",
       });
 
-      const result = await plugin.changeResourceRecordSet("DELETE", domain);
-      const changes = result.ChangeBatch.Changes[0];
-      expect(changes.Action).to.equal("DELETE");
-      expect(changes.ResourceRecordSet.Name).to.equal("test_domain");
-      expect(changes.ResourceRecordSet.AliasTarget.DNSName).to.equal("test_distribution_name");
+      await plugin.changeResourceRecordSet("DELETE", domain);
+      const expectedParams = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: "DELETE",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "A",
+              },
+            },
+          ],
+          Comment: "Record created by serverless-domain-manager",
+        },
+        HostedZoneId: "est_host_id",
+      };
+      expect(spy).to.be.called.with(expectedParams);
+
     });
 
     it("Delete the domain name", async () => {
@@ -446,13 +522,17 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "deleteDomainName");
 
-      const result = await plugin.deleteCustomDomain();
-      expect(result).to.eql({});
+      await plugin.deleteCustomDomain();
+      expect(spy).to.be.called.with({
+        domainName: "test_domain",
+      });
     });
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -477,9 +557,16 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.cloudformation = new aws.CloudFormation();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      const result = await plugin.setupBasePathMapping();
-      expect(result).to.equal(true);
+      await plugin.setupBasePathMapping();
+
+      expect(spy).to.be.called.with({
+        basePath: "(none)",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
     });
 
     it("deleteDomain", async () => {
@@ -500,8 +587,8 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
-      const results = await plugin.deleteDomain();
-      expect(results).to.equal(`Custom domain ${plugin.givenDomainName} was deleted.`);
+      await plugin.deleteDomain();
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was deleted.`);
     });
 
     it("createDomain", async () => {
@@ -524,13 +611,14 @@ describe("Custom Domain Plugin", () => {
       plugin.route53 = new aws.Route53();
       plugin.acm = new aws.ACM();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
-      const result = await plugin.createDomain();
-      expect(result).to.equal(`Custom domain ${plugin.givenDomainName} was created/updated.
+      await plugin.createDomain();
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created/updated.
             New domains may take up to 40 minutes to be initialized.`);
     });
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -728,6 +816,7 @@ describe("Custom Domain Plugin", () => {
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -785,6 +874,7 @@ describe("Custom Domain Plugin", () => {
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -797,15 +887,16 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
-      return plugin.domainSummary().then((data) => {
-        expect(data).to.equal(true);
-      }).catch(() => {
-        throw new Error("Test has failed, domainSummary threw an error");
-      });
+      await plugin.domainSummary();
+      // Unicode characters are text formatting
+      expect(consoleOutput[0]).to.equal("\u001b[33m\u001b[4mServerless Domain Manager Summary\u001b[24m\u001b[39m");
+      expect(consoleOutput[1]).to.equal("\u001b[33mDomain Name\u001b[39m");
+      expect(consoleOutput[3]).to.equal("\u001b[33mDistribution Domain Name\u001b[39m");
     });
 
     afterEach(() => {
       AWS.restore();
+      consoleOutput = [];
     });
   });
 
@@ -940,6 +1031,10 @@ describe("Custom Domain Plugin", () => {
       }
       expect(errored).to.equal(true);
     });
+
+    afterEach(() => {
+      consoleOutput = [];
+    });
   });
 
   describe("Missing plugin configuration", () => {
@@ -969,6 +1064,10 @@ describe("Custom Domain Plugin", () => {
         expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
       }
       expect(errored).to.equal(true);
+    });
+
+    afterEach(() => {
+      consoleOutput = [];
     });
   });
 });

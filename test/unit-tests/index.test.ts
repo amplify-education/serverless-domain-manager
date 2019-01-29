@@ -387,7 +387,7 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
       const result = await plugin.changeResourceRecordSet("UPSERT", new DomainResponse({}));
-      expect(result).to.equal(false);
+      expect(result).to.equal(undefined);
     });
 
     afterEach(() => {
@@ -557,16 +557,11 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.cloudformation = new aws.CloudFormation();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
-      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+      const spy = chai.spy.on(plugin, "createBasePathMapping");
 
       await plugin.setupBasePathMapping();
 
-      expect(spy).to.be.called.with({
-        basePath: "(none)",
-        domainName: "test_domain",
-        restApiId: "test_rest_api_id",
-        stage: "test",
-      });
+      expect(spy).to.be.called();
     });
 
     it("deleteDomain", async () => {

@@ -883,10 +883,11 @@ describe("Custom Domain Plugin", () => {
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       await plugin.domainSummary();
-      // Unicode characters are text formatting, skipping strings with tab characters - tabs are variable length
       expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
       expect(consoleOutput[1]).to.contain("Domain Name");
+      expect(consoleOutput[2]).to.contain("test_domain");
       expect(consoleOutput[3]).to.contain("Distribution Domain Name");
+      expect(consoleOutput[4]).to.contain("test_distributed_domain_name");
     });
 
     afterEach(() => {

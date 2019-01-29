@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 - Support for migrating CNAMEs to A Alias Records
+  - In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records.
 
 
 ## [2.6.13] - 2019-01-25

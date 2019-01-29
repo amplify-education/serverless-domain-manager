@@ -83,30 +83,34 @@ class ServerlessCustomDomain {
      * Lifecycle function to create a domain
      * Wraps creating a domain and resource record set
      */
-    public async createDomain(): Promise<boolean> {
+    public async createDomain(): Promise<void> {
         const certArn = await this.getCertArn();
         const domainInfo = await this.createCustomDomain(certArn);
         await this.changeResourceRecordSet("UPSERT", domainInfo);
-        this.serverless.cli.log(
+        return this.serverless.cli.log(
             `Custom domain ${this.givenDomainName} was created/updated.
             New domains may take up to 40 minutes to be initialized.`,
         );
-        return true;
     }
 
     /**
      * Lifecycle function to delete a domain
      * Wraps deleting a domain and resource record set
      */
-    public async deleteDomain(): Promise<boolean> {
-        const domainInfo = await this.getDomainInfo();
-        if (domainInfo) {
-            await this.deleteCustomDomain();
-            await this.changeResourceRecordSet("DELETE", domainInfo);
-            this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
-            return true;
+    public async deleteDomain(): Promise<void> {
+        let domainInfo;
+        try {
+            domainInfo = await this.getDomainInfo();
+        } catch (err) {
+            if (err.message === `Error: ${this.givenDomainName} not found.`) {
+                this.serverless.cli.log(`Unable to delete custom domain ${this.givenDomainName}.`);
+                return;
+            }
+            throw err;
         }
-        return false;
+        await this.deleteCustomDomain();
+        await this.changeResourceRecordSet("DELETE", domainInfo);
+        return this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
     }
 
     /**
@@ -273,7 +277,7 @@ class ServerlessCustomDomain {
             return new DomainResponse(domainInfo);
         } catch (err) {
             if (err.code === "NotFoundException") {
-                return null;
+                throw new Error(`Error: ${this.givenDomainName} not found.`);
             }
             throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
         }

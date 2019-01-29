@@ -501,7 +501,7 @@ describe("Custom Domain Plugin", () => {
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const results = await plugin.deleteDomain();
-      expect(results).to.equal(true);
+      expect(results).to.equal(`Custom domain ${plugin.givenDomainName} was deleted.`);
     });
 
     it("createDomain", async () => {
@@ -525,7 +525,8 @@ describe("Custom Domain Plugin", () => {
       plugin.acm = new aws.ACM();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const result = await plugin.createDomain();
-      expect(result).to.equal(true);
+      expect(result).to.equal(`Custom domain ${plugin.givenDomainName} was created/updated.
+            New domains may take up to 40 minutes to be initialized.`);
     });
 
     afterEach(() => {

@@ -75,7 +75,7 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("serverless-domain-manager: Custom domain is disabled.");
             return;
         } else {
-            await lifecycleFunc();
+            return await lifecycleFunc.call(this);
         }
     }
 
@@ -84,16 +84,14 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomain(): Promise<boolean> {
-        try {
-            const certArn = await this.getCertArn();
-            const domainInfo = await this.createCustomDomain(certArn);
-            await this.changeResourceRecordSet("UPSERT", domainInfo);
-            this.serverless.cli.log(`Custom domain ${this.givenDomainName} was created/updated.
-            New domains may take up to 40 minutes to be initialized.`);
-            return true;
-        } catch (error) {
-            return false;
-        }
+        const certArn = await this.getCertArn();
+        const domainInfo = await this.createCustomDomain(certArn);
+        await this.changeResourceRecordSet("UPSERT", domainInfo);
+        this.serverless.cli.log(
+            `Custom domain ${this.givenDomainName} was created/updated.
+            New domains may take up to 40 minutes to be initialized.`,
+        );
+        return true;
     }
 
     /**
@@ -101,15 +99,14 @@ class ServerlessCustomDomain {
      * Wraps deleting a domain and resource record set
      */
     public async deleteDomain(): Promise<boolean> {
-        try {
-            const domainInfo = await this.getDomainInfo();
+        const domainInfo = await this.getDomainInfo();
+        if (domainInfo) {
             await this.deleteCustomDomain();
             await this.changeResourceRecordSet("DELETE", domainInfo);
             this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
             return true;
-        } catch (error) {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -117,15 +114,11 @@ class ServerlessCustomDomain {
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
     public async setupBasePathMapping(): Promise<boolean> {
-        try {
-            const basePathCreated = await this.createBasePathMapping();
-            const domainInfo = await this.getDomainInfo();
-            this.addOutputs(domainInfo);
-            await this.printDomainSummary(domainInfo);
-            return basePathCreated ? true : false;
-        } catch (error) {
-            return false;
-        }
+        const basePathCreated = await this.createBasePathMapping();
+        const domainInfo = await this.getDomainInfo();
+        this.addOutputs(domainInfo);
+        await this.printDomainSummary(domainInfo);
+        return basePathCreated ? true : false;
     }
 
     /**
@@ -133,11 +126,7 @@ class ServerlessCustomDomain {
      * Wraps deletion of basepath mapping
      */
     public async removeBasePathMapping(): Promise<boolean> {
-        try {
-            return await this.deleteBasePathMapping();
-        } catch (error) {
-            return false;
-        }
+        return await this.deleteBasePathMapping();
     }
 
     /**
@@ -145,12 +134,8 @@ class ServerlessCustomDomain {
      * Wraps printing of all domain manager related info
      */
     public async domainSummary(): Promise<boolean> {
-        try {
-            const domainInfo = await this.getDomainInfo();
-            return this.printDomainSummary(domainInfo);
-        } catch (error) {
-            return false;
-        }
+        const domainInfo = await this.getDomainInfo();
+        return this.printDomainSummary(domainInfo);
     }
 
     /**
@@ -287,6 +272,9 @@ class ServerlessCustomDomain {
             domainInfo = await this.apigateway.getDomainName({ domainName: this.givenDomainName }).promise();
             return new DomainResponse(domainInfo);
         } catch (err) {
+            if (err.code === "NotFoundException") {
+                return null;
+            }
             throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
         }
     }

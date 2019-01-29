@@ -866,7 +866,7 @@ describe("Custom Domain Plugin", () => {
     it("createDomain should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({ enabled: false });
 
-      const result = await plugin.hookWrapper(plugin.createDomain());
+      const result = await plugin.hookWrapper(plugin.createDomain);
 
       expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
@@ -876,7 +876,7 @@ describe("Custom Domain Plugin", () => {
     it("deleteDomain should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({ enabled: false });
 
-      const result = await plugin.hookWrapper(plugin.deleteDomain());
+      const result = await plugin.hookWrapper(plugin.deleteDomain);
 
       expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
@@ -886,7 +886,7 @@ describe("Custom Domain Plugin", () => {
     it("setUpBasePathMapping should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({ enabled: false });
 
-      const result = await plugin.hookWrapper(plugin.setupBasePathMapping());
+      const result = await plugin.hookWrapper(plugin.setupBasePathMapping);
 
       expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
@@ -896,7 +896,7 @@ describe("Custom Domain Plugin", () => {
     it("removeBasePathMapping should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({ enabled: false });
 
-      const result = await plugin.hookWrapper(plugin.removeBasePathMapping());
+      const result = await plugin.hookWrapper(plugin.removeBasePathMapping);
 
       expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
@@ -906,7 +906,7 @@ describe("Custom Domain Plugin", () => {
     it("domainSummary should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({ enabled: false });
 
-      const result = await plugin.hookWrapper(plugin.domainSummary());
+      const result = await plugin.hookWrapper(plugin.domainSummary);
 
       expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);

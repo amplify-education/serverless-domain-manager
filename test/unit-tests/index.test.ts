@@ -505,7 +505,7 @@ describe("Custom Domain Plugin", () => {
           ],
           Comment: "Record created by serverless-domain-manager",
         },
-        HostedZoneId: "est_host_id",
+        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips the first character
       };
       expect(spy).to.be.called.with(expectedParams);
 
@@ -888,7 +888,7 @@ describe("Custom Domain Plugin", () => {
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       await plugin.domainSummary();
-      // Unicode characters are text formatting
+      // Unicode characters are text formatting, skipping strings with tab characters - tabs are variable length
       expect(consoleOutput[0]).to.equal("\u001b[33m\u001b[4mServerless Domain Manager Summary\u001b[24m\u001b[39m");
       expect(consoleOutput[1]).to.equal("\u001b[33mDomain Name\u001b[39m");
       expect(consoleOutput[3]).to.equal("\u001b[33mDistribution Domain Name\u001b[39m");

@@ -286,7 +286,7 @@ class ServerlessCustomDomain {
      * Creates Custom Domain Name through API Gateway
      * @param certificateArn: Certificate ARN to use for custom domain
      */
-    public async createCustomDomain(certificateArn: string) {
+    public async createCustomDomain(certificateArn: string): Promise<DomainResponse> {
         // Set up parameters
         const params = {
             certificateArn,
@@ -333,7 +333,7 @@ class ServerlessCustomDomain {
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainResponse object containing info about custom domain
      */
-    public async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<any> {
+    public async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<void> {
         if (action !== "UPSERT" && action !== "DELETE") {
             throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
                 Action must be either UPSERT or DELETE.\n`);
@@ -342,7 +342,7 @@ class ServerlessCustomDomain {
         if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
             && this.serverless.service.custom.customDomain.createRoute53Record === false) {
             this.serverless.cli.log("Skipping creation of Route53 record.");
-            return false;
+            return;
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId();
@@ -438,7 +438,7 @@ class ServerlessCustomDomain {
     /**
      * Creates basepath mapping
      */
-    public async createBasePathMapping(): Promise<any> {
+    public async createBasePathMapping(): Promise<void> {
         const restApiId = await this.getRestApiId();
         const params = {
             basePath: this.basePath,

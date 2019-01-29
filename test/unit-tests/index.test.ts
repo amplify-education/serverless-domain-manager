@@ -884,9 +884,9 @@ describe("Custom Domain Plugin", () => {
 
       await plugin.domainSummary();
       // Unicode characters are text formatting, skipping strings with tab characters - tabs are variable length
-      expect(consoleOutput[0]).to.equal("\u001b[33m\u001b[4mServerless Domain Manager Summary\u001b[24m\u001b[39m");
-      expect(consoleOutput[1]).to.equal("\u001b[33mDomain Name\u001b[39m");
-      expect(consoleOutput[3]).to.equal("\u001b[33mDistribution Domain Name\u001b[39m");
+      expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
+      expect(consoleOutput[1]).to.contain("Domain Name");
+      expect(consoleOutput[3]).to.contain("Distribution Domain Name");
     });
 
     afterEach(() => {

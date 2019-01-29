@@ -57,91 +57,100 @@ class ServerlessCustomDomain {
             },
         };
         this.hooks = {
-            "after:deploy:deploy": this.setupBasePathMapping.bind(this),
-            "after:info:info": this.domainSummary.bind(this),
-            "before:remove:remove": this.removeBasePathMapping.bind(this),
-            "create_domain:create": this.createDomain.bind(this),
-            "delete_domain:delete": this.deleteDomain.bind(this),
+            "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMapping),
+            "after:info:info": this.hookWrapper.bind(this, this.domainSummary),
+            "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMapping),
+            "create_domain:create": this.hookWrapper.bind(this, this.createDomain),
+            "delete_domain:delete": this.hookWrapper.bind(this, this.deleteDomain),
         };
+    }
+
+    /**
+     * Wrapper for lifecycle function, initializes variables and checks if enabled.
+     * @param lifecycleFunc lifecycle function that actually does desired action
+     */
+    public async hookWrapper(lifecycleFunc: any) {
+        this.initializeVariables();
+        if (!this.enabled) {
+            this.serverless.cli.log("serverless-domain-manager: Custom domain is disabled.");
+            return;
+        } else {
+            await lifecycleFunc();
+        }
     }
 
     /**
      * Lifecycle function to create a domain
      * Wraps creating a domain and resource record set
      */
-    public async createDomain() {
-        this.initializeVariables();
-        if (!this.enabled) {
-            this.reportDisabled();
-            return;
-        }
-        const certArn = await this.getCertArn();
-        const domainInfo = await this.createCustomDomain(certArn);
-        await this.changeResourceRecordSet("UPSERT", domainInfo);
-        this.serverless.cli.log(`Custom domain ${this.givenDomainName} was created/updated.
+    public async createDomain(): Promise<boolean> {
+        try {
+            const certArn = await this.getCertArn();
+            const domainInfo = await this.createCustomDomain(certArn);
+            await this.changeResourceRecordSet("UPSERT", domainInfo);
+            this.serverless.cli.log(`Custom domain ${this.givenDomainName} was created/updated.
             New domains may take up to 40 minutes to be initialized.`);
-        return true;
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
     /**
      * Lifecycle function to delete a domain
      * Wraps deleting a domain and resource record set
      */
-    public async deleteDomain() {
-        this.initializeVariables();
-        if (!this.enabled) {
-            this.reportDisabled();
-            return;
+    public async deleteDomain(): Promise<boolean> {
+        try {
+            const domainInfo = await this.getDomainInfo();
+            await this.deleteCustomDomain();
+            await this.changeResourceRecordSet("DELETE", domainInfo);
+            this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
+            return true;
+        } catch (error) {
+            return false;
         }
-        const domainInfo = await this.getDomainInfo();
-        await this.deleteCustomDomain();
-        await this.changeResourceRecordSet("DELETE", domainInfo);
-        this.serverless.cli.log(`Custom domain ${this.givenDomainName} was deleted.`);
-        return true;
     }
 
     /**
      * Lifecycle function to create basepath mapping
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
-    public async setupBasePathMapping() {
-        this.initializeVariables();
-        if (!this.enabled) {
-            this.reportDisabled();
-            return;
+    public async setupBasePathMapping(): Promise<boolean> {
+        try {
+            const basePathCreated = await this.createBasePathMapping();
+            const domainInfo = await this.getDomainInfo();
+            this.addOutputs(domainInfo);
+            await this.printDomainSummary(domainInfo);
+            return basePathCreated ? true : false;
+        } catch (error) {
+            return false;
         }
-        const basePathCreated = await this.createBasePathMapping();
-        const domainInfo = await this.getDomainInfo();
-        this.addOutputs(domainInfo);
-        await this.printDomainSummary(domainInfo);
-        return basePathCreated ? true : false;
     }
 
     /**
      * Lifecycle function to delete basepath mapping
      * Wraps deletion of basepath mapping
      */
-    public async removeBasePathMapping() {
-        this.initializeVariables();
-        if (!this.enabled) {
-            this.reportDisabled();
-            return;
+    public async removeBasePathMapping(): Promise<boolean> {
+        try {
+            return await this.deleteBasePathMapping();
+        } catch (error) {
+            return false;
         }
-        return await this.deleteBasePathMapping();
     }
 
     /**
      * Lifecycle function to print domain summary
      * Wraps printing of all domain manager related info
      */
-    public async domainSummary() {
-        this.initializeVariables();
-        if (!this.enabled) {
-            this.reportDisabled();
-            return;
+    public async domainSummary(): Promise<boolean> {
+        try {
+            const domainInfo = await this.getDomainInfo();
+            return this.printDomainSummary(domainInfo);
+        } catch (error) {
+            return false;
         }
-        const domainInfo = await this.getDomainInfo();
-        return this.printDomainSummary(domainInfo);
     }
 
     /**
@@ -214,10 +223,6 @@ class ServerlessCustomDomain {
             return false;
         }
         throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: "${enabled}"`);
-    }
-
-    public reportDisabled() {
-        this.serverless.cli.log("serverless-domain-manager: Custom domain is disabled.");
     }
 
     /**

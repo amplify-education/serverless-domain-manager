@@ -3,7 +3,7 @@ import * as AWS from "aws-sdk-mock";
 import chai = require("chai");
 import spies = require("chai-spies");
 import "mocha";
-import DomainResponse = require("../../DomainResponse");
+import DomainInfo = require("../../DomainInfo");
 import ServerlessCustomDomain = require("../../index");
 import { ServerlessInstance, ServerlessOptions } from "../../types";
 
@@ -91,20 +91,17 @@ const constructPlugin = (customDomainOptions) => {
 describe("Custom Domain Plugin", () => {
   it("Checks aws config", () => {
     const plugin = constructPlugin({});
-    expect(plugin.initialized).to.equal(false);
 
     plugin.initializeVariables();
 
     const returnedCreds = plugin.apigateway.config.credentials;
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
-    expect(plugin.initialized).to.equal(true);
   });
 
   describe("Domain Endpoint types", () => {
     it("Unsupported endpoint types throw exception", () => {
       const plugin = constructPlugin({ endpointType: "notSupported" });
-      expect(plugin.initialized).to.equal(false);
 
       let errored = false;
       try {
@@ -153,7 +150,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.addOutputs(new DomainResponse({
+      plugin.addOutputs(new DomainInfo({
         distributionDomainName: "fake_dist_name",
         distributionHostedZoneId: "fake_zone_id",
         domainName: "fake_domain",
@@ -349,7 +346,7 @@ describe("Custom Domain Plugin", () => {
       plugin.givenDomainName = "test_domain";
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
-      const domain = new DomainResponse(
+      const domain = new DomainInfo(
         {
           distributionDomainName: "test_distribution_name",
           distributionHostedZoneId: "test_id",
@@ -386,7 +383,7 @@ describe("Custom Domain Plugin", () => {
         createRoute53Record: false,
         domainName: "test_domain",
       });
-      const result = await plugin.changeResourceRecordSet("UPSERT", new DomainResponse({}));
+      const result = await plugin.changeResourceRecordSet("UPSERT", new DomainInfo({}));
       expect(result).to.equal(undefined);
     });
 
@@ -481,7 +478,7 @@ describe("Custom Domain Plugin", () => {
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
-      const domain = new DomainResponse({
+      const domain = new DomainInfo({
         distributionDomainName: "test_distribution_name",
         distributionHostedZoneId: "test_id",
       });
@@ -905,7 +902,6 @@ describe("Custom Domain Plugin", () => {
       const returnedCreds = plugin.apigateway.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(true);
     });
 
@@ -917,7 +913,6 @@ describe("Custom Domain Plugin", () => {
       const returnedCreds = plugin.apigateway.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(true);
     });
 
@@ -929,7 +924,6 @@ describe("Custom Domain Plugin", () => {
       const returnedCreds = plugin.apigateway.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(true);
     });
 
@@ -938,7 +932,6 @@ describe("Custom Domain Plugin", () => {
 
       plugin.initializeVariables();
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
     });
 
@@ -947,7 +940,6 @@ describe("Custom Domain Plugin", () => {
 
       plugin.initializeVariables();
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
     });
 
@@ -956,7 +948,6 @@ describe("Custom Domain Plugin", () => {
 
       const result = await plugin.hookWrapper(plugin.createDomain);
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
       expect(result).to.equal(undefined);
     });
@@ -966,7 +957,6 @@ describe("Custom Domain Plugin", () => {
 
       const result = await plugin.hookWrapper(plugin.deleteDomain);
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
       expect(result).to.equal(undefined);
     });
@@ -976,7 +966,6 @@ describe("Custom Domain Plugin", () => {
 
       const result = await plugin.hookWrapper(plugin.setupBasePathMapping);
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
       expect(result).to.equal(undefined);
     });
@@ -986,7 +975,6 @@ describe("Custom Domain Plugin", () => {
 
       const result = await plugin.hookWrapper(plugin.removeBasePathMapping);
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
       expect(result).to.equal(undefined);
     });
@@ -996,7 +984,6 @@ describe("Custom Domain Plugin", () => {
 
       const result = await plugin.hookWrapper(plugin.domainSummary);
 
-      expect(plugin.initialized).to.equal(true);
       expect(plugin.enabled).to.equal(false);
       expect(result).to.equal(undefined);
     });

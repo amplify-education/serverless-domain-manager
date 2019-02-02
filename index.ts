@@ -334,8 +334,8 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
-        if (this.serverless.service.custom.customDomain.createRoute53Record !== undefined
-            && this.serverless.service.custom.customDomain.createRoute53Record === false) {
+        const createRoute53Record = this.serverless.service.custom.customDomain.createRoute53Record;
+        if (createRoute53Record !== undefined && createRoute53Record === false) {
             this.serverless.cli.log("Skipping creation of Route53 record.");
             return;
         }

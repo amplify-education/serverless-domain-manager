@@ -1,7 +1,7 @@
 /**
  * Wrapper class for Custom Domain information
  */
-class DomainResponse {
+class DomainInfo {
 
     public domainName: string;
     public hostedZoneId: string;
@@ -23,4 +23,4 @@ class DomainResponse {
     }
 }
 
-export = DomainResponse;
+export = DomainInfo;

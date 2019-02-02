@@ -1,7 +1,7 @@
 "use strict";
 
 import chalk from "chalk";
-import DomainResponse = require("./DomainResponse");
+import DomainInfo = require("./DomainInfo");
 import { ServerlessInstance, ServerlessOptions } from "./types";
 
 const endpointTypes = {
@@ -262,13 +262,13 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Gets domain info as DomainResponse object if domain exists, otherwise returns false
+     * Gets domain info as DomainInfo object if domain exists, otherwise returns false
      */
-    public async getDomainInfo(): Promise<DomainResponse> {
+    public async getDomainInfo(): Promise<DomainInfo> {
         let domainInfo;
         try {
             domainInfo = await this.apigateway.getDomainName({ domainName: this.givenDomainName }).promise();
-            return new DomainResponse(domainInfo);
+            return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code === "NotFoundException") {
                 throw new Error(`Error: ${this.givenDomainName} not found.`);
@@ -281,7 +281,7 @@ class ServerlessCustomDomain {
      * Creates Custom Domain Name through API Gateway
      * @param certificateArn: Certificate ARN to use for custom domain
      */
-    public async createCustomDomain(certificateArn: string): Promise<DomainResponse> {
+    public async createCustomDomain(certificateArn: string): Promise<DomainInfo> {
         // Set up parameters
         const params = {
             certificateArn,
@@ -304,7 +304,7 @@ class ServerlessCustomDomain {
         } catch {
             throw new Error(`Error: Failed to create custom domain ${this.givenDomainName}\n`);
         }
-        return new DomainResponse(createdDomain);
+        return new DomainInfo(createdDomain);
     }
 
     /**
@@ -326,9 +326,9 @@ class ServerlessCustomDomain {
     /**
      * Change A Alias record through Route53 based on given action
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
-     * @param domain: DomainResponse object containing info about custom domain
+     * @param domain: DomainInfo object containing info about custom domain
      */
-    public async changeResourceRecordSet(action: string, domain: DomainResponse): Promise<void> {
+    public async changeResourceRecordSet(action: string, domain: DomainInfo): Promise<void> {
         if (action !== "UPSERT" && action !== "DELETE") {
             throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
                 Action must be either UPSERT or DELETE.\n`);
@@ -497,7 +497,7 @@ class ServerlessCustomDomain {
     /**
      *  Adds the domain name and distribution domain name to the CloudFormation outputs
      */
-    public addOutputs(domainInfo: DomainResponse): void {
+    public addOutputs(domainInfo: DomainInfo): void {
         const service = this.serverless.service;
         if (!service.provider.compiledCloudFormationTemplate.Outputs) {
             service.provider.compiledCloudFormationTemplate.Outputs = {};
@@ -515,7 +515,7 @@ class ServerlessCustomDomain {
     /**
      * Prints out a summary of all domain manager related info
      */
-    private printDomainSummary(domainInfo: DomainResponse): void {
+    private printDomainSummary(domainInfo: DomainInfo): void {
         this.serverless.cli.consoleLog(chalk.yellow.underline("Serverless Domain Manager Summary"));
 
         if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {

@@ -27,7 +27,6 @@ class ServerlessCustomDomain {
     public hooks: object;
 
     // Domain Manager specific properties
-    public initialized: boolean;
     public enabled: boolean;
     public givenDomainName: string;
     public hostedZonePrivate: boolean;
@@ -38,7 +37,6 @@ class ServerlessCustomDomain {
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
         this.serverless = serverless;
         this.options = options;
-        this.initialized = false;
 
         this.commands = {
             create_domain: {
@@ -145,42 +143,39 @@ class ServerlessCustomDomain {
      * Goes through custom domain property and initializes local variables and cloudformation template
      */
     public initializeVariables(): void {
-        if (!this.initialized) {
-            this.enabled = this.evaluateEnabled();
-            if (this.enabled) {
-                const credentials = this.serverless.providers.aws.getCredentials();
+        this.enabled = this.evaluateEnabled();
+        if (this.enabled) {
+            const credentials = this.serverless.providers.aws.getCredentials();
 
-                this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
-                this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
-                this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
+            this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
+            this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
+            this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
 
-                this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
-                this.hostedZonePrivate = this.serverless.service.custom.customDomain.hostedZonePrivate;
-                let basePath = this.serverless.service.custom.customDomain.basePath;
-                if (basePath == null || basePath.trim() === "") {
-                    basePath = "(none)";
-                }
-                this.basePath = basePath;
-                let stage = this.serverless.service.custom.customDomain.stage;
-                if (typeof stage === "undefined") {
-                    stage = this.options.stage || this.serverless.service.provider.stage;
-                }
-                this.stage = stage;
-
-                const endpointTypeWithDefault = this.serverless.service.custom.customDomain.endpointType ||
-                    endpointTypes.edge;
-                const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
-                if (!endpointTypeToUse) {
-                    throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
-                }
-                this.endpointType = endpointTypeToUse;
-
-                this.acmRegion = this.endpointType === endpointTypes.regional ?
-                    this.serverless.providers.aws.getRegion() : "us-east-1";
-                const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
-                this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
+            this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
+            this.hostedZonePrivate = this.serverless.service.custom.customDomain.hostedZonePrivate;
+            let basePath = this.serverless.service.custom.customDomain.basePath;
+            if (basePath == null || basePath.trim() === "") {
+                basePath = "(none)";
             }
-            this.initialized = true;
+            this.basePath = basePath;
+            let stage = this.serverless.service.custom.customDomain.stage;
+            if (typeof stage === "undefined") {
+                stage = this.options.stage || this.serverless.service.provider.stage;
+            }
+            this.stage = stage;
+
+            const endpointTypeWithDefault = this.serverless.service.custom.customDomain.endpointType ||
+                endpointTypes.edge;
+            const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
+            if (!endpointTypeToUse) {
+                throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
+            }
+            this.endpointType = endpointTypeToUse;
+
+            this.acmRegion = this.endpointType === endpointTypes.regional ?
+                this.serverless.providers.aws.getRegion() : "us-east-1";
+            const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
+            this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
         }
     }
 

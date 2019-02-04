@@ -4,7 +4,8 @@
     "moduleResolution": "node",
     "rootDir": ".",
     "target": "es6",
-    "sourceMap": false
+    "sourceMap": false,
+    "outDir": "dist"
   },
   "include": [
     "*.ts"

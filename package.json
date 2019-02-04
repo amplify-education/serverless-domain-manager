@@ -24,7 +24,7 @@
     "serverless.com",
     "domain manager"
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {},
   "scripts": {
     "test": "tsc --project . && nyc mocha -r ts-node/register test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
@@ -35,8 +35,14 @@
   "files": [
     "*.js",
     "*.ts",
-    "*.json"
+    "*.json",
+    "dist/"
   ],
+  "nyc" : {
+    "extension": [
+      ".ts"
+    ]
+  },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",

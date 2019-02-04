@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [3.0.0] - 2019-01-24
+## [3.0.1] - 2019-02-04
+- Version bump to fix NPM versioning issue that occured while testing.
+
+## [3.0.0] - 2019-02-04
 
 ### Changed
 - Refactored from Javascript into Typescript

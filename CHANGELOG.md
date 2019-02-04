@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.0.2] - 2019-02-04
+- Fix Travis configuration
+
 ## [3.0.1] - 2019-02-04
 - Version bump to fix NPM versioning issue that occured while testing.
 

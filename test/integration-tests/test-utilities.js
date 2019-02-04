@@ -22,7 +22,7 @@ class CreationError extends Error {}
  * @returns {Promise<any>} Resolves after given number of seconds.
  */
 function sleep(seconds) {
-  return new Promise(resolve => setTimeout(resolve, 1000 * seconds));
+  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
 /**

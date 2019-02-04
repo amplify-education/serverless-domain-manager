@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "engines": {
     "node": ">=4.0"
   },
@@ -36,7 +36,7 @@
     "*.js",
     "*.ts",
     "*.json",
-    "dist/"
+    "dist/*.js"
   ],
   "nyc": {
     "extension": [

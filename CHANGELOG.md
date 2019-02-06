@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [3.0.3] - 2019-02-04
+## [3.0.2 - 3.0.4] - 2019-02-06
 - Fix Travis configuration
 
 ## [3.0.1] - 2019-02-04

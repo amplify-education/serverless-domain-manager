@@ -67,6 +67,7 @@ const constructPlugin = (customDomainOptions) => {
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
           stage: customDomainOptions.stage,
+          setupOnPackaging: customDomainOptions.setupOnPackaging,
         },
       },
       provider: {

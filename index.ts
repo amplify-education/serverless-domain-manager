@@ -54,8 +54,13 @@ class ServerlessCustomDomain {
                 usage: "Deletes a domain using the domain name defined in the serverless file",
             },
         };
+
+        const setupOnPackaging = this.serverless.service.custom.customDomain.setupOnPackaging;
+
+        const hookName = setupOnPackaging ? "after:package:finalize" : "after:deploy:deploy";
+
         this.hooks = {
-            "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMapping),
+            [hookName]: this.hookWrapper.bind(this, this.setupBasePathMapping),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummary),
             "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMapping),
             "create_domain:create": this.hookWrapper.bind(this, this.createDomain),

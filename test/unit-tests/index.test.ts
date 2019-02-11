@@ -350,6 +350,54 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
+  describe("Gets existing basepath mappings correctly", () => {
+    it("Returns undefined if no basepaths map to current restApiId", async () => {
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, {
+          items: [
+            { basePath: "(none)", restApiId: "test_rest_api_id_one", stage: "test" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+      });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      plugin.initializeVariables();
+
+      const result = await plugin.getBasePathMapping("test_rest_api_id_two");
+      expect(result).to.equal(undefined);
+    });
+
+    it("Returns current api", async () => {
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, {
+          items: [
+            { basePath: "api", restApiId: "test_rest_api_id", stage: "test" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        basePath: "api",
+        domainName: "test_domain",
+      });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      plugin.initializeVariables();
+
+      const result = await plugin.getBasePathMapping("test_rest_api_id");
+      expect(result).to.equal("api");
+    });
+
+    afterEach(() => {
+      AWS.restore();
+      consoleOutput = [];
+    });
+  });
+
   describe("Gets Rest API correctly", () => {
     it("Fetches restApiId correctly when no ApiGateway specified", async () => {
       AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {

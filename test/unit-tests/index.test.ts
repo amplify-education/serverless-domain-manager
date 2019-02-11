@@ -138,6 +138,34 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Updates basepath mapping", async () => {
+      AWS.mock("APIGateway", "updateBasePathMapping", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+      });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      const spy = chai.spy.on(plugin.apigateway, "updateBasePathMapping");
+
+      await plugin.updateBasePathMapping("old_basepath");
+      expect(spy).to.have.been.called.with({
+        basePath: "old_basepath",
+        domainName: "test_domain",
+        patchOperations: [
+          {
+            op: "replace",
+            path: "/basePath",
+            value: "test_basepath",
+          },
+        ],
+      });
+    });
+
     it("Add Domain Name and HostedZoneId to stack output", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",

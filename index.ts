@@ -523,7 +523,7 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
         }
-        let restApiId = response.StackResourceDetail.PhysicalResourceId;
+        const restApiId = response.StackResourceDetail.PhysicalResourceId;
         if (!restApiId) {
             throw new Error(`Error: No RestApiId associated with CloudFormation stack ${stackName}`);
         }

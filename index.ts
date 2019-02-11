@@ -552,7 +552,7 @@ class ServerlessCustomDomain {
             await this.apigateway.deleteBasePathMapping(params).promise();
             this.serverless.cli.log("Removed basepath mapping.");
         } catch (err) {
-            throw new Error(`Error: Unable to delete basepath mapping.\n`);
+            this.serverless.cli.log("Unable to remove basepath mapping.");
         }
     }
 

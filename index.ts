@@ -96,7 +96,7 @@ class ServerlessCustomDomain {
             await this.changeResourceRecordSet("UPSERT", domainInfo);
             this.serverless.cli.log(
                 `Custom domain ${this.givenDomainName} was created.
-                New domains may take up to 40 minutes to be initialized.`,
+            New domains may take up to 40 minutes to be initialized.`,
             );
         } else {
             this.serverless.cli.log(`Custom domain ${this.givenDomainName} already exists.`);

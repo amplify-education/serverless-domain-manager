@@ -618,7 +618,7 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was deleted.`);
     });
 
-    it("createDomain", async () => {
+    it("createDomain if one does not exist before", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback({ code: "NotFoundException" }, {});
@@ -641,6 +641,30 @@ describe("Custom Domain Plugin", () => {
       await plugin.createDomain();
       expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created.
             New domains may take up to 40 minutes to be initialized.`);
+    });
+
+    it("Does not create domain if one existed before", async () => {
+      AWS.mock("ACM", "listCertificates", certTestData);
+      AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
+      });
+      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
+      });
+      AWS.mock("Route53", "listHostedZones", (params, callback) => {
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_id", Config: { PrivateZone: false } }] });
+      });
+      AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.apigateway = new aws.APIGateway();
+      plugin.route53 = new aws.Route53();
+      plugin.acm = new aws.ACM();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      await plugin.createDomain();
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} already exists.`);
     });
 
     afterEach(() => {

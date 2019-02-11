@@ -621,7 +621,7 @@ describe("Custom Domain Plugin", () => {
     it("createDomain", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
-        callback(new Error("domain doesn\"t exist"), {});
+        callback({ code: "NotFoundException" }, {});
       });
       AWS.mock("APIGateway", "createDomainName", (params, callback) => {
         callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
@@ -639,7 +639,7 @@ describe("Custom Domain Plugin", () => {
       plugin.acm = new aws.ACM();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       await plugin.createDomain();
-      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created/updated.
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created.
             New domains may take up to 40 minutes to be initialized.`);
     });
 

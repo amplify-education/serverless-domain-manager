@@ -82,11 +82,14 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomain(): Promise<void> {
-        const certArn = await this.getCertArn();
-        const domainInfo = await this.createCustomDomain(certArn);
-        await this.changeResourceRecordSet("UPSERT", domainInfo);
+        let domainInfo = await this.getDomainInfo();
+        if (!domainInfo) {
+            const certArn = await this.getCertArn();
+            domainInfo = await this.createCustomDomain(certArn);
+            await this.changeResourceRecordSet("UPSERT", domainInfo);
+        }
         this.serverless.cli.log(
-            `Custom domain ${this.givenDomainName} was created/updated.
+            `Custom domain ${this.givenDomainName} was created.
             New domains may take up to 40 minutes to be initialized.`,
         );
     }
@@ -144,7 +147,11 @@ class ServerlessCustomDomain {
      */
     public async domainSummary(): Promise<void> {
         const domainInfo = await this.getDomainInfo();
-        this.printDomainSummary(domainInfo);
+        if (domainInfo) {
+            this.printDomainSummary(domainInfo);
+        } else {
+            this.serverless.cli.log("Unable to print Serverless Domain Manager Summary");
+        }
     }
 
     /**
@@ -279,7 +286,7 @@ class ServerlessCustomDomain {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code === "NotFoundException") {
-                throw new Error(`Error: ${this.givenDomainName} not found.`);
+                return null;
             }
             throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
         }
@@ -449,10 +456,12 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
         }
-        for (const basepathObj of basepathInfo.items) {
-            if (basepathObj.restApiId === restApiId) {
-                currentBasePath = basepathObj.basePath;
-                break;
+        if (basepathInfo.items !== undefined && basepathInfo.items instanceof Array) {
+            for (const basepathObj of basepathInfo.items) {
+                if (basepathObj.restApiId === restApiId) {
+                    currentBasePath = basepathObj.basePath;
+                    break;
+                }
             }
         }
         return currentBasePath;

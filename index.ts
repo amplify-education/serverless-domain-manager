@@ -82,16 +82,25 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomain(): Promise<void> {
-        let domainInfo = await this.getDomainInfo();
+        let domainInfo;
+        try {
+            domainInfo = await this.getDomainInfo();
+        } catch (err) {
+            if (err.message !== `Error: ${this.givenDomainName} not found.`) {
+                throw err;
+            }
+        }
         if (!domainInfo) {
             const certArn = await this.getCertArn();
             domainInfo = await this.createCustomDomain(certArn);
             await this.changeResourceRecordSet("UPSERT", domainInfo);
+            this.serverless.cli.log(
+                `Custom domain ${this.givenDomainName} was created.
+                New domains may take up to 40 minutes to be initialized.`,
+            );
+        } else {
+            this.serverless.cli.log(`Custom domain ${this.givenDomainName} already exists.`);
         }
-        this.serverless.cli.log(
-            `Custom domain ${this.givenDomainName} was created.
-            New domains may take up to 40 minutes to be initialized.`,
-        );
     }
 
     /**
@@ -286,7 +295,7 @@ class ServerlessCustomDomain {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code === "NotFoundException") {
-                return null;
+                throw new Error(`Error: ${this.givenDomainName} not found.`);
             }
             throw new Error(`Error: Unable to fetch information about ${this.givenDomainName}`);
         }

@@ -14,6 +14,7 @@ const RANDOM_STRING = randomstring.generate({
   charset: "alphanumeric",
   capitalization: "lowercase",
 });
+const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
 
 const testCases = [
   {
@@ -275,6 +276,43 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
 
     after(async () => {
       await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+    });
+  });
+
+  describe("Migrating from 2.x.x to 3.x.x works", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "two-three-migration-default";
+    const tempDir = "~/tmp/domain-manager-test"
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      // Perform sequence of commands to replicate basepath mapping issue
+      // Sleep for a min b/w commands in order to avoid rate limiting.
+      await utilities.exec(`rm -rf ${tempDir}`);
+      await utilities.exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${testName}/. ${tempDir}`);
+      await utilities.exec(`cd ${tempDir}/ && npm install serverless-domain-manager@2.6.13`);
+    });
+
+    it("Creates a basepath mapping", async () => {
+      await utilities.exec(`cd ${tempDir} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${tempDir} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      // await utilities.exec(`npm link`)
+      await utilities.exec(`cp -R . ${tempDir}/node_modules/serverless-domain-manager`);
+      await utilities.exec(`cd ${tempDir} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal("(none)");
+    });
+
+    after(async () => {
+      // await utilities.exec(`npm unlink`);
+      await utilities.exec(`cd ${tempDir} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${tempDir} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`rm -rf ${tempDir}`);
     });
   });
 });

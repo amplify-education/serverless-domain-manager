@@ -26,12 +26,28 @@ function sleep(seconds) {
 }
 
 /**
+ * Executes given shell command.
+ * @param cmd shell command to execute
+ * @returns {Promise<boolean>} Resolves true if successfully executed, else false
+ */
+async function exec(cmd) {
+  return new Promise((resolve) => {
+    shell.exec(`${cmd}`, { silent: false }, (err, stdout, stderr) => {
+      if (err || stderr) {
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
+}
+
+/**
  * Links current serverless-domain-manager to global node_modules in order to run tests.
  * @returns {Promise<boolean>} Resolves true if successfully linked, else false.
  */
 async function linkPackages() {
   return new Promise((resolve) => {
-    shell.exec("npm link serverless-domain-manager", { silent: true }, (err, stdout, stderr) => {
+    shell.exec("npm link serverless-domain-manager", { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -119,7 +135,7 @@ async function getBasePath(url) {
  */
 function slsCreateDomain(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -136,7 +152,7 @@ function slsCreateDomain(folderName, domainIdentifier) {
  */
 function slsDeploy(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls deploy --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -205,7 +221,7 @@ async function verifyDnsPropogation(url, enabled) {
  */
 function slsDeleteDomain(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -222,7 +238,7 @@ function slsDeleteDomain(folderName, domainIdentifier) {
  */
 function slsRemove(folderName, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd 'test/integration-tests/${folderName}' && sls remove --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -312,6 +328,7 @@ module.exports = {
   curlUrl,
   createResources,
   destroyResources,
+  exec,
   verifyDnsPropogation,
   dnsLookup,
   slsCreateDomain,

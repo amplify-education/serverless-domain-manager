@@ -112,7 +112,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
         const status = await utilities.curlUrl(value.testURL);
         expect(status).to.equal(200);
       }
-      await utilities.destroyResources(value.testFolder, value.testDomain, RANDOM_STRING);
+      await utilities.destroyResources(value.testDomain, RANDOM_STRING);
       if (value.createApiGateway) {
         await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
       }
@@ -137,7 +137,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -149,15 +149,16 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -166,7 +167,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -178,15 +179,16 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -195,7 +197,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -208,17 +210,18 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsRemove(testName, RANDOM_STRING);
+      await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -227,7 +230,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -239,19 +242,20 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     it("Creates a domain multiple times without failure", async () => {
       let createDomain = true;
       let deploySuccess;
-      createDomain = createDomain && await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      createDomain = createDomain && await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      createDomain = createDomain && await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      deploySuccess = await utilities.slsDeploy(testName, RANDOM_STRING);
+      deploySuccess = await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       expect(createDomain).to.equal(true);
       expect(deploySuccess).to.equal(true);
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -263,56 +267,52 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     it("Deploys multiple times without failure", async () => {
       let createDomain;
       let deploySuccess = true;
-      createDomain = await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      createDomain = await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(testName, RANDOM_STRING);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(testName, RANDOM_STRING);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(testName, RANDOM_STRING);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       expect(createDomain).to.equal(true);
       expect(deploySuccess).to.equal(true);
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
   describe("Migrating from 2.x.x to 3.x.x works", function () { // eslint-disable-line func-names
     this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
     const testName = "two-three-migration-default";
-    const tempDir = "~/tmp/domain-manager-test"
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
 
     before(async () => {
-      // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.exec(`rm -rf ${tempDir}`);
-      await utilities.exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${testName}/. ${tempDir}`);
-      await utilities.exec(`cd ${tempDir}/ && npm install serverless-domain-manager@2.6.13`);
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+      await utilities.exec(`mkdir -p ${TEMP_DIR} && cp -R test/integration-tests/${testName}/. ${TEMP_DIR}`);
+      await utilities.exec(`cd ${TEMP_DIR}/ && npm install serverless-domain-manager@2.6.13`);
     });
 
     it("Creates a basepath mapping", async () => {
-      await utilities.exec(`cd ${tempDir} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
       await utilities.sleep(60);
-      await utilities.exec(`cd ${tempDir} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
       await utilities.sleep(60);
-      // await utilities.exec(`npm link`)
-      await utilities.exec(`cp -R . ${tempDir}/node_modules/serverless-domain-manager`);
-      await utilities.exec(`cd ${tempDir} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.exec(`cp -R . ${TEMP_DIR}/node_modules/serverless-domain-manager`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
 
       const basePath = await utilities.getBasePath(testURL);
       expect(basePath).to.equal("(none)");
     });
 
     after(async () => {
-      // await utilities.exec(`npm unlink`);
-      await utilities.exec(`cd ${tempDir} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
       await utilities.sleep(60);
-      await utilities.exec(`cd ${tempDir} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
       await utilities.sleep(60);
-      await utilities.exec(`rm -rf ${tempDir}`);
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
     });
   });
 });

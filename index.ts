@@ -408,7 +408,7 @@ class ServerlessCustomDomain {
         try {
             do {
                 hostedZoneData = await this.route53.listHostedZones({
-                    Marker: hostedZoneData && hostedZoneData.IsTruncated ? hostedZoneData.Marker : undefined,
+                    Marker: hostedZoneData && hostedZoneData.IsTruncated ? hostedZoneData.NextMarker : undefined,
                 }).promise();
                 targetHostedZone = hostedZoneData.HostedZones
                     .filter((hostedZone) => {

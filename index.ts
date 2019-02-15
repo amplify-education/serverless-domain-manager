@@ -402,43 +402,48 @@ class ServerlessCustomDomain {
         }
 
         let hostedZoneData;
+        let targetHostedZone;
         const givenDomainNameReverse = this.givenDomainName.split(".").reverse();
 
         try {
-            hostedZoneData = await this.route53.listHostedZones({}).promise();
-            const targetHostedZone = hostedZoneData.HostedZones
-                .filter((hostedZone) => {
-                    let hostedZoneName;
-                    if (hostedZone.Name.endsWith(".")) {
-                        hostedZoneName = hostedZone.Name.slice(0, -1);
-                    } else {
-                        hostedZoneName = hostedZone.Name;
-                    }
-                    if (!filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone) {
-                        const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
-
-                        if (givenDomainNameReverse.length === 1
-                            || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
-                            for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
-                                if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
-                                    return false;
-                                }
-                            }
-                            return true;
+            do {
+                hostedZoneData = await this.route53.listHostedZones({
+                    Marker: hostedZoneData && hostedZoneData.IsTruncated ? hostedZoneData.Marker : undefined,
+                }).promise();
+                targetHostedZone = hostedZoneData.HostedZones
+                    .filter((hostedZone) => {
+                        let hostedZoneName;
+                        if (hostedZone.Name.endsWith(".")) {
+                            hostedZoneName = hostedZone.Name.slice(0, -1);
+                        } else {
+                            hostedZoneName = hostedZone.Name;
                         }
-                    }
-                    return false;
-                })
-                .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-                .shift();
+                        if (!filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone) {
+                            const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
 
-            if (targetHostedZone) {
-                const hostedZoneId = targetHostedZone.Id;
-                // Extracts the hostzone Id
-                const startPos = hostedZoneId.indexOf("e/") + 2;
-                const endPos = hostedZoneId.length;
-                return hostedZoneId.substring(startPos, endPos);
-            }
+                            if (givenDomainNameReverse.length === 1
+                                || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
+                                for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
+                                    if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            }
+                        }
+                        return false;
+                    })
+                    .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+                    .shift();
+
+                if (targetHostedZone) {
+                    const hostedZoneId = targetHostedZone.Id;
+                    // Extracts the hostzone Id
+                    const startPos = hostedZoneId.indexOf("e/") + 2;
+                    const endPos = hostedZoneId.length;
+                    return hostedZoneId.substring(startPos, endPos);
+                }
+            } while (hostedZoneData.IsTruncated === true && !targetHostedZone);
         } catch (err) {
             throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
         }

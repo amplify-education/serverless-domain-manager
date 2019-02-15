@@ -147,8 +147,23 @@ class ServerlessCustomDomain {
         if (this.enabled) {
             const credentials = this.serverless.providers.aws.getCredentials();
 
+            const domainProfile = this.serverless.service.custom.customDomain.route53Profile;
+            if (domainProfile) {
+                const r53Credentials =
+                    new this.serverless.providers.aws.sdk.SharedIniFileCredentials({ profile: domainProfile });
+                const r53Region =
+                    this.serverless.service.custom.customDomain.route53Region
+                    || this.serverless.providers.aws.getRegion()
+                    || "us-east-1";
+                this.route53 = new this.serverless.providers.aws.sdk.Route53({
+                    credentials: r53Credentials,
+                    region: r53Region,
+                });
+            } else {
+                this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
+            }
+
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
-            this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
 
             this.givenDomainName = this.serverless.service.custom.customDomain.domainName;

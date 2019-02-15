@@ -33,6 +33,11 @@ const testCreds = {
   sessionToken: "test_session",
 };
 
+const testRoute53Domain = {
+  route53Profile: "test-profile",
+  route53Region: "us-moon-42",
+};
+
 const constructPlugin = (customDomainOptions) => {
   aws.config.update(testCreds);
   aws.config.region = "eu-west-1";
@@ -51,6 +56,7 @@ const constructPlugin = (customDomainOptions) => {
           APIGateway: aws.APIGateway,
           CloudFormation: aws.CloudFormation,
           Route53: aws.Route53,
+          SharedIniFileCredentials: aws.SharedIniFileCredentials,
         },
       },
     },
@@ -66,6 +72,8 @@ const constructPlugin = (customDomainOptions) => {
           endpointType: customDomainOptions.endpointType,
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+          route53Profile: customDomainOptions.route53Profile,
+          route53Region: customDomainOptions.route53Region,
           stage: customDomainOptions.stage,
         },
       },
@@ -87,6 +95,27 @@ const constructPlugin = (customDomainOptions) => {
   };
   return new ServerlessCustomDomain(serverless, options);
 };
+
+describe("Custom R53 Profile", () => {
+  it("uses default credentials for route 53", () => {
+    const plugin = constructPlugin({});
+    plugin.initializeVariables();
+
+    const returnedCreds = plugin.route53.config.credentials;
+
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+  });
+
+  it("overrides credentials for route 53", () => {
+    const plugin = constructPlugin(testRoute53Domain);
+    plugin.initializeVariables();
+
+    expect(plugin.route53.config.credentials.profile).to.equal(testRoute53Domain.route53Profile);
+    expect(plugin.route53.config.region).to.equal(testRoute53Domain.route53Region);
+    // expect(plugin.initialized).to.equal(true);
+  });
+});
 
 describe("Custom Domain Plugin", () => {
   it("Checks aws config", () => {

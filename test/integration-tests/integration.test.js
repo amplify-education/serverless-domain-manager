@@ -315,4 +315,36 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
       await utilities.exec(`rm -rf ${TEMP_DIR}`);
     });
   });
+
+  describe("Migrating from 2.x.x to 3.x.x works given basepath", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "two-three-migration-basepath";
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+      await utilities.exec(`mkdir -p ${TEMP_DIR} && cp -R test/integration-tests/${testName}/. ${TEMP_DIR}`);
+      await utilities.exec(`cd ${TEMP_DIR}/ && npm install serverless-domain-manager@2.6.13`);
+    });
+
+    it("Creates a basepath mapping", async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cp -R . ${TEMP_DIR}/node_modules/serverless-domain-manager`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal("api");
+    });
+
+    after(async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+    });
+  });
 });

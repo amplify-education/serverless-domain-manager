@@ -16,5 +16,5 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: two-three-migration-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: two-three-migration-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: api

@@ -1,7 +1,7 @@
 ---
 name: 🐛 Bug Report
 about: If something isn't working as expected 🤔.
-
+labels: bug
 ---
 
 <!--- Please keep this note for the community --->
@@ -27,7 +27,7 @@ e.g. `sls deploy`, `sls create_domain`, etc.
 ```
 
 **Domain Manager Configuration**
-Replace this with your own configuration
+Replace this with your own `serverless.yml` file (anonymized, of course) to help us better resolve your issue.
 ```yaml
 custom:
   customDomain:

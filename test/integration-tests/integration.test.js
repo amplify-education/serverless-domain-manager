@@ -240,17 +240,17 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
 
     it("Creates a domain multiple times without failure", async () => {
-      let createDomain = true;
+      let createDomainSuccess = true;
       let deploySuccess;
       await utilities.createTempDir(TEMP_DIR, testName);
-      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      createDomain = createDomain && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
       deploySuccess = await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-      expect(createDomain).to.equal(true);
+      expect(createDomainSuccess).to.equal(true);
       expect(deploySuccess).to.equal(true);
     });
 
@@ -265,17 +265,17 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
 
     it("Deploys multiple times without failure", async () => {
-      let createDomain;
+      let createDomainSuccess;
       let deploySuccess = true;
       await utilities.createTempDir(TEMP_DIR, testName);
-      createDomain = await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      createDomainSuccess = await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
       deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
       deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
       deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-      expect(createDomain).to.equal(true);
+      expect(createDomainSuccess).to.equal(true);
       expect(deploySuccess).to.equal(true);
     });
 

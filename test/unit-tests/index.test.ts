@@ -119,30 +119,50 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {StackResources:
-          [
-            { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-          ],
-        });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+      });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+
+      await plugin.createBasePathMapping("test_rest_api_id");
+      expect(spy).to.have.been.called.with({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
+    });
+
+    it("Updates basepath mapping", async () => {
+      AWS.mock("APIGateway", "updateBasePathMapping", (params, callback) => {
+        callback(null, params);
       });
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
-      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+      const spy = chai.spy.on(plugin.apigateway, "updateBasePathMapping");
 
-      await plugin.createBasePathMapping();
+      await plugin.updateBasePathMapping("old_basepath");
       expect(spy).to.have.been.called.with({
-        basePath: "test_basepath",
+        basePath: "old_basepath",
         domainName: "test_domain",
-        restApiId: "test_rest_api_id",
-        stage: "test",
+        patchOperations: [
+          {
+            op: "replace",
+            path: "/basePath",
+            value: "test_basepath",
+          },
+        ],
       });
     });
 
@@ -163,26 +183,17 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            ],
-        });
-      });
 
       const plugin = constructPlugin({
         basePath: "",
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      await plugin.createBasePathMapping();
+      await plugin.createBasePathMapping("test_rest_api_id");
       expect(spy).to.have.been.called.with({
         basePath: "(none)",
         domainName: "test_domain",
@@ -195,26 +206,17 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            ],
-        });
-      });
 
       const plugin = constructPlugin({
         basePath: null,
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      await plugin.createBasePathMapping();
+      await plugin.createBasePathMapping("test_rest_api_id");
       expect(spy).to.have.been.called.with({
         basePath: "(none)",
         domainName: "test_domain",
@@ -227,25 +229,16 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            ],
-        });
-      });
 
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      await plugin.createBasePathMapping();
+      await plugin.createBasePathMapping("test_rest_api_id");
       expect(spy).to.have.been.called.with({
         basePath: "(none)",
         domainName: "test_domain",
@@ -258,14 +251,6 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
-        callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            ],
-        });
-      });
 
       const plugin = constructPlugin({
         domainName: "test_domain",
@@ -276,7 +261,7 @@ describe("Custom Domain Plugin", () => {
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
 
-      await plugin.createBasePathMapping();
+      await plugin.createBasePathMapping("test_rest_api_id");
       expect(spy).to.have.been.called.with({
         basePath: "(none)",
         domainName: "test_domain",
@@ -393,16 +378,63 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
+  describe("Gets existing basepath mappings correctly", () => {
+    it("Returns undefined if no basepaths map to current restApiId", async () => {
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, {
+          items: [
+            { basePath: "(none)", restApiId: "test_rest_api_id_one", stage: "test" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+      });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      plugin.initializeVariables();
+
+      const result = await plugin.getBasePathMapping("test_rest_api_id_two");
+      expect(result).to.equal(undefined);
+    });
+
+    it("Returns current api", async () => {
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, {
+          items: [
+            { basePath: "api", restApiId: "test_rest_api_id", stage: "test" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        basePath: "api",
+        domainName: "test_domain",
+      });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
+      plugin.initializeVariables();
+
+      const result = await plugin.getBasePathMapping("test_rest_api_id");
+      expect(result).to.equal("api");
+    });
+
+    afterEach(() => {
+      AWS.restore();
+      consoleOutput = [];
+    });
+  });
+
   describe("Gets Rest API correctly", () => {
     it("Fetches restApiId correctly when no ApiGateway specified", async () => {
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
         callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-              { LogicalResourceId: "LambdaPermission", PhysicalResourceId: "test_permission" },
-              { LogicalResourceId: "ApiGatewayResourceHello", PhysicalResourceId: "test_api_resource" },
-            ],
+          StackResourceDetail:
+            {
+              LogicalResourceId: "ApiGatewayRestApi",
+              PhysicalResourceId: "test_rest_api_id",
+            },
         });
       });
       const plugin = constructPlugin({
@@ -416,14 +448,13 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("serverless.yml defines explicitly the apiGateway", async () => {
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
         callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-              { LogicalResourceId: "LambdaPermission", PhysicalResourceId: "test_permission" },
-              { LogicalResourceId: "ApiGatewayResourceHello", PhysicalResourceId: "test_api_resource" },
-            ],
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
         });
       });
 
@@ -538,15 +569,19 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
       });
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, { items: [] });
+      });
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
-      AWS.mock("CloudFormation", "describeStackResources", (params, callback) => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
         callback(null, {
-          StackResources:
-            [
-              { LogicalResourceId: "ApiGatewayRestApi", PhysicalResourceId: "test_rest_api_id" },
-            ],
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
         });
       });
       const plugin = constructPlugin({ domainName: "test_domain"});
@@ -583,10 +618,10 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was deleted.`);
     });
 
-    it("createDomain", async () => {
+    it("createDomain if one does not exist before", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
-        callback(new Error("domain doesn\"t exist"), {});
+        callback({ code: "NotFoundException" }, {});
       });
       AWS.mock("APIGateway", "createDomainName", (params, callback) => {
         callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
@@ -604,8 +639,32 @@ describe("Custom Domain Plugin", () => {
       plugin.acm = new aws.ACM();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       await plugin.createDomain();
-      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created/updated.
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} was created.
             New domains may take up to 40 minutes to be initialized.`);
+    });
+
+    it("Does not create domain if one existed before", async () => {
+      AWS.mock("ACM", "listCertificates", certTestData);
+      AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
+      });
+      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", regionalHostedZoneId: "test_id" });
+      });
+      AWS.mock("Route53", "listHostedZones", (params, callback) => {
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_id", Config: { PrivateZone: false } }] });
+      });
+      AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.apigateway = new aws.APIGateway();
+      plugin.route53 = new aws.Route53();
+      plugin.acm = new aws.ACM();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      await plugin.createDomain();
+      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.givenDomainName} already exists.`);
     });
 
     afterEach(() => {

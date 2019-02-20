@@ -14,6 +14,7 @@ const RANDOM_STRING = randomstring.generate({
   charset: "alphanumeric",
   capitalization: "lowercase",
 });
+const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
 
 const testCases = [
   {
@@ -86,10 +87,6 @@ const testCases = [
 describe("Integration Tests", function () { // eslint-disable-line func-names
   this.timeout(SIX_HOURS); // 6 hours to allow for dns to propogate
 
-  before(async () => {
-    await utilities.linkPackages();
-  });
-
   describe("Domain Manager Is Enabled", function () { // eslint-disable-line func-names
     this.timeout(SIX_HOURS);
 
@@ -115,7 +112,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
         const status = await utilities.curlUrl(value.testURL);
         expect(status).to.equal(200);
       }
-      await utilities.destroyResources(value.testFolder, value.testDomain, RANDOM_STRING);
+      await utilities.destroyResources(value.testDomain, RANDOM_STRING);
       if (value.createApiGateway) {
         await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
       }
@@ -140,7 +137,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -152,15 +149,16 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -169,7 +167,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -181,15 +179,16 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -198,7 +197,7 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
     });
   });
 
@@ -211,17 +210,18 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     before(async () => {
       // Perform sequence of commands to replicate basepath mapping issue
       // Sleep for a min b/w commands in order to avoid rate limiting.
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.createTempDir(TEMP_DIR, testName);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeleteDomain(testName, RANDOM_STRING);
+      await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsRemove(testName, RANDOM_STRING);
+      await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsCreateDomain(testName, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(60);
-      await utilities.slsDeploy(testName, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
     });
 
     it("Creates a basepath mapping", async () => {
@@ -230,7 +230,121 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
     });
 
     after(async () => {
-      await utilities.destroyResources(testName, testURL, RANDOM_STRING);
+      await utilities.destroyResources(testURL, RANDOM_STRING);
+    });
+  });
+
+  describe("Create domain is idempotent", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "create-domain-idempotent";
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    it("Creates a domain multiple times without failure", async () => {
+      let createDomainSuccess = true;
+      let deploySuccess;
+      await utilities.createTempDir(TEMP_DIR, testName);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      deploySuccess = await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      expect(createDomainSuccess).to.equal(true);
+      expect(deploySuccess).to.equal(true);
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testURL, RANDOM_STRING);
+    });
+  });
+
+  describe("Deploy is idempotent", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "deploy-idempotent";
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    it("Deploys multiple times without failure", async () => {
+      let createDomainSuccess;
+      let deploySuccess = true;
+      await utilities.createTempDir(TEMP_DIR, testName);
+      createDomainSuccess = await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      await utilities.sleep(60);
+      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      expect(createDomainSuccess).to.equal(true);
+      expect(deploySuccess).to.equal(true);
+    });
+
+    after(async () => {
+      await utilities.destroyResources(testURL, RANDOM_STRING);
+    });
+  });
+
+  describe("Migrating from 2.x.x to 3.x.x works", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "two-three-migration-default";
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+      await utilities.exec(`mkdir -p ${TEMP_DIR} && cp -R test/integration-tests/${testName}/. ${TEMP_DIR}`);
+      await utilities.exec(`cd ${TEMP_DIR}/ && npm install serverless-domain-manager@2.6.13`);
+    });
+
+    it("Creates a basepath mapping", async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cp -R . ${TEMP_DIR}/node_modules/serverless-domain-manager`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal("(none)");
+    });
+
+    after(async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+    });
+  });
+
+  describe("Migrating from 2.x.x to 3.x.x works given basepath", function () { // eslint-disable-line func-names
+    this.timeout(15 * 60 * 1000); // 15 minutes in milliseconds
+    const testName = "two-three-migration-basepath";
+    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+    before(async () => {
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
+      await utilities.exec(`mkdir -p ${TEMP_DIR} && cp -R test/integration-tests/${testName}/. ${TEMP_DIR}`);
+      await utilities.exec(`cd ${TEMP_DIR}/ && npm install serverless-domain-manager@2.6.13`);
+    });
+
+    it("Creates a basepath mapping", async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls create_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cp -R . ${TEMP_DIR}/node_modules/serverless-domain-manager`);
+      await utilities.exec(`cd ${TEMP_DIR} && sls deploy --RANDOM_STRING ${RANDOM_STRING}`);
+
+      const basePath = await utilities.getBasePath(testURL);
+      expect(basePath).to.equal("api");
+    });
+
+    after(async () => {
+      await utilities.exec(`cd ${TEMP_DIR} && sls remove --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`cd ${TEMP_DIR} && sls delete_domain --RANDOM_STRING ${RANDOM_STRING}`);
+      await utilities.sleep(60);
+      await utilities.exec(`rm -rf ${TEMP_DIR}`);
     });
   });
 });

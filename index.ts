@@ -82,13 +82,25 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomain(): Promise<void> {
-        const certArn = await this.getCertArn();
-        const domainInfo = await this.createCustomDomain(certArn);
-        await this.changeResourceRecordSet("UPSERT", domainInfo);
-        this.serverless.cli.log(
-            `Custom domain ${this.givenDomainName} was created/updated.
+        let domainInfo;
+        try {
+            domainInfo = await this.getDomainInfo();
+        } catch (err) {
+            if (err.message !== `Error: ${this.givenDomainName} not found.`) {
+                throw err;
+            }
+        }
+        if (!domainInfo) {
+            const certArn = await this.getCertArn();
+            domainInfo = await this.createCustomDomain(certArn);
+            await this.changeResourceRecordSet("UPSERT", domainInfo);
+            this.serverless.cli.log(
+                `Custom domain ${this.givenDomainName} was created.
             New domains may take up to 40 minutes to be initialized.`,
-        );
+            );
+        } else {
+            this.serverless.cli.log(`Custom domain ${this.givenDomainName} already exists.`);
+        }
     }
 
     /**
@@ -116,7 +128,15 @@ class ServerlessCustomDomain {
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
     public async setupBasePathMapping(): Promise<void> {
-        await this.createBasePathMapping();
+        // check if basepathmapping exists
+        const restApiId = await this.getRestApiId();
+        const currentBasePath = await this.getBasePathMapping(restApiId);
+        // if basepath that matches restApiId exists, update; else, create
+        if (!currentBasePath) {
+            await this.createBasePathMapping(restApiId);
+        } else {
+            await this.updateBasePathMapping(currentBasePath);
+        }
         const domainInfo = await this.getDomainInfo();
         this.addOutputs(domainInfo);
         await this.printDomainSummary(domainInfo);
@@ -136,7 +156,11 @@ class ServerlessCustomDomain {
      */
     public async domainSummary(): Promise<void> {
         const domainInfo = await this.getDomainInfo();
-        this.printDomainSummary(domainInfo);
+        if (domainInfo) {
+            this.printDomainSummary(domainInfo);
+        } else {
+            this.serverless.cli.log("Unable to print Serverless Domain Manager Summary");
+        }
     }
 
     /**
@@ -430,11 +454,32 @@ class ServerlessCustomDomain {
         throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
     }
 
+    public async getBasePathMapping(restApiId: string): Promise<string> {
+        const params = {
+            domainName: this.givenDomainName,
+        };
+        let basepathInfo;
+        let currentBasePath;
+        try {
+            basepathInfo = await this.apigateway.getBasePathMappings(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
+        }
+        if (basepathInfo.items !== undefined && basepathInfo.items instanceof Array) {
+            for (const basepathObj of basepathInfo.items) {
+                if (basepathObj.restApiId === restApiId) {
+                    currentBasePath = basepathObj.basePath;
+                    break;
+                }
+            }
+        }
+        return currentBasePath;
+    }
+
     /**
      * Creates basepath mapping
      */
-    public async createBasePathMapping(): Promise<void> {
-        const restApiId = await this.getRestApiId();
+    public async createBasePathMapping(restApiId: string): Promise<void> {
         const params = {
             basePath: this.basePath,
             domainName: this.givenDomainName,
@@ -451,6 +496,30 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Updates basepath mapping
+     */
+    public async updateBasePathMapping(oldBasePath: string): Promise<void> {
+        const params = {
+            basePath: oldBasePath,
+            domainName: this.givenDomainName,
+            patchOperations: [
+                {
+                    op: "replace",
+                    path: "/basePath",
+                    value: this.basePath,
+                },
+            ],
+        };
+        // Make API call
+        try {
+            await this.apigateway.updateBasePathMapping(params).promise();
+            this.serverless.cli.log("Updated basepath mapping.");
+        } catch (err) {
+            throw new Error(`Error: Unable to update basepath mapping.\n`);
+        }
+    }
+
+    /**
      * Gets rest API id from CloudFormation stack
      */
     public async getRestApiId(): Promise<string> {
@@ -459,22 +528,24 @@ class ServerlessCustomDomain {
                 ${this.serverless.service.provider.apiGateway.restApiId}.`);
             return this.serverless.service.provider.apiGateway.restApiId;
         }
-
+        const stackName = this.serverless.service.provider.stackName ||
+            `${this.serverless.service.service}-${this.stage}`;
         const params = {
-            StackName:
-                this.serverless.service.provider.stackName || `${this.serverless.service.service}-${this.stage}`,
+            LogicalResourceId: "ApiGatewayRestApi",
+            StackName: stackName,
         };
 
         let response;
         try {
-            response = await this.cloudformation.describeStackResources(params).promise();
+            response = await this.cloudformation.describeStackResource(params).promise();
         } catch (err) {
             throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
         }
-        const stackResources = response.StackResources.filter((element) => {
-            return element.LogicalResourceId === "ApiGatewayRestApi";
-        });
-        return stackResources[0].PhysicalResourceId;
+        const restApiId = response.StackResourceDetail.PhysicalResourceId;
+        if (!restApiId) {
+            throw new Error(`Error: No RestApiId associated with CloudFormation stack ${stackName}`);
+        }
+        return restApiId;
     }
 
     /**
@@ -490,7 +561,7 @@ class ServerlessCustomDomain {
             await this.apigateway.deleteBasePathMapping(params).promise();
             this.serverless.cli.log("Removed basepath mapping.");
         } catch (err) {
-            throw new Error(`Error: Unable to delete basepath mapping.\n`);
+            this.serverless.cli.log("Unable to remove basepath mapping.");
         }
     }
 

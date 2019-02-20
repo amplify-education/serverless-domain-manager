@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add Issue Templates
 - Add PR Templates
 
+### Changed
+- Fixed issue where creating a domain was no longer idempotent in 3.0.4
+- Fixed issue where deploying was no longer idempotent in 3.0.4 due to basepath mapping creation
+- Fixed issue where deploying would break on occasion if more than 100 CloudFormation resources existed
+
 ## [3.0.2 - 3.0.4] - 2019-02-06
 - Fix Travis configuration
 

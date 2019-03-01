@@ -13,7 +13,6 @@ before_deploy:
 - npm run build
 deploy:
   skip_cleanup: true
-  tag: beta
   provider: npm
   email: $NPM_EMAIL
   api_key: $NPM_KEY

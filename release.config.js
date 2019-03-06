@@ -4,28 +4,28 @@
  * @type {Object}
  */
 module.exports = {
-  preset: 'metahub',
+  preset: "metahub",
   plugins: [
-    '@semantic-release/commit-analyzer',
-    '@semantic-release/release-notes-generator',
-    '@semantic-release/changelog',
-    '@semantic-release/github',
-    '@semantic-release/git',
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release/github",
+    "@semantic-release/git",
   ],
   analyzeCommits: {
-    releaseRules: 'conventional-changelog-metahub/release-rules',
+    releaseRules: "conventional-changelog-metahub/release-rules",
     noteKeywords: [
-      'BREAKING CHANGE',
-      'BREAKING CHANGES',
-      'BREAKING',
+      "BREAKING CHANGE",
+      "BREAKING CHANGES",
+      "BREAKING",
     ],
   //  },
   },
   generateNotes: {
     noteKeywords: [
-      'BREAKING CHANGE',
-      'BREAKING CHANGES',
-      'BREAKING',
+      "BREAKING CHANGE",
+      "BREAKING CHANGES",
+      "BREAKING",
     ],
   //  },
   },

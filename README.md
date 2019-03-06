@@ -5,6 +5,7 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-domain-manager/master/LICENSE)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/235fe249b8354a3db0cc5926dba47899)](https://www.codacy.com/app/CFER/serverless-domain-manager?utm_source=github.com&utm_medium=referral&utm_content=amplify-education/serverless-domain-manager&utm_campaign=badger)
 [![npm downloads](https://img.shields.io/npm/dt/serverless-domain-manager.svg?style=flat)](https://www.npmjs.com/package/serverless-domain-manager)
+[![Semantic Release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Create custom domain names that your lambda can deploy to with serverless. Allows for base path mapping when deploying and deletion of domain names.
 

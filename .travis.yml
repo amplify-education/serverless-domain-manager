@@ -8,7 +8,6 @@ install:
 - npm install
 script:
 - npm run lint
-- bash scripts/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
 - npm test
 before_deploy:
 - npm run build

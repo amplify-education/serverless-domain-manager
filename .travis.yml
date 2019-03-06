@@ -3,6 +3,7 @@ node_js:
 - 10.4.0
 before_install:
   - npm i -g npm@6.4.1
+  - npm i -g semantic-release
 install:
 - npm install
 script:
@@ -18,3 +19,5 @@ deploy:
   api_key: $NPM_KEY
   on:
     branch: master
+after_success:
+- npx semantic-release

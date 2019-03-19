@@ -923,9 +923,28 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Should log if SLS_DEBUG is set", async () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      // set sls debug to true
+      process.env.SLS_DEBUG = "True";
+      plugin.logIfDebug("test message");
+      expect(consoleOutput).to.contain("test message");
+    });
+
+    it("Should not log if SLS_DEBUG is not set", async () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      plugin.logIfDebug("test message");
+      expect(consoleOutput).to.not.contain("test message");
+    });
+
     afterEach(() => {
       AWS.restore();
       consoleOutput = [];
+      process.env.SLS_DEBUG = "";
     });
   });
 
@@ -1097,6 +1116,26 @@ describe("Custom Domain Plugin", () => {
     it("Should thrown an Error when Serverless custom configuration object is missing", () => {
       const plugin = constructPlugin({});
       delete plugin.serverless.service.custom;
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    afterEach(() => {
+      consoleOutput = [];
+    });
+  });
+
+  describe("Error Logging", () => {
+    it("Should thrown an Error when plugin customDomain configuration object is missing", () => {
+      const plugin = constructPlugin({});
+      delete plugin.serverless.service.custom.customDomain;
 
       let errored = false;
       try {

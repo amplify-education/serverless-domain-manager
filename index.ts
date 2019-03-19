@@ -595,6 +595,16 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Logs message if SLS_DEBUG is set
+     * @param message message to be printed
+     */
+    public logIfDebug(message: any): void {
+        if (process.env.SLS_DEBUG) {
+            this.serverless.cli.log(message, "Serverless Domain Manager");
+        }
+    }
+
+    /**
      * Prints out a summary of all domain manager related info
      */
     private printDomainSummary(domainInfo: DomainInfo): void {
@@ -607,16 +617,6 @@ class ServerlessCustomDomain {
 
         this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
-    }
-
-    /**
-     * Logs message if SLS_DEBUG is set
-     * @param message message to be printed
-     */
-    private logIfDebug(message: any): void {
-        if (process.env.SLS_DEBUG) {
-            this.serverless.cli.log(message, "Serverless Domain Manager");
-        }
     }
 }
 

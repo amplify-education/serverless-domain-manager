@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@types/chai-spies": "^1.0.0",
+    "@types/node": "^11.11.3",
     "aws-sdk": "^2.177.0",
     "chalk": "^2.4.1"
   }

@@ -1131,24 +1131,4 @@ describe("Custom Domain Plugin", () => {
       consoleOutput = [];
     });
   });
-
-  describe("Error Logging", () => {
-    it("Should thrown an Error when plugin customDomain configuration object is missing", () => {
-      const plugin = constructPlugin({});
-      delete plugin.serverless.service.custom.customDomain;
-
-      let errored = false;
-      try {
-        plugin.initializeVariables();
-      } catch (err) {
-        errored = true;
-        expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
-      }
-      expect(errored).to.equal(true);
-    });
-
-    afterEach(() => {
-      consoleOutput = [];
-    });
-  });
 });

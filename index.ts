@@ -365,22 +365,21 @@ class ServerlessCustomDomain {
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId();
+        const Changes = ["A", "AAAA"].map((Type) => ({
+                Action: action,
+                ResourceRecordSet: {
+                    AliasTarget: {
+                        DNSName: domain.domainName,
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: domain.hostedZoneId,
+                    },
+                    Name: this.givenDomainName,
+                    Type,
+                },
+        }));
         const params = {
             ChangeBatch: {
-                Changes: [
-                    {
-                        Action: action,
-                        ResourceRecordSet: {
-                            AliasTarget: {
-                                DNSName: domain.domainName,
-                                EvaluateTargetHealth: false,
-                                HostedZoneId: domain.hostedZoneId,
-                            },
-                            Name: this.givenDomainName,
-                            Type: "A",
-                        },
-                    },
-                ],
+                Changes,
                 Comment: "Record created by serverless-domain-manager",
             },
             HostedZoneId: route53HostedZoneId,
@@ -389,7 +388,7 @@ class ServerlessCustomDomain {
         try {
             await this.route53.changeResourceRecordSets(params).promise();
         } catch (err) {
-            throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainName}\n`);
+            throw new Error(`Error: Failed to ${action} aliases for ${this.givenDomainName}\n`);
         }
     }
 

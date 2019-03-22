@@ -355,6 +355,18 @@ describe("Custom Domain Plugin", () => {
                 Type: "A",
               },
             },
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "AAAA",
+              },
+            },
           ],
           Comment: "Record created by serverless-domain-manager",
         },
@@ -528,6 +540,18 @@ describe("Custom Domain Plugin", () => {
                 },
                 Name: "test_domain",
                 Type: "A",
+              },
+            },
+            {
+              Action: "DELETE",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "AAAA",
               },
             },
           ],

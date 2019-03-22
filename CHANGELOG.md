@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.2.1] - 2019-03-22
+
+### Added
+- Display error messages from AWS if SLS_DEBUG is set
+- Updated README with behavior change and required permissions
+
 ## [3.2.0] - 2019-03-22
 
 ### Added

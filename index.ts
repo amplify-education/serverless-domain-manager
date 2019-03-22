@@ -277,6 +277,7 @@ class ServerlessCustomDomain {
                 });
             }
         } catch (err) {
+            this.logIfDebug(err);
             throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
         }
         if (certificateArn == null) {
@@ -294,6 +295,7 @@ class ServerlessCustomDomain {
             domainInfo = await this.apigateway.getDomainName({ domainName: this.givenDomainName }).promise();
             return new DomainInfo(domainInfo);
         } catch (err) {
+            this.logIfDebug(err);
             if (err.code === "NotFoundException") {
                 throw new Error(`Error: ${this.givenDomainName} not found.`);
             }
@@ -325,7 +327,8 @@ class ServerlessCustomDomain {
         let createdDomain = {};
         try {
             createdDomain = await this.apigateway.createDomainName(params).promise();
-        } catch {
+        } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Failed to create custom domain ${this.givenDomainName}\n`);
         }
         return new DomainInfo(createdDomain);
@@ -342,7 +345,8 @@ class ServerlessCustomDomain {
         // Make API call
         try {
             await this.apigateway.deleteDomainName(params).promise();
-        } catch {
+        } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Failed to delete custom domain ${this.givenDomainName}\n`);
         }
     }
@@ -388,7 +392,8 @@ class ServerlessCustomDomain {
         try {
             await this.route53.changeResourceRecordSets(params).promise();
         } catch (err) {
-            throw new Error(`Error: Failed to ${action} aliases for ${this.givenDomainName}\n`);
+            this.logIfDebug(err);
+            throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainName}\n`);
         }
     }
 
@@ -448,6 +453,7 @@ class ServerlessCustomDomain {
                 return hostedZoneId.substring(startPos, endPos);
             }
         } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
         }
         throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
@@ -462,6 +468,7 @@ class ServerlessCustomDomain {
         try {
             basepathInfo = await this.apigateway.getBasePathMappings(params).promise();
         } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
         }
         if (basepathInfo.items !== undefined && basepathInfo.items instanceof Array) {
@@ -490,6 +497,7 @@ class ServerlessCustomDomain {
             await this.apigateway.createBasePathMapping(params).promise();
             this.serverless.cli.log("Created basepath mapping.");
         } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Unable to create basepath mapping.\n`);
         }
     }
@@ -514,6 +522,7 @@ class ServerlessCustomDomain {
             await this.apigateway.updateBasePathMapping(params).promise();
             this.serverless.cli.log("Updated basepath mapping.");
         } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Unable to update basepath mapping.\n`);
         }
     }
@@ -538,6 +547,7 @@ class ServerlessCustomDomain {
         try {
             response = await this.cloudformation.describeStackResource(params).promise();
         } catch (err) {
+            this.logIfDebug(err);
             throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
         }
         const restApiId = response.StackResourceDetail.PhysicalResourceId;
@@ -560,6 +570,7 @@ class ServerlessCustomDomain {
             await this.apigateway.deleteBasePathMapping(params).promise();
             this.serverless.cli.log("Removed basepath mapping.");
         } catch (err) {
+            this.logIfDebug(err);
             this.serverless.cli.log("Unable to remove basepath mapping.");
         }
     }
@@ -579,6 +590,16 @@ class ServerlessCustomDomain {
             service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {
                 Value: domainInfo.hostedZoneId,
             };
+        }
+    }
+
+    /**
+     * Logs message if SLS_DEBUG is set
+     * @param message message to be printed
+     */
+    public logIfDebug(message: any): void {
+        if (process.env.SLS_DEBUG) {
+            this.serverless.cli.log(message, "Serverless Domain Manager");
         }
     }
 

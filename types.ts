@@ -39,7 +39,7 @@ export interface ServerlessInstance { // tslint:disable-line
         },
     };
     cli: {
-        log(str: string),
+        log(str: string, entity?: string),
         consoleLog(str: any),
     };
 }

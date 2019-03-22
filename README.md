@@ -25,9 +25,12 @@ The IAM role that is deploying the lambda will need the following permissions:
 ```
 acm:ListCertificates                *
 apigateway:GET                      /domainnames/*
+apigateway:GET                      /domainnames/*/basepathmappings
 apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
 apigateway:POST                     /domainnames/*/basepathmappings
+apigateway:PATCH                    /domainnames/*/basepathmapping
+cloudformation:GET                  *
 cloudfront:UpdateDistribution       *
 route53:ListHostedZones             *
 route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
@@ -101,6 +104,16 @@ serverless delete_domain
 Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
 
 Note: In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records. Starting in version 3.2, we create AAAA Alias records as well.
+
+### Behavior Change in Version 3
+
+In version 3, we decided to create/update/delete all resources through the API. Previously, only the basepath mapping was managed through CloudFormation. We moved away from creating anything through the stack for two reasons.
+
+1) It seemed cleaner to have all resources be created in the same fashion, rather than just having one created elsewhere. Since multiple CloudFormation stacks can't create the same custom domain, we decided to have everything be done through the API.
+
+2) We ran into issues such as [#57](https://github.com/amplify-education/serverless-domain-manager/issues/57) where the CloudFormation wasn't always being applied.
+
+However, we still add the domain name and distribution domain name to the CloudFormation outputs, preserving the functionality requested in [#43](https://github.com/amplify-education/serverless-domain-manager/issues/43) implemented in [#47](https://github.com/amplify-education/serverless-domain-manager/pull/47).
 
 ## Running Tests
 To run unit tests:

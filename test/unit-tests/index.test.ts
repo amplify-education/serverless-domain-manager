@@ -947,9 +947,28 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Should log if SLS_DEBUG is set", async () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      // set sls debug to true
+      process.env.SLS_DEBUG = "True";
+      plugin.logIfDebug("test message");
+      expect(consoleOutput).to.contain("test message");
+    });
+
+    it("Should not log if SLS_DEBUG is not set", async () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      plugin.logIfDebug("test message");
+      expect(consoleOutput).to.not.contain("test message");
+    });
+
     afterEach(() => {
       AWS.restore();
       consoleOutput = [];
+      process.env.SLS_DEBUG = "";
     });
   });
 

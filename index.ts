@@ -528,13 +528,53 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Gets value by name from cloudformation exports
+     */
+    public async getImportValue(importValueName, nextToken = null): Promise<string> {
+      const params = nextToken ? { NextToken: nextToken } : {};
+      const result = await this.cloudformation.listExports(params).promise();
+      const importValue = result.Exports.find((val: any) => val.Name === importValueName);
+      if (importValue) {
+        return importValue.Value;
+      }
+
+      if (result.NextToken) {
+        return this.getImportValue(importValueName, result.NextToken);
+      }
+
+      return null;
+    }
+
+    /**
      * Gets rest API id from CloudFormation stack
      */
     public async getRestApiId(): Promise<string> {
         if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
+            const restApiId = this.serverless.service.provider.apiGateway.restApiId;
+
+            if (typeof restApiId === "object" && restApiId["Fn::ImportValue"]) {
+              try {
+                const importValue = await this.getImportValue(restApiId["Fn::ImportValue"]);
+                if (importValue) {
+                  return importValue;
+                }
+
+                throw new Error(`Error: CloudFormation ImportValue not found
+                  by ${restApiId["Fn::ImportValue"]}\n`);
+              } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Failed to find CloudFormation ImportValue
+                  by ${restApiId["Fn::ImportValue"]}\n`);
+              }
+            }
+
+            if (typeof restApiId === "object") {
+              throw new Error("Error: Unsupported restApiId object");
+            }
+
             this.serverless.cli.log(`Mapping custom domain to existing API
                 ${this.serverless.service.provider.apiGateway.restApiId}.`);
-            return this.serverless.service.provider.apiGateway.restApiId;
+            return restApiId;
         }
         const stackName = this.serverless.service.provider.stackName ||
             `${this.serverless.service.service}-${this.stage}`;

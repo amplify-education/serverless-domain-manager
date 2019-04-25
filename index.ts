@@ -550,31 +550,31 @@ class ServerlessCustomDomain {
      */
     public async getRestApiId(): Promise<string> {
         if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
-            const restApiId = this.serverless.service.provider.apiGateway.restApiId;
-
-            if (typeof restApiId === "object" && restApiId["Fn::ImportValue"]) {
+            if (typeof this.serverless.service.provider.apiGateway.restApiId === "object" &&
+              this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]) {
               try {
-                const importValue = await this.getImportValue(restApiId["Fn::ImportValue"]);
+                const importValueName = this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"];
+                const importValue = await this.getImportValue(importValueName);
                 if (importValue) {
                   return importValue;
                 }
 
                 throw new Error(`Error: CloudFormation ImportValue not found
-                  by ${restApiId["Fn::ImportValue"]}\n`);
+                  by ${this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]}\n`);
               } catch (err) {
                 this.logIfDebug(err);
                 throw new Error(`Error: Failed to find CloudFormation ImportValue
-                  by ${restApiId["Fn::ImportValue"]}\n`);
+                  by ${this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]}\n`);
               }
             }
 
-            if (typeof restApiId === "object") {
+            if (typeof this.serverless.service.provider.apiGateway.restApiId === "object") {
               throw new Error("Error: Unsupported restApiId object");
             }
 
             this.serverless.cli.log(`Mapping custom domain to existing API
                 ${this.serverless.service.provider.apiGateway.restApiId}.`);
-            return restApiId;
+            return this.serverless.service.provider.apiGateway.restApiId;
         }
         const stackName = this.serverless.service.provider.stackName ||
             `${this.serverless.service.service}-${this.stage}`;

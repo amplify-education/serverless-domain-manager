@@ -636,6 +636,36 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Determines whether this plug-in is enabled for a websocket endpoint
+     *
+     * This method reads the customDomain.websockets property "enabled" to see if this plug-in should be enabled.
+     * If the property's value is undefined, a default value of true is assumed (for backwards
+     * compatibility).
+     * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
+     * If no customDomain.websockets object exists, an exception is thrown.
+     */
+    public evaluateEnabledWs(): boolean {
+        if (typeof this.serverless.service.custom === "undefined"
+            || typeof this.serverless.service.custom.customDomain.websockets === "undefined") {
+            throw new Error("serverless-domain-manager: Plugin configuration is missing.");
+        }
+
+        const enabled = this.serverless.service.custom.customDomain.websockets.enabled;
+
+        if (enabled === undefined) {
+            return true;
+        }
+        if (typeof enabled === "boolean") {
+            return enabled;
+        } else if (typeof enabled === "string" && enabled === "true") {
+            return true;
+        } else if (typeof enabled === "string" && enabled === "false") {
+            return false;
+        }
+        throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: "${enabled}"`);
+    }
+
+    /**
      * Returns information about custom domain name registered in ApiGatewayV2
      */
     public async getDomainInfoWs(): Promise<DomainInfoWs> {

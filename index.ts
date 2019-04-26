@@ -2,6 +2,7 @@
 
 import chalk from "chalk";
 import DomainInfo = require("./DomainInfo");
+import DomainInfoWs = require("./DomainInfoWs");
 import { ServerlessInstance, ServerlessOptions } from "./types";
 
 const endpointTypes = {
@@ -19,7 +20,7 @@ class ServerlessCustomDomain {
     public acm: any;
     public acmRegion: string;
     public cloudformation: any;
-    
+
     public apigatewayv2: any;
     public acmWs: any;
     public acmRegionWs: string;
@@ -632,6 +633,29 @@ class ServerlessCustomDomain {
 
         this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
+    }
+
+    /**
+     * Returns information about custom domain name registered in ApiGatewayV2
+     */
+    public async getDomainInfoWs(): Promise<DomainInfoWs> {
+
+        let domainInfo;
+    
+        const params = {
+            DomainName: this.givenDomainNameWs,
+        };
+
+        try {
+            domainInfo = await this.apigatewayv2.getDomainName(params).promise();
+            return new DomainInfoWs(domainInfo);
+        }
+        catch (err) {
+            if (err.code === "NotFoundException") {
+                throw new Error(`Error: Domain name ${params.DomainName} not found.`);
+            }
+            throw new Error(`Error: Unable to fetch information about ${params.DomainName}`);
+        }
     }
 }
 

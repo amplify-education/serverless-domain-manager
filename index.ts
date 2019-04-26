@@ -738,8 +738,74 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Failed to create custom domain ${params.DomainName}\n`);
         }
-        
+
         return new DomainInfoWs(createdDomain);
+    }
+
+    /**
+     * Gets Route53 HostedZoneId for a websocket custom domain name from user or from AWS
+     */
+    public async getRoute53HostedZoneIdWs(): Promise<string> {
+
+        let givenHostedZoneId = this.serverless.service.custom.customDomain.websockets.hostedZoneId;
+
+        if (givenHostedZoneId) {
+            this.serverless.cli.log(
+                `Selected specific hostedZoneId ${givenHostedZoneId}`);
+            return givenHostedZoneId;
+        }
+
+        let hostedZonePrivate = this.hostedZonePrivateWs;
+
+        const filterZone = hostedZonePrivate !== undefined;
+        if (filterZone && hostedZonePrivate) {
+            this.serverless.cli.log("Filtering to only private zones.");
+        } else if (filterZone && !hostedZonePrivate) {
+            this.serverless.cli.log("Filtering to only public zones.");
+        }
+
+        let hostedZoneData;
+        const givenDomainNameReverse = this.givenDomainNameWs.split(".").reverse();
+
+        try {
+            hostedZoneData = await this.route53.listHostedZones({}).promise();
+            const targetHostedZone = hostedZoneData.HostedZones
+                .filter((hostedZone) => {
+                    let hostedZoneName;
+                    if (hostedZone.Name.endsWith(".")) {
+                        hostedZoneName = hostedZone.Name.slice(0, -1);
+                    } else {
+                        hostedZoneName = hostedZone.Name;
+                    }
+                    if (!filterZone || hostedZonePrivate === hostedZone.Config.PrivateZone) {
+                        const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
+
+                        if (givenDomainNameReverse.length === 1
+                            || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
+                            for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
+                                if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+                .shift();
+
+            if (targetHostedZone) {
+                const hostedZoneId = targetHostedZone.Id;
+                // Extracts the hostzone Id
+                const startPos = hostedZoneId.indexOf("e/") + 2;
+                const endPos = hostedZoneId.length;
+                return hostedZoneId.substring(startPos, endPos);
+            }
+        } catch (err) {
+            throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+        }
+        throw new Error(`Error: Could not find hosted zone "${this.givenDomainNameWs}"`);
     }
 }
 

@@ -1042,6 +1042,24 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("Unable to remove basepath mapping.");
         }
     }
+
+    /**
+     *  Adds the websocket domain name and distribution domain name to the CloudFormation outputs
+     */
+    public addOutputsWs(domainInfo: DomainInfoWs): void {
+        const service = this.serverless.service;
+        if (!service.provider.compiledCloudFormationTemplate.Outputs) {
+            service.provider.compiledCloudFormationTemplate.Outputs = {};
+        }
+        service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
+            Value: domainInfo.domainName,
+        };
+        if (domainInfo.hostedZoneId) {
+            service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {
+                Value: domainInfo.hostedZoneId,
+            };
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

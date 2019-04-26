@@ -1093,12 +1093,15 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
+      expect(plugin.enabledWs).to.equal(true);
     });
 
     it("Should enable the plugin when passing a true parameter with type boolean", () => {
       const plugin = constructPlugin({
         enabled: true,
-        websockets: {}
+        websockets: {
+          enabled: true,
+        }
       });
 
       plugin.initializeVariables();
@@ -1107,12 +1110,15 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
+      expect(plugin.enabledWs).to.equal(true);
     });
 
     it("Should enable the plugin when passing a true parameter with type string", () => {
       const plugin = constructPlugin({
         enabled: "true",
-        websockets: {}
+        websockets: {
+          enabled: "true",
+        }
       });
 
       plugin.initializeVariables();
@@ -1121,87 +1127,109 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
+      expect(plugin.enabledWs).to.equal(true);
     });
 
     it("Should disable the plugin when passing a false parameter with type boolean", () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       plugin.initializeVariables();
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
     });
 
     it("Should disable the plugin when passing a false parameter with type string", () => {
       const plugin = constructPlugin({
         enabled: "false",
-        websockets: {}
+        websockets: {
+          enabled: "false",
+        }
       });
 
       plugin.initializeVariables();
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
     });
 
     it("createDomain should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       const result = await plugin.hookWrapper(plugin.createDomain);
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
     it("deleteDomain should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       const result = await plugin.hookWrapper(plugin.deleteDomain);
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
     it("setUpBasePathMapping should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       const result = await plugin.hookWrapper(plugin.setupBasePathMapping);
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
     it("removeBasePathMapping should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       const result = await plugin.hookWrapper(plugin.removeBasePathMapping);
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
     it("domainSummary should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
-        websockets: {}
+        websockets: {
+          enabled: false,
+        }
       });
 
       const result = await plugin.hookWrapper(plugin.domainSummary);
 
       expect(plugin.enabled).to.equal(false);
+      expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 

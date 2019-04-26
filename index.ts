@@ -1092,6 +1092,21 @@ class ServerlessCustomDomain {
             console.log(err.message);
         }
     }
+
+    /**
+     * Lifecycle function to delete domains
+     * Wraps deleting domains and resource record sets
+     */
+    public async deleteDomains(): Promise<void> {
+        
+        try {
+            await this.deleteDomain();
+            await this.deleteDomainWs();
+        }
+        catch (err) {
+            console.log(err.message);
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

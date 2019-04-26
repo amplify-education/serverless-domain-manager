@@ -900,6 +900,27 @@ class ServerlessCustomDomain {
             throw new Error(`Error: Failed to delete custom domain ${params.DomainName}\n`);
         }
     }
+
+    /**
+     * Wrapper function to delete a websocket custom domain and a corresponding Route53 record
+     */
+    public async deleteDomainWs(): Promise<void> {
+        let domainInfo;
+        let givenDomainName = this.givenDomainNameWs;
+        try {
+            domainInfo = await this.getDomainInfoWs();
+        } catch (err) {
+            if (err.message === `Error: ${givenDomainName} not found.`) {
+                this.serverless.cli.log(`Unable to delete custom domain ${givenDomainName}.`);
+                return;
+            }
+            throw err;
+        }
+        await this.deleteCustomDomainWs();
+        await this.changeResourceRecordSetWs("DELETE", domainInfo);
+        this.serverless.cli.log(`Custom domain ${givenDomainName} was deleted.`);
+    }
+
 }
 
 export = ServerlessCustomDomain;

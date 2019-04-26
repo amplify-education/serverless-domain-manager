@@ -1076,6 +1076,22 @@ class ServerlessCustomDomain {
         this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
     }
+
+    /**
+     * Lifecycle function to create both HTTP and WSS domains
+     * Wraps creating domains and resource record sets
+     */
+    public async createDomains(): Promise<void> {
+
+        try {
+            await this.createDomain();
+            await new Promise(done => setTimeout(done, 30000));
+            await this.createDomainWs();
+        }
+        catch (err) {
+            console.log(err.message);
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

@@ -30,6 +30,7 @@ export interface ServerlessInstance { // tslint:disable-line
         aws: {
             sdk: {
                 APIGateway: any,
+                ApiGatewayV2: any,
                 Route53: any,
                 CloudFormation: any,
                 ACM: any,

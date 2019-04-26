@@ -49,6 +49,7 @@ const constructPlugin = (customDomainOptions) => {
         sdk: {
           ACM: aws.ACM,
           APIGateway: aws.APIGateway,
+          ApiGatewayV2: aws.ApiGatewayV2,
           CloudFormation: aws.CloudFormation,
           Route53: aws.Route53,
         },

@@ -807,6 +807,60 @@ class ServerlessCustomDomain {
         }
         throw new Error(`Error: Could not find hosted zone "${this.givenDomainNameWs}"`);
     }
+
+    /**
+     * Change A Alias record through Route53 based on given action
+     * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
+     * @param domain: DomainInfoWs object containing info about websocket custom domain
+     */
+    public async changeResourceRecordSetWs(action: string, domain: DomainInfoWs): Promise<void> {
+        if (action !== "UPSERT" && action !== "DELETE") {
+            throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
+                Action must be either UPSERT or DELETE.\n`);
+        }
+
+        const createRoute53Record = this.serverless.service.custom.customDomain.websockets.createRoute53Record;
+        if (createRoute53Record !== undefined && createRoute53Record === false) {
+            this.serverless.cli.log("Skipping creation of Route53 record.");
+            return;
+        }
+
+        // Set up parameters
+        const route53HostedZoneId = await this.getRoute53HostedZoneIdWs();
+        const params = {
+            ChangeBatch: {
+                Changes: [
+                    {
+                        Action: action,
+                        ResourceRecordSet: {
+                            AliasTarget: {
+                                DNSName: domain.apiGatewayDomainName,
+                                EvaluateTargetHealth: false,
+                                HostedZoneId: domain.hostedZoneId,
+                            },
+                            Name: this.givenDomainNameWs,
+                            Type: "A",
+                        },
+                    },
+                ],
+                Comment: "Record created by serverless-domain-manager",
+            },
+            HostedZoneId: route53HostedZoneId,
+        };
+
+        // Make API call
+        try {
+            await this.route53.changeResourceRecordSets(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainNameWs}\n`);
+        }
+        if (action === 'UPSERT') {
+            this.serverless.cli.log(
+                `Custom domain ${this.givenDomainNameWs} was created.
+            New domains may take up to 40 minutes to be initialized.`,
+            );
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

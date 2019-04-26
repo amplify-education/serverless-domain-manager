@@ -921,6 +921,30 @@ class ServerlessCustomDomain {
         this.serverless.cli.log(`Custom domain ${givenDomainName} was deleted.`);
     }
 
+    /**
+     * Gets websocket API ID from CloudFormation stack
+     */
+    public async getWssApiId(): Promise<string> {
+
+        const stackName = this.serverless.service.provider.stackName ||
+            `${this.serverless.service.service}-${this.stage}`;
+        const params = {
+            LogicalResourceId: "WebsocketsApi",
+            StackName: stackName,
+        };
+
+        let response;
+        try {
+            response = await this.cloudformation.describeStackResource(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
+        }
+        const wssApiId = response.StackResourceDetail.PhysicalResourceId;
+        if (!wssApiId) {
+            throw new Error(`Error: No WssApiId associated with CloudFormation stack ${stackName}`);
+        }
+        return wssApiId;
+    }
 }
 
 export = ServerlessCustomDomain;

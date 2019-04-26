@@ -1044,7 +1044,8 @@ class ServerlessCustomDomain {
     }
 
     /**
-     *  Adds the websocket domain name and distribution domain name to the CloudFormation outputs
+     * Adds the websocket domain name and distribution domain name to the CloudFormation outputs
+     * @param domainInfo: Information about custom domain received from API gateway V2 
      */
     public addOutputsWs(domainInfo: DomainInfoWs): void {
         const service = this.serverless.service;
@@ -1059,6 +1060,21 @@ class ServerlessCustomDomain {
                 Value: domainInfo.hostedZoneId,
             };
         }
+    }
+
+    /**
+     * Prints websocket custom domain summary
+     * @param domainInfo: Information about custom domain received from API gateway V2
+     */
+    private printDomainSummaryWs(domainInfo: DomainInfoWs): void {
+
+        if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+            this.serverless.cli.consoleLog(chalk.yellow("Websockets Domain Name"));
+            this.serverless.cli.consoleLog(`  ${this.givenDomainNameWs}`);
+        }
+
+        this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
+        this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
     }
 }
 

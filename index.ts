@@ -19,6 +19,10 @@ class ServerlessCustomDomain {
     public acm: any;
     public acmRegion: string;
     public cloudformation: any;
+    
+    public apigatewayv2: any;
+    public acmWs: any;
+    public acmRegionWs: string;
 
     // Serverless specific properties
     public serverless: ServerlessInstance;
@@ -33,6 +37,17 @@ class ServerlessCustomDomain {
     public basePath: string;
     private endpointType: string;
     private stage: string;
+    private certificateName: string;
+    private certificateArn: string;
+
+    public enabledWs: boolean;
+    public givenDomainNameWs: string;
+    public hostedZonePrivateWs: boolean;
+    public basePathWs: string;
+    private endpointTypeWs: string;
+    private stageWs: string;
+    private certificateNameWs: string;
+    private certificateArnWs: string;
 
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
         this.serverless = serverless;

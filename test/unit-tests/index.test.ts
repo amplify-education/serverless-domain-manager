@@ -1080,12 +1080,10 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[2]).to.contain("test_domain");
       expect(consoleOutput[3]).to.contain("Distribution Domain Name");
       expect(consoleOutput[4]).to.contain("test_distributed_domain_name");
-      /*
       expect(consoleOutput[5]).to.contain("Websockets Domain Name");
-      expect(consoleOutput[6]).to.contain("test_domain");
+      expect(consoleOutput[6]).to.contain("test_wss_domain");
       expect(consoleOutput[7]).to.contain("API Gateway Domain Name");
       expect(consoleOutput[8]).to.contain("test_api_gateway_domain_name");
-      */
     });
 
     afterEach(() => {

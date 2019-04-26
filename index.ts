@@ -1182,7 +1182,7 @@ class ServerlessCustomDomain {
         }
 
         this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
-        this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
+        this.serverless.cli.consoleLog(`  ${domainInfo.apiGatewayDomainName}`);
     }
 
     /**

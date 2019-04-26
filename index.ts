@@ -922,7 +922,7 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Gets websocket API ID from CloudFormation stack
+     * Gets websocket API ID from CloudFormation stack for the custom domain to be mapped on
      */
     public async getWssApiId(): Promise<string> {
 
@@ -1002,7 +1002,7 @@ class ServerlessCustomDomain {
 
     /**
      * Updates existing websocket API mapping using API gateway V2
-     * @param wssApiId: ID of a websocket API to be mapped on 
+     * @param wssApiId: ID of a websocket API for the custom domain to be mapped on 
      * @param apiMappingId: ID of an already existing API mapping in API gateway V2 
      */
     public async updateApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
@@ -1019,6 +1019,27 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("Updated API mapping.");
         } catch (err) {
             throw new Error(`Error: Unable to update API mapping.\n`);
+        }
+    }
+
+    /**
+     * Deletes existing websocket API mapping using API gateway V2
+     * @param wssApiId: ID of a websocket API which the custom domain is mapped on 
+     * @param apiMappingId: ID of an already existing API mapping in API gateway V2 
+     */
+    public async deleteApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
+        const params = {
+            ApiMappingId: apiMappingId,
+            DomainName: this.givenDomainNameWs,
+            ApiId: wssApiId
+        };
+        // Make API call
+        try {
+            //await this.serverless.providers.aws.request('ApiGatewayV2', 'deleteApiMapping', params);
+            await this.apigatewayv2.deleteApiMapping(params).promise();
+            this.serverless.cli.log("Removed basepath mapping.");
+        } catch (err) {
+            this.serverless.cli.log("Unable to remove basepath mapping.");
         }
     }
 }

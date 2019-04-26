@@ -1044,6 +1044,26 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Lifecycle function to setup a websocket API mapping
+     * Wraps creation of an API mapping and adds domain name info as output to cloudformation stack
+     */
+    public async setupApiMappingWs(): Promise<void> {
+
+        // check if basepathmapping exists
+        const wssApiId = await this.getWssApiId();
+        const currentApiMappingId = await this.getApiMappingWs(wssApiId);
+
+        let apiMapping;
+
+        if (!currentApiMappingId) {
+            apiMapping = await this.createApiMappingWs(wssApiId);
+        } else {
+            apiMapping = await this.updateApiMappingWs(wssApiId, currentApiMappingId);
+        }
+
+    }
+
+    /**
      * Adds the websocket domain name and distribution domain name to the CloudFormation outputs
      * @param domainInfo: Information about custom domain received from API gateway V2 
      */
@@ -1107,6 +1127,21 @@ class ServerlessCustomDomain {
             console.log(err.message);
         }
     }
+
+    /**
+     * Lifecycle function to setup API mappings for HTTP and websocket endpoints
+     */
+    public async setupMappings(): Promise<void> {
+
+        try {
+            await this.setupBasePathMapping();
+            await this.setupApiMappingWs();
+        }
+        catch (err) {
+            console.log(err.message);
+        }
+    }
+
 }
 
 export = ServerlessCustomDomain;

@@ -184,12 +184,19 @@ class ServerlessCustomDomain {
      */
     public initializeVariables(): void {
         this.enabled = this.evaluateEnabled();
-        if (this.enabled) {
-            const credentials = this.serverless.providers.aws.getCredentials();
+        this.enabledWs = this.evaluateEnabledWs();
+
+        let credentials;
+
+        if (this.enabled || this.enabledWs) {
+            credentials = this.serverless.providers.aws.getCredentials();
 
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
             this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
+        }
+
+        if (this.enabled) {
 
             this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
 
@@ -217,6 +224,44 @@ class ServerlessCustomDomain {
                 this.serverless.providers.aws.getRegion() : "us-east-1";
             const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
             this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
+        }
+
+        if (this.enabledWs) {
+
+            this.givenDomainNameWs = this.serverless.service.custom.customDomain.websockets.domainName;
+
+            this.certificateNameWs = this.serverless.service.custom.customDomain.websockets.certificateName;
+
+            this.certificateArnWs = this.serverless.service.custom.customDomain.websockets.certificateArn;
+
+            this.hostedZonePrivateWs = this.serverless.service.custom.customDomain.websockets.hostedZonePrivate;
+            let basePath = this.serverless.service.custom.customDomain.websockets.basePath;
+            if (basePath == null || basePath.trim() === "") {
+                basePath = "(none)";
+            }
+            this.basePathWs = basePath;
+
+            let stage = this.serverless.service.custom.customDomain.websockets.stage;
+            if (typeof stage === "undefined") {
+                stage = this.options.stage || this.serverless.service.provider.stage;
+            }
+            this.stageWs = stage;
+
+            /* TODO: the same for websockets endpointType */
+            const endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
+                endpointTypes.edge;
+            const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
+            if (!endpointTypeToUse) {
+                throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
+            }
+            this.endpointTypeWs = endpointTypeToUse;
+
+            this.acmRegionWs = this.endpointTypeWs === endpointTypes.regional ?
+                this.serverless.providers.aws.getRegion() : "us-east-1";
+
+            const acmCredentialsWs = Object.assign({}, credentials, { region: this.acmRegionWs });
+
+            this.acmWs = new this.serverless.providers.aws.sdk.ACM(acmCredentialsWs);
         }
     }
 

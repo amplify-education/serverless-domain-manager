@@ -657,6 +657,62 @@ class ServerlessCustomDomain {
             throw new Error(`Error: Unable to fetch information about ${params.DomainName}`);
         }
     }
+
+    /**
+     * Gets Certificate ARN of a websocket custom domain that most closely matches domain name OR given Cert ARN if provided
+     */
+    public async getCertArnWs(): Promise<string> {
+
+        let certificateArn = this.certificateArnWs; // The arn of the choosen certificate
+        let certificateName = this.certificateNameWs; // The certificate name
+        let certData;
+
+        if (this.serverless.service.custom.customDomain.websockets.certificateArn) {
+            this.serverless.cli.log(
+                `Selected specific certificateArn ${this.serverless.service.custom.customDomain.websockets.certificateArn}`);
+            return this.serverless.service.custom.customDomain.websockets.certificateArn;
+        }
+
+        try {
+            certData = await this.acmWs.listCertificates(
+                { CertificateStatuses: certStatuses }).promise();
+            // The more specific name will be the longest
+            let nameLength = 0;
+            const certificates = certData.CertificateSummaryList;
+
+            // Checks if a certificate name is given
+            if (certificateName != null) {
+                const foundCertificate = certificates
+                    .find((certificate) => (certificate.DomainName === certificateName));
+                if (foundCertificate != null) {
+                    certificateArn = foundCertificate.CertificateArn;
+                }
+            } else {
+                certificateName = this.givenDomainNameWs;
+                certificates.forEach((certificate) => {
+                    let certificateListName = certificate.DomainName;
+                    // Looks for wild card and takes it out when checking
+                    if (certificateListName[0] === "*") {
+                        certificateListName = certificateListName.substr(1);
+                    }
+                    // Looks to see if the name in the list is within the given domain
+                    // Also checks if the name is more specific than previous ones
+                    if (certificateName.includes(certificateListName)
+                        && certificateListName.length > nameLength) {
+                        nameLength = certificateListName.length;
+                        certificateArn = certificate.CertificateArn;
+                    }
+                });
+            }
+        } catch (err) {
+            throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
+        }
+        if (certificateArn == null) {
+            throw Error(`Error: Could not find the certificate ${certificateName}.`);
+        }
+
+        return certificateArn;
+    }
 }
 
 export = ServerlessCustomDomain;

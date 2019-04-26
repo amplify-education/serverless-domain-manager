@@ -1060,12 +1060,19 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: params, distributionDomainName: "test_distributed_domain_name" });
       });
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, { DomainName: params, DomainNameConfigurations: [ {ApiGatewayDomainName: "test_api_gateway_domain_name"} ] });
+      });
       const plugin = constructPlugin({
         domainName: "test_domain",
-        websockets: {}
+        websockets: {
+          domainName: "test_wss_domain",
+        }
       });
       plugin.apigateway = new aws.APIGateway();
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
 
       await plugin.domainSummary();
       expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
@@ -1073,6 +1080,12 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[2]).to.contain("test_domain");
       expect(consoleOutput[3]).to.contain("Distribution Domain Name");
       expect(consoleOutput[4]).to.contain("test_distributed_domain_name");
+      /*
+      expect(consoleOutput[5]).to.contain("Websockets Domain Name");
+      expect(consoleOutput[6]).to.contain("test_domain");
+      expect(consoleOutput[7]).to.contain("API Gateway Domain Name");
+      expect(consoleOutput[8]).to.contain("test_api_gateway_domain_name");
+      */
     });
 
     afterEach(() => {

@@ -85,7 +85,7 @@ class ServerlessCustomDomain {
      */
     public async hookWrapper(lifecycleFunc: any) {
         this.initializeVariables();
-        
+
         if (!this.enabled && !this.enabledWs) {
             this.serverless.cli.log("serverless-domain-manager: Custom domain generation is disabled.");
             return;
@@ -177,10 +177,20 @@ class ServerlessCustomDomain {
      */
     public async domainSummary(): Promise<void> {
         const domainInfo = await this.getDomainInfo();
+        const domainInfoWs = await this.getDomainInfoWs();
+
+        this.serverless.cli.consoleLog(chalk.yellow.underline("Serverless Domain Manager Summary"));
+
         if (domainInfo) {
             this.printDomainSummary(domainInfo);
         } else {
-            this.serverless.cli.log("Unable to print Serverless Domain Manager Summary");
+            this.serverless.cli.log("Unable to print Serverless Domain Manager Summary for HTTP endpoints");
+        }
+
+        if (domainInfoWs) {
+            this.printDomainSummaryWs(domainInfoWs);
+        } else {
+            this.serverless.cli.log("Unable to print Serverless Domain Manager Summary for websocket endpoints");
         }
     }
 
@@ -674,7 +684,6 @@ class ServerlessCustomDomain {
      * Prints out a summary of all domain manager related info
      */
     private printDomainSummary(domainInfo: DomainInfo): void {
-        this.serverless.cli.consoleLog(chalk.yellow.underline("Serverless Domain Manager Summary"));
 
         if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
             this.serverless.cli.consoleLog(chalk.yellow("Domain Name"));

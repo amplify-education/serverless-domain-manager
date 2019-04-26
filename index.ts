@@ -883,6 +883,23 @@ class ServerlessCustomDomain {
             this.serverless.cli.log(`Custom domain ${givenDomainName} already exists.`);
         }
     }
+
+    /**
+     * Delete a websocket Custom Domain Name through API Gateway V2
+     */
+    public async deleteCustomDomainWs(): Promise<void> {
+        
+        const params = {
+            DomainName: this.givenDomainNameWs,
+        };
+
+        // Make API call
+        try {
+            await this.apigatewayv2.deleteDomainName(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Failed to delete custom domain ${params.DomainName}\n`);
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

@@ -199,6 +199,8 @@ class ServerlessCustomDomain {
         if (this.enabled) {
 
             this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
+            this.certificateName = this.serverless.service.custom.customDomain.certificateName;
+            this.certificateArn = this.serverless.service.custom.customDomain.certificateArn;
 
             this.hostedZonePrivate = this.serverless.service.custom.customDomain.hostedZonePrivate;
             let basePath = this.serverless.service.custom.customDomain.basePath;
@@ -229,9 +231,7 @@ class ServerlessCustomDomain {
         if (this.enabledWs) {
 
             this.givenDomainNameWs = this.serverless.service.custom.customDomain.websockets.domainName;
-
             this.certificateNameWs = this.serverless.service.custom.customDomain.websockets.certificateName;
-
             this.certificateArnWs = this.serverless.service.custom.customDomain.websockets.certificateArn;
 
             this.hostedZonePrivateWs = this.serverless.service.custom.customDomain.websockets.hostedZonePrivate;
@@ -1178,9 +1178,13 @@ class ServerlessCustomDomain {
     public async createDomains(): Promise<void> {
 
         try {
-            await this.createDomain();
-            await new Promise(done => setTimeout(done, 30000));
-            await this.createDomainWs();
+            if (this.enabled) {
+                await this.createDomain();
+                await new Promise(done => setTimeout(done, 30000));
+            }
+            if (this.enabledWs) {
+                await this.createDomainWs();
+            }
         }
         catch (err) {
             console.log(err.message);
@@ -1194,8 +1198,12 @@ class ServerlessCustomDomain {
     public async deleteDomains(): Promise<void> {
         
         try {
-            await this.deleteDomain();
-            await this.deleteDomainWs();
+            if (this.enabled) {
+                await this.deleteDomain();
+            }
+            if (this.enabledWs) {
+                await this.deleteDomainWs();
+            }
         }
         catch (err) {
             console.log(err.message);
@@ -1208,8 +1216,12 @@ class ServerlessCustomDomain {
     public async setupMappings(): Promise<void> {
 
         try {
-            await this.setupBasePathMapping();
-            await this.setupApiMappingWs();
+            if (this.enabled) {
+                await this.setupBasePathMapping();
+            }
+            if (this.enabledWs) {
+                await this.setupApiMappingWs();
+            }
         }
         catch (err) {
             console.log(err.message);
@@ -1221,12 +1233,15 @@ class ServerlessCustomDomain {
      */
     public async removeMappings(): Promise<void> {
 
-        const wssApiId = await this.getWssApiId();
-        const currentApiMappingId = await this.getApiMappingWs(wssApiId);
-
         try {
-            await this.deleteBasePathMapping();
-            await this.deleteApiMappingWs(wssApiId, currentApiMappingId);
+            if (this.enabled) {
+                await this.deleteBasePathMapping();
+            }
+            if (this.enabledWs) {
+                const wssApiId = await this.getWssApiId();
+                const currentApiMappingId = await this.getApiMappingWs(wssApiId);
+                await this.deleteApiMappingWs(wssApiId, currentApiMappingId);
+            }
         }
         catch (err) {
             console.log(err.message);

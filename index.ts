@@ -999,6 +999,28 @@ class ServerlessCustomDomain {
 
         return apiMapping;
     }
+
+    /**
+     * Updates existing websocket API mapping using API gateway V2
+     * @param wssApiId: ID of a websocket API to be mapped on 
+     * @param apiMappingId: ID of an already existing API mapping in API gateway V2 
+     */
+    public async updateApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
+        const params = {
+            DomainName: this.givenDomainNameWs,
+            ApiId: wssApiId,
+            ApiMappingId: apiMappingId,
+            ApiMappingKey: '',
+            Stage: this.stageWs
+        };
+        // Make API call
+        try {
+            await this.apigatewayv2.updateApiMapping(params).promise();
+            this.serverless.cli.log("Updated API mapping.");
+        } catch (err) {
+            throw new Error(`Error: Unable to update API mapping.\n`);
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

@@ -713,6 +713,34 @@ class ServerlessCustomDomain {
 
         return certificateArn;
     }
+
+    /**
+     * Creates Custom Domain Name for a websocket endpoint through API Gateway V2
+     * @param certificateArn: Certificate ARN to use for custom domain
+     */
+    public async createCustomDomainWs(certificateArn: string): Promise<DomainInfoWs> {
+
+        // Set up parameters
+        const params = {
+            DomainName: this.givenDomainNameWs,
+            DomainNameConfigurations: [
+                {
+                    CertificateName: this.certificateNameWs,
+                    CertificateArn: certificateArn,
+                }
+            ]
+        };
+
+        // Make API call
+        let createdDomain = {};
+        try {
+            createdDomain = await this.apigatewayv2.createDomainName(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Failed to create custom domain ${params.DomainName}\n`);
+        }
+        
+        return new DomainInfoWs(createdDomain);
+    }
 }
 
 export = ServerlessCustomDomain;

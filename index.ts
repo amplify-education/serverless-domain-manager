@@ -85,12 +85,17 @@ class ServerlessCustomDomain {
      */
     public async hookWrapper(lifecycleFunc: any) {
         this.initializeVariables();
-        if (!this.enabled) {
-            this.serverless.cli.log("serverless-domain-manager: Custom domain is disabled.");
+        
+        if (!this.enabled && !this.enabledWs) {
+            this.serverless.cli.log("serverless-domain-manager: Custom domain generation is disabled.");
             return;
-        } else {
-            return await lifecycleFunc.call(this);
+        } else if (!this.enabled) {
+            this.serverless.cli.log("serverless-domain-manager: Custom domain for HTTP endpoints is disabled.");
+        } else if (!this.enabledWs) {
+            this.serverless.cli.log("serverless-domain-manager: Custom domain for websocket endpoints is disabled.");
         }
+        
+        return await lifecycleFunc.call(this);
     }
 
     /**

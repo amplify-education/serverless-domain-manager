@@ -945,6 +945,35 @@ class ServerlessCustomDomain {
         }
         return wssApiId;
     }
+
+    /**
+     * Gets existing websocket API mappings in API gateway V2 for a given custom domain name
+     * @param wssApiId: ID of the existing websocket API in the CloudFormation stack
+     */
+    public async getApiMappingWs(wssApiId: string): Promise<string> {
+        
+        const params = {
+            DomainName: this.givenDomainNameWs,
+        };
+        let apiInfo;
+        let currentApiMappingId;
+
+        try {
+            apiInfo = await this.apigatewayv2.getApiMappings(params).promise();
+        } catch (err) {
+            throw new Error(`Error: Unable to get ApiMappings for ${params.DomainName}`);
+        }
+        
+        if (apiInfo.Items !== undefined && apiInfo.Items instanceof Array) {
+            for (const apiObj of apiInfo.Items) {
+                if (apiObj.ApiId === wssApiId) {
+                    currentApiMappingId = apiObj.ApiMappingId;
+                    break;
+                }
+            }
+        }
+        return currentApiMappingId;
+    }
 }
 
 export = ServerlessCustomDomain;

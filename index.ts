@@ -974,6 +974,31 @@ class ServerlessCustomDomain {
         }
         return currentApiMappingId;
     }
+
+    /**
+     * Creates an API mapping for a custom domain using API gateway V2
+     * @param wssApiId: ID of the existing websocket API in the CloudFormation stack 
+     */
+    public async createApiMappingWs(wssApiId: string): Promise<any> {
+        const params = {
+            DomainName: this.givenDomainNameWs,
+            ApiId: wssApiId,
+            Stage: this.stageWs,
+            ApiMappingKey: ''
+        };
+        // Make API call
+        let apiMapping;
+        try {
+            //apiMapping = await this.serverless.providers.aws.request('ApiGatewayV2', 'createApiMapping', params);
+            apiMapping = await this.apigatewayv2.createApiMapping(params).promise();
+            this.serverless.cli.log("Created API mapping.");
+        } catch (err) {
+            console.log(err.message);
+            throw new Error(`Error: Unable to create an API mapping.\n`);
+        }
+
+        return apiMapping;
+    }
 }
 
 export = ServerlessCustomDomain;

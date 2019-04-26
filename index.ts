@@ -1049,7 +1049,6 @@ class ServerlessCustomDomain {
      */
     public async setupApiMappingWs(): Promise<void> {
 
-        // check if basepathmapping exists
         const wssApiId = await this.getWssApiId();
         const currentApiMappingId = await this.getApiMappingWs(wssApiId);
 
@@ -1136,6 +1135,23 @@ class ServerlessCustomDomain {
         try {
             await this.setupBasePathMapping();
             await this.setupApiMappingWs();
+        }
+        catch (err) {
+            console.log(err.message);
+        }
+    }
+    
+    /**
+     * Lifecycle function to remove API mappings for HTTP and websocket endpoints
+     */
+    public async removeMappings(): Promise<void> {
+
+        const wssApiId = await this.getWssApiId();
+        const currentApiMappingId = await this.getApiMappingWs(wssApiId);
+
+        try {
+            await this.deleteBasePathMapping();
+            await this.deleteApiMappingWs(wssApiId, currentApiMappingId);
         }
         catch (err) {
             console.log(err.message);

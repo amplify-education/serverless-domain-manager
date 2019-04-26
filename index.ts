@@ -71,11 +71,11 @@ class ServerlessCustomDomain {
             },
         };
         this.hooks = {
-            "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMapping),
+            "after:deploy:deploy": this.hookWrapper.bind(this, this.setupMappings),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummary),
-            "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMapping),
-            "create_domain:create": this.hookWrapper.bind(this, this.createDomain),
-            "delete_domain:delete": this.hookWrapper.bind(this, this.deleteDomain),
+            "before:remove:remove": this.hookWrapper.bind(this, this.removeMappings),
+            "create_domain:create": this.hookWrapper.bind(this, this.createDomains),
+            "delete_domain:delete": this.hookWrapper.bind(this, this.deleteDomains),
         };
     }
 

@@ -861,6 +861,28 @@ class ServerlessCustomDomain {
             );
         }
     }
+
+    /**
+     * Wrapper function to create a websocket custom domain and a corresponding Route53 record
+     */
+    public async createDomainWs(): Promise<void> {
+        let domainInfo;
+        const givenDomainName = this.givenDomainNameWs;
+
+        try {
+            domainInfo = await this.getDomainInfoWs();
+        } catch (err) {
+            console.log(err.message);
+        }
+
+        if (!domainInfo) {
+            const certArn = await this.getCertArnWs();
+            domainInfo = await this.createCustomDomainWs(certArn);
+            await this.changeResourceRecordSetWs("UPSERT", domainInfo);
+        } else {
+            this.serverless.cli.log(`Custom domain ${givenDomainName} already exists.`);
+        }
+    }
 }
 
 export = ServerlessCustomDomain;

@@ -206,12 +206,13 @@ class ServerlessCustomDomain {
         if (this.enabled || this.enabledWs) {
             credentials = this.serverless.providers.aws.getCredentials();
 
-            this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
             this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
         }
 
         if (this.enabled) {
+
+            this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
 
             this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
             this.certificateName = this.serverless.service.custom.customDomain.certificateName;
@@ -244,6 +245,8 @@ class ServerlessCustomDomain {
         }
 
         if (this.enabledWs) {
+
+            this.apigatewayv2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);
 
             this.givenDomainNameWs = this.serverless.service.custom.customDomain.websockets.domainName;
             this.certificateNameWs = this.serverless.service.custom.customDomain.websockets.certificateName;

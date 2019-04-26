@@ -68,6 +68,18 @@ const constructPlugin = (customDomainOptions) => {
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
           stage: customDomainOptions.stage,
+          websockets: {
+            domainName: customDomainOptions.websockets.domainName,
+            basePath: customDomainOptions.websockets.basePath,
+            stage: customDomainOptions.websockets.stage,
+            certificateName: customDomainOptions.websockets.certificateName,
+            certificateArn: customDomainOptions.websockets.certificateArn,
+            createRoute53Record: customDomainOptions.websockets.createRoute53Record,
+            endpointType: customDomainOptions.websockets.endpointType,
+            hostedZoneId: customDomainOptions.websockets.hostedZoneId,
+            hostedZonePrivate: customDomainOptions.websockets.hostedZonePrivate,
+            enabled: customDomainOptions.websockets.enabled,
+          },
         },
       },
       provider: {
@@ -91,7 +103,7 @@ const constructPlugin = (customDomainOptions) => {
 
 describe("Custom Domain Plugin", () => {
   it("Checks aws config", () => {
-    const plugin = constructPlugin({});
+    const plugin = constructPlugin({ websockets: {} });
 
     plugin.initializeVariables();
 
@@ -102,7 +114,7 @@ describe("Custom Domain Plugin", () => {
 
   describe("Domain Endpoint types", () => {
     it("Unsupported endpoint types throw exception", () => {
-      const plugin = constructPlugin({ endpointType: "notSupported" });
+      const plugin = constructPlugin({ endpointType: "notSupported", websockets: {} });
 
       let errored = false;
       try {
@@ -123,6 +135,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {},
       });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
@@ -146,6 +159,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
@@ -170,6 +184,7 @@ describe("Custom Domain Plugin", () => {
     it("Add Domain Name and HostedZoneId to stack output", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.addOutputs(new DomainInfo({
         distributionDomainName: "fake_dist_name",
@@ -188,6 +203,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
@@ -211,6 +227,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: null,
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
@@ -233,6 +250,7 @@ describe("Custom Domain Plugin", () => {
 
       const plugin = constructPlugin({
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
@@ -255,6 +273,7 @@ describe("Custom Domain Plugin", () => {
 
       const plugin = constructPlugin({
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.initializeVariables();
       plugin.cloudformation = new aws.CloudFormation();
@@ -284,6 +303,7 @@ describe("Custom Domain Plugin", () => {
       const options = {
         certificateArn: "test_given_arn",
         endpointType: "REGIONAL",
+        websockets: {}
       };
       const plugin = constructPlugin(options);
       plugin.acm = new aws.ACM();
@@ -296,7 +316,10 @@ describe("Custom Domain Plugin", () => {
     it("Get a given certificate name", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
-      const plugin = constructPlugin({ certificateName: "cert_name" });
+      const plugin = constructPlugin({ 
+        certificateName: "cert_name",
+        websockets: {}
+      });
       plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
@@ -309,7 +332,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, { distributionDomainName: "foo" });
       });
 
-      const plugin = constructPlugin({ domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -327,7 +353,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin({ basePath: "test_basepath" });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        websockets: {}
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test_domain";
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
@@ -380,6 +409,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         createRoute53Record: false,
         domainName: "test_domain",
+        websockets: {}
       });
       const result = await plugin.changeResourceRecordSet("UPSERT", new DomainInfo({}));
       expect(result).to.equal(undefined);
@@ -403,6 +433,7 @@ describe("Custom Domain Plugin", () => {
 
       const plugin = constructPlugin({
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
@@ -424,6 +455,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "api",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
       plugin.basePath = plugin.serverless.service.custom.customDomain.basePath;
@@ -453,6 +485,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.cloudformation = new aws.CloudFormation();
 
@@ -474,6 +507,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.cloudformation = new aws.CloudFormation();
       plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_rest_api_id";
@@ -496,6 +530,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -517,6 +552,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -572,6 +608,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
+        websockets: {}
       });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -609,7 +646,10 @@ describe("Custom Domain Plugin", () => {
           },
         });
       });
-      const plugin = constructPlugin({ domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.cloudformation = new aws.CloudFormation();
@@ -635,7 +675,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin({ domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -658,7 +701,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin({ domainName: "test_domain" });
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.acm = new aws.ACM();
@@ -683,7 +729,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, params);
       });
 
-      const plugin = constructPlugin({ domainName: "test_domain" });
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {},
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.acm = new aws.ACM();
@@ -711,7 +760,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "ccc.bbb.aaa.com";
 
@@ -731,7 +782,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.ccc.bbb.aaa.com";
 
@@ -751,7 +804,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.ccc.bbb.aaa.com";
 
@@ -770,7 +825,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
 
@@ -788,7 +845,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.a.aaa.com";
 
@@ -808,7 +867,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
 
@@ -828,7 +889,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
 
@@ -847,7 +910,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
 
@@ -864,7 +929,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "aaa.com";
       plugin.hostedZonePrivate = true;
@@ -882,7 +949,9 @@ describe("Custom Domain Plugin", () => {
         });
       });
 
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "aaa.com";
 
@@ -903,6 +972,7 @@ describe("Custom Domain Plugin", () => {
       const options = {
         certificateName: "does_not_exist",
         domainName: "",
+        websockets: {},
       };
       const plugin = constructPlugin(options);
       plugin.acm = new aws.ACM();
@@ -920,7 +990,10 @@ describe("Custom Domain Plugin", () => {
         callback(null, { HostedZones: [{ Name: "no_hosted_zone", Id: "test_id" }] });
       });
 
-      const plugin = constructPlugin({ domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -936,7 +1009,10 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, null);
       });
-      const plugin = constructPlugin({ domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -949,7 +1025,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should log if SLS_DEBUG is set", async () => {
-      const plugin = constructPlugin({ domainName: "test_domain" });
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       // set sls debug to true
@@ -959,7 +1038,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should not log if SLS_DEBUG is not set", async () => {
-      const plugin = constructPlugin({ domainName: "test_domain" });
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {},
+      });
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
       plugin.logIfDebug("test message");
@@ -978,7 +1060,10 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: params, distributionDomainName: "test_distributed_domain_name" });
       });
-      const plugin = constructPlugin({domainName: "test_domain"});
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        websockets: {}
+      });
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 
@@ -998,7 +1083,9 @@ describe("Custom Domain Plugin", () => {
 
   describe("Enable/disable functionality", () => {
     it("Should enable the plugin by default", () => {
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
 
       plugin.initializeVariables();
 
@@ -1009,7 +1096,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should enable the plugin when passing a true parameter with type boolean", () => {
-      const plugin = constructPlugin({ enabled: true });
+      const plugin = constructPlugin({
+        enabled: true,
+        websockets: {}
+      });
 
       plugin.initializeVariables();
 
@@ -1020,7 +1110,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should enable the plugin when passing a true parameter with type string", () => {
-      const plugin = constructPlugin({ enabled: "true" });
+      const plugin = constructPlugin({
+        enabled: "true",
+        websockets: {}
+      });
 
       plugin.initializeVariables();
 
@@ -1031,7 +1124,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should disable the plugin when passing a false parameter with type boolean", () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       plugin.initializeVariables();
 
@@ -1039,7 +1135,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should disable the plugin when passing a false parameter with type string", () => {
-      const plugin = constructPlugin({ enabled: "false" });
+      const plugin = constructPlugin({
+        enabled: "false",
+        websockets: {}
+      });
 
       plugin.initializeVariables();
 
@@ -1047,7 +1146,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("createDomain should do nothing when domain manager is disabled", async () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       const result = await plugin.hookWrapper(plugin.createDomain);
 
@@ -1056,7 +1158,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("deleteDomain should do nothing when domain manager is disabled", async () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       const result = await plugin.hookWrapper(plugin.deleteDomain);
 
@@ -1065,7 +1170,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("setUpBasePathMapping should do nothing when domain manager is disabled", async () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       const result = await plugin.hookWrapper(plugin.setupBasePathMapping);
 
@@ -1074,7 +1182,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("removeBasePathMapping should do nothing when domain manager is disabled", async () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       const result = await plugin.hookWrapper(plugin.removeBasePathMapping);
 
@@ -1083,7 +1194,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("domainSummary should do nothing when domain manager is disabled", async () => {
-      const plugin = constructPlugin({ enabled: false });
+      const plugin = constructPlugin({
+        enabled: false,
+        websockets: {}
+      });
 
       const result = await plugin.hookWrapper(plugin.domainSummary);
 
@@ -1093,7 +1207,10 @@ describe("Custom Domain Plugin", () => {
 
     it("Should throw an Error when passing a parameter that is not boolean", () => {
       const stringWithValueYes = "yes";
-      const plugin = constructPlugin({ enabled: 0 });
+      const plugin = constructPlugin({
+        enabled: 0,
+        websockets: {}
+      });
 
       let errored = false;
       try {
@@ -1106,7 +1223,10 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should throw an Error when passing a parameter that cannot be converted to boolean", () => {
-      const plugin = constructPlugin({ enabled: "yes" });
+      const plugin = constructPlugin({
+        enabled: "yes",
+        websockets: {}
+      });
 
       let errored = false;
       try {
@@ -1125,7 +1245,9 @@ describe("Custom Domain Plugin", () => {
 
   describe("Missing plugin configuration", () => {
     it("Should thrown an Error when plugin customDomain configuration object is missing", () => {
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       delete plugin.serverless.service.custom.customDomain;
 
       let errored = false;
@@ -1139,7 +1261,9 @@ describe("Custom Domain Plugin", () => {
     });
 
     it("Should thrown an Error when Serverless custom configuration object is missing", () => {
-      const plugin = constructPlugin({});
+      const plugin = constructPlugin({
+        websockets: {},
+      });
       delete plugin.serverless.service.custom;
 
       let errored = false;

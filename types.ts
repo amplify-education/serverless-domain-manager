@@ -23,6 +23,18 @@ export interface ServerlessInstance { // tslint:disable-line
                 hostedZoneId: string | undefined,
                 hostedZonePrivate: boolean | undefined,
                 enabled: boolean | string | undefined,
+                websockets: {
+                    domainName: string | undefined,
+                    basePath: string | undefined,
+                    stage: string | undefined,
+                    certificateName: string | undefined,
+                    certificateArn: string | undefined,
+                    createRoute53Record: boolean | undefined,
+                    endpointType: string | undefined,
+                    hostedZoneId: string | undefined,
+                    hostedZonePrivate: boolean | undefined,
+                    enabled: boolean | string | undefined,
+                },
             },
         },
     };

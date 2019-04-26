@@ -176,6 +176,7 @@ class ServerlessCustomDomain {
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
 
             this.givenDomainName = this.serverless.service.custom.customDomain.domainName;
+
             this.hostedZonePrivate = this.serverless.service.custom.customDomain.hostedZonePrivate;
             let basePath = this.serverless.service.custom.customDomain.basePath;
             if (basePath == null || basePath.trim() === "") {

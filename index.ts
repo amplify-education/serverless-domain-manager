@@ -1151,7 +1151,6 @@ class ServerlessCustomDomain {
         } else {
             apiMapping = await this.updateApiMappingWs(wssApiId, currentApiMappingId);
         }
-
     }
 
     /**

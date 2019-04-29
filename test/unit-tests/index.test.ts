@@ -1696,6 +1696,37 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
+    it("Should throw an Error when passing a websocket parameter that is not boolean", () => {
+      const stringWithValueYes = "yes";
+      const plugin = constructPlugin({
+        websockets: { enabled: 0 }
+      });
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"0\"");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Should throw an Error when passing a websocket parameter that cannot be converted to boolean", () => {
+      const plugin = constructPlugin({
+        websockets: { enabled: "yes" }
+      });
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"yes\"");
+      }
+      expect(errored).to.equal(true);
+    });
+
     afterEach(() => {
       consoleOutput = [];
     });

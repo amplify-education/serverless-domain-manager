@@ -172,6 +172,31 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Creates websocket API mapping", async () => {
+      AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "wss_test_domain",
+          stage: "wss_test_stage",
+        },
+      });
+      plugin.initializeVariables();
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      plugin.stageWs = plugin.serverless.service.custom.customDomain.websockets.stage;
+      const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
+
+      await plugin.createApiMappingWs("wss_test_api_id");
+      expect(spy).to.have.been.called.with({
+        DomainName: "wss_test_domain",
+        ApiId: "wss_test_api_id",
+        Stage: "wss_test_stage",
+        ApiMappingKey: ''
+      });
+    });
+
     it("Updates basepath mapping", async () => {
       AWS.mock("APIGateway", "updateBasePathMapping", (params, callback) => {
         callback(null, params);

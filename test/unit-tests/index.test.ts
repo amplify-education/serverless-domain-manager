@@ -696,6 +696,55 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
+  describe("Gets existing websocket API mappings correctly", () => {
+    it("Returns undefined if no mappings exist for current wssApiId", async () => {
+      AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+        callback(null, {
+          Items: [
+            { ApiMappingId: "test_api_mapping_id", ApiId: "test_rest_api_id_one", Stage: "test", ApiMappingKey: "" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      plugin.initializeVariables();
+
+      const result = await plugin.getApiMappingWs("test_rest_api_id_two");
+      expect(result).to.equal(undefined);
+    });
+
+    it("Returns current api mapping ID for given wssApiId", async () => {
+      AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+        callback(null, {
+          Items: [
+            { ApiMappingId: "test_api_mapping_id", ApiId: "test_rest_api_id", Stage: "test", ApiMappingKey: "" },
+          ],
+        });
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      plugin.initializeVariables();
+
+      const result = await plugin.getApiMappingWs("test_rest_api_id");
+      expect(result).to.equal("test_api_mapping_id");
+    });
+
+    afterEach(() => {
+      AWS.restore();
+      consoleOutput = [];
+    });
+  });
+
   describe("Gets Rest API correctly", () => {
     it("Fetches restApiId correctly when no ApiGateway specified", async () => {
       AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {

@@ -390,7 +390,7 @@ describe("Custom Domain Plugin", () => {
   });
 
   describe("Create a New Domain Name", () => {
-    it("Get a given certificate arn", async () => {
+    it("Get a given certificate ARN for a REST domain", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
       const options = {
@@ -406,7 +406,7 @@ describe("Custom Domain Plugin", () => {
       expect(result).to.equal("test_given_arn");
     });
 
-    it("Get a given certificate name", async () => {
+    it("Get a given certificate name for a REST domain", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
       const plugin = constructPlugin({ 
@@ -416,6 +416,43 @@ describe("Custom Domain Plugin", () => {
       plugin.acm = new aws.ACM();
 
       const result = await plugin.getCertArn();
+
+      expect(result).to.equal("test_given_cert_name");
+    });
+
+    it("Get a given certificate ARN for a websocket domain", async () => {
+      AWS.mock("ACM", "listCertificates", certTestData);
+
+      const options = {
+        websockets: {
+          certificateArn: "wss_test_given_arn",
+          endpointType: "REGIONAL",
+        }
+      };
+      const plugin = constructPlugin(options);
+      plugin.acmWs = new aws.ACM();
+      plugin.certificateArnWs = plugin.serverless.service.custom.customDomain.websockets.certificateArn;
+      plugin.endpointType = plugin.serverless.service.custom.customDomain.websockets.endpointType;
+
+      const result = await plugin.getCertArnWs();
+
+      expect(result).to.equal("wss_test_given_arn");
+    });
+
+    it("Get a given certificate name for a websocket domain", async () => {
+      AWS.mock("ACM", "listCertificates", certTestData);
+
+      const plugin = constructPlugin({ 
+        websockets: {
+          certificateName: "cert_name",
+          endpointType: "REGIONAL",
+        }
+      });
+      plugin.acmWs = new aws.ACM();
+      plugin.certificateNameWs = plugin.serverless.service.custom.customDomain.websockets.certificateName;
+      plugin.endpointType = plugin.serverless.service.custom.customDomain.websockets.endpointType;
+
+      const result = await plugin.getCertArnWs();
 
       expect(result).to.equal("test_given_cert_name");
     });

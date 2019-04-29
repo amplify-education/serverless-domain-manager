@@ -1166,7 +1166,7 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
-  describe("Select Hosted Zone", () => {
+  describe("Select Hosted Zone of a domain", () => {
     it("Natural order", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, {
@@ -1184,9 +1184,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "ccc.bbb.aaa.com";
+      plugin.givenDomainNameWs = "bbb.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_2");
+      expect(resultWs).to.equal("test_id_1");
     });
 
     it("Reverse order", async () => {
@@ -1206,9 +1209,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.ccc.bbb.aaa.com";
+      plugin.givenDomainNameWs = "test.bbb.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_1");
+      expect(resultWs).to.equal("test_id_2");
     });
 
     it("Random order", async () => {
@@ -1228,9 +1234,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.ccc.bbb.aaa.com";
+      plugin.givenDomainNameWs = "test.bbb.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_2");
+      expect(resultWs).to.equal("test_id_0");
     });
 
     it("Sub domain name - only root hosted zones", async () => {
@@ -1249,9 +1258,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
+      plugin.givenDomainNameWs = "bar.foo.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_1");
+      expect(resultWs).to.equal("test_id_0");
     });
 
     it("With matching root and sub hosted zone", async () => {
@@ -1269,9 +1281,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "test.a.aaa.com";
+      plugin.givenDomainNameWs = "test.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_0");
+      expect(resultWs).to.equal("test_id_1");
     });
 
     it("Sub domain name - natural order", async () => {
@@ -1291,9 +1306,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
+      plugin.givenDomainNameWs = "bar.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_3");
+      expect(resultWs).to.equal("test_id_0");
     });
 
     it("Sub domain name - reverse order", async () => {
@@ -1313,9 +1331,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
+      plugin.givenDomainNameWs = "bar.bbb.fr";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_3");
+      expect(resultWs).to.equal("test_id_1");
     });
 
     it("Sub domain name - random order", async () => {
@@ -1334,9 +1355,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "bar.foo.bbb.fr";
+      plugin.givenDomainNameWs = "bar.aaa.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_3");
+      expect(resultWs).to.equal("test_id_0");
     });
 
     it("Private zone domain name", async () => {
@@ -1353,16 +1377,21 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "aaa.com";
+      plugin.givenDomainNameWs = "bar.aaa.com";
       plugin.hostedZonePrivate = true;
+      plugin.hostedZonePrivateWs = false;
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_0");
+      expect(resultWs).to.equal("test_id_1");
     });
 
     it("Undefined hostedZonePrivate should still allow private domains", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, {
           HostedZones: [
+            { Name: "bbb.com.", Id: "/hostedzone/test_id_1", Config: { PrivateZone: true } },
             { Name: "aaa.com.", Id: "/hostedzone/test_id_0", Config: { PrivateZone: true } },
           ],
         });
@@ -1373,9 +1402,12 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.route53 = new aws.Route53();
       plugin.givenDomainName = "aaa.com";
+      plugin.givenDomainNameWs = "bar.bbb.com";
 
       const result = await plugin.getRoute53HostedZoneId();
+      const resultWs = await plugin.getRoute53HostedZoneIdWs();
       expect(result).to.equal("test_id_0");
+      expect(resultWs).to.equal("test_id_1");
     });
 
     afterEach(() => {

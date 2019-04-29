@@ -113,7 +113,7 @@ describe("Custom Domain Plugin", () => {
   });
 
   describe("Domain Endpoint types", () => {
-    it("Unsupported endpoint types throw exception", () => {
+    it("Unsupported REST endpoint types throw exception", () => {
       const plugin = constructPlugin({
         endpointType: "notSupported",
         websockets: {} 
@@ -129,7 +129,7 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
-    it("Unsupported endpoint types throw exception", () => {
+    it("Unsupported websocket endpoint types throw exception", () => {
       const plugin = constructPlugin({
         websockets: {
           endpointType: "notSupported",
@@ -219,6 +219,28 @@ describe("Custom Domain Plugin", () => {
         ApiId: "wss_test_api_id",
         Stage: "wss_test_stage",
         ApiMappingKey: '',
+        ApiMappingId: "wss_test_api_mapping_id"
+      });
+    });
+
+    it("Deletes websocket API mapping", async () => {
+      AWS.mock("ApiGatewayV2", "deleteApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "wss_test_domain",
+        },
+      });
+      plugin.initializeVariables();
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      const spy = chai.spy.on(plugin.apigatewayv2, "deleteApiMapping");
+ 
+      await plugin.deleteApiMappingWs("wss_test_api_id", "wss_test_api_mapping_id");
+      expect(spy).to.have.been.called.with({
+        DomainName: "wss_test_domain",
+        ApiId: "wss_test_api_id",
         ApiMappingId: "wss_test_api_mapping_id"
       });
     });

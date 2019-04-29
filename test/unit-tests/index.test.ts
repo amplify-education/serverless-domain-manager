@@ -114,7 +114,27 @@ describe("Custom Domain Plugin", () => {
 
   describe("Domain Endpoint types", () => {
     it("Unsupported endpoint types throw exception", () => {
-      const plugin = constructPlugin({ endpointType: "notSupported", websockets: {} });
+      const plugin = constructPlugin({
+        endpointType: "notSupported",
+        websockets: {} 
+      });
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("notSupported is not supported endpointType, use edge or regional.");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Unsupported endpoint types throw exception", () => {
+      const plugin = constructPlugin({
+        websockets: {
+          endpointType: "notSupported",
+        } 
+      });
 
       let errored = false;
       try {

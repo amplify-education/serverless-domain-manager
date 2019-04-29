@@ -36,19 +36,19 @@ class ServerlessCustomDomain {
     public givenDomainName: string;
     public hostedZonePrivate: boolean;
     public basePath: string;
-    private endpointType: string;
-    private stage: string;
-    private certificateName: string;
-    private certificateArn: string;
+    public endpointType: string;
+    public stage: string;
+    public certificateName: string;
+    public certificateArn: string;
 
     public enabledWs: boolean;
     public givenDomainNameWs: string;
     public hostedZonePrivateWs: boolean;
     public basePathWs: string;
-    private endpointTypeWs: string;
-    private stageWs: string;
-    private certificateNameWs: string;
-    private certificateArnWs: string;
+    public endpointTypeWs: string;
+    public stageWs: string;
+    public certificateNameWs: string;
+    public certificateArnWs: string;
 
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
         this.serverless = serverless;

@@ -1520,8 +1520,11 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       const returnedCreds = plugin.apigateway.config.credentials;
+      const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
       expect(plugin.enabledWs).to.equal(true);
     });
@@ -1537,8 +1540,11 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       const returnedCreds = plugin.apigateway.config.credentials;
+      const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
       expect(plugin.enabledWs).to.equal(true);
     });
@@ -1554,8 +1560,11 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       const returnedCreds = plugin.apigateway.config.credentials;
+      const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
       expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+      expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
+      expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
       expect(plugin.enabled).to.equal(true);
       expect(plugin.enabledWs).to.equal(true);
     });

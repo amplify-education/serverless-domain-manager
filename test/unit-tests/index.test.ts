@@ -1588,7 +1588,7 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.enabledWs).to.equal(false);
     });
 
-    it("createDomain should do nothing when domain manager is disabled", async () => {
+    it("createDomains should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
         websockets: {
@@ -1596,14 +1596,14 @@ describe("Custom Domain Plugin", () => {
         }
       });
 
-      const result = await plugin.hookWrapper(plugin.createDomain);
+      const result = await plugin.hookWrapper(plugin.createDomains);
 
       expect(plugin.enabled).to.equal(false);
       expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
-    it("deleteDomain should do nothing when domain manager is disabled", async () => {
+    it("deleteDomains should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
         websockets: {
@@ -1611,14 +1611,14 @@ describe("Custom Domain Plugin", () => {
         }
       });
 
-      const result = await plugin.hookWrapper(plugin.deleteDomain);
+      const result = await plugin.hookWrapper(plugin.deleteDomains);
 
       expect(plugin.enabled).to.equal(false);
       expect(plugin.enabledWs).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
-    it("setUpBasePathMapping should do nothing when domain manager is disabled", async () => {
+    it("setupMappings should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
         websockets: {
@@ -1633,7 +1633,7 @@ describe("Custom Domain Plugin", () => {
       expect(result).to.equal(undefined);
     });
 
-    it("removeBasePathMapping should do nothing when domain manager is disabled", async () => {
+    it("removeMappings should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
         enabled: false,
         websockets: {

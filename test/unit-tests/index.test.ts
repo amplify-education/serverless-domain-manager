@@ -4,6 +4,7 @@ import chai = require("chai");
 import spies = require("chai-spies");
 import "mocha";
 import DomainInfo = require("../../DomainInfo");
+import DomainInfoWs = require("../../DomainInfoWs");
 import ServerlessCustomDomain = require("../../index");
 import { ServerlessInstance, ServerlessOptions } from "../../types";
 
@@ -554,13 +555,24 @@ describe("Custom Domain Plugin", () => {
       expect(spy).to.have.been.called.with(expectedParams);
     });
 
-    it("Do not create a Route53 record", async () => {
+    it("Do not create a Route53 record for a REST domain", async () => {
       const plugin = constructPlugin({
         createRoute53Record: false,
         domainName: "test_domain",
         websockets: {}
       });
       const result = await plugin.changeResourceRecordSet("UPSERT", new DomainInfo({}));
+      expect(result).to.equal(undefined);
+    });
+
+    it("Do not create a Route53 record for a websocket domain", async () => {
+      const plugin = constructPlugin({
+        websockets: {
+          createRoute53Record: false,
+          domainName: "test_domain",
+        }
+      });
+      const result = await plugin.changeResourceRecordSetWs("UPSERT", new DomainInfoWs({DomainNameConfigurations: [{}]}));
       expect(result).to.equal(undefined);
     });
 

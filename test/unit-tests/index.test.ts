@@ -1626,7 +1626,7 @@ describe("Custom Domain Plugin", () => {
         }
       });
 
-      const result = await plugin.hookWrapper(plugin.setupBasePathMapping);
+      const result = await plugin.hookWrapper(plugin.setupMappings);
 
       expect(plugin.enabled).to.equal(false);
       expect(plugin.enabledWs).to.equal(false);
@@ -1641,7 +1641,7 @@ describe("Custom Domain Plugin", () => {
         }
       });
 
-      const result = await plugin.hookWrapper(plugin.removeBasePathMapping);
+      const result = await plugin.hookWrapper(plugin.removeMappings);
 
       expect(plugin.enabled).to.equal(false);
       expect(plugin.enabledWs).to.equal(false);

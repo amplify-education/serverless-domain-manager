@@ -457,7 +457,7 @@ describe("Custom Domain Plugin", () => {
       expect(result).to.equal("test_given_cert_name");
     });
 
-    it("Create a domain name", async () => {
+    it("Create a domain name for a REST endpoint", async () => {
       AWS.mock("APIGateway", "createDomainName", (params, callback) => {
         callback(null, { distributionDomainName: "foo" });
       });
@@ -472,6 +472,25 @@ describe("Custom Domain Plugin", () => {
       const result = await plugin.createCustomDomain("fake_cert");
 
       expect(result.domainName).to.equal("foo");
+    });
+
+    it("Create a domain name for a websocket endpoint", async () => {
+      AWS.mock("ApiGatewayV2", "createDomainName", (params, callback) => {
+        callback(null, { DomainName: "test_domain", DomainNameConfigurations: [ { ApiGatewayDomainName: "apigw" } ] });
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+
+      const result = await plugin.createCustomDomainWs("fake_cert");
+
+      expect(result.domainName).to.equal("test_domain");
+      expect(result.apiGatewayDomainName).to.equal("apigw");
     });
 
     it("Create a new A Alias Record", async () => {

@@ -791,6 +791,36 @@ describe("Custom Domain Plugin", () => {
     });
 
     afterEach(() => {
+      AWS.restore();
+      consoleOutput = [];
+    });
+  });
+
+  describe("Gets websocket API correctly", () => {
+    it("Fetches wssApiId correctly when no ApiGateway specified", async () => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+        callback(null, {
+          StackResourceDetail:
+            {
+              LogicalResourceId: "WebsocketsApi",
+              PhysicalResourceId: "test_wss_api_id",
+            },
+        });
+      });
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.cloudformation = new aws.CloudFormation();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+
+      const result = await plugin.getWssApiId();
+      expect(result).to.equal("test_wss_api_id");
+    });
+
+    afterEach(() => {
+      AWS.restore();
       consoleOutput = [];
     });
   });

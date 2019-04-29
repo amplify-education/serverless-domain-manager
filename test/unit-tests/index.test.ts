@@ -494,7 +494,7 @@ describe("Custom Domain Plugin", () => {
       expect(result.apiGatewayDomainName).to.equal("apigw");
     });
 
-    it("Create a new A Alias Record", async () => {
+    it("Create a new A Alias Record for a REST domain", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
@@ -519,6 +519,70 @@ describe("Custom Domain Plugin", () => {
       );
 
       await plugin.changeResourceRecordSet("UPSERT", domain);
+
+      const expectedParams = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "A",
+              },
+            },
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "AAAA",
+              },
+            },
+          ],
+          Comment: "Record created by serverless-domain-manager",
+        },
+        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+      };
+      expect(spy).to.have.been.called.with(expectedParams);
+    });
+
+    it("Create a new A Alias Record for a websocket domain", async () => {
+      AWS.mock("Route53", "listHostedZones", (params, callback) => {
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
+      });
+
+      AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+      const domain = new DomainInfoWs(
+        {
+          DomainNameConfigurations: [{
+              HostedZoneId: "test_id",
+              ApiGatewayDomainName: "test_distribution_name",
+          }]
+        },
+      );
+
+      await plugin.changeResourceRecordSetWs("UPSERT", domain);
 
       const expectedParams = {
         ChangeBatch: {

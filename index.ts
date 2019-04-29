@@ -919,22 +919,22 @@ class ServerlessCustomDomain {
 
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneIdWs();
+
+        const Changes = ["A", "AAAA"].map((Type) => ({
+            Action: action,
+            ResourceRecordSet: {
+                AliasTarget: {
+                    DNSName: domain.apiGatewayDomainName,
+                    EvaluateTargetHealth: false,
+                    HostedZoneId: domain.hostedZoneId,
+                },
+                Name: this.givenDomainNameWs,
+                Type,
+            },
+        }));
         const params = {
             ChangeBatch: {
-                Changes: [
-                    {
-                        Action: action,
-                        ResourceRecordSet: {
-                            AliasTarget: {
-                                DNSName: domain.apiGatewayDomainName,
-                                EvaluateTargetHealth: false,
-                                HostedZoneId: domain.hostedZoneId,
-                            },
-                            Name: this.givenDomainNameWs,
-                            Type: "A",
-                        },
-                    },
-                ],
+                Changes,
                 Comment: "Record created by serverless-domain-manager",
             },
             HostedZoneId: route53HostedZoneId,

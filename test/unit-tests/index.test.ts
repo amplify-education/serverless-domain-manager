@@ -825,7 +825,7 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
-  describe("Delete the new domain", () => {
+  describe("Delete the new REST domain", () => {
     it("Find available domains", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { distributionDomainName: "test_domain" });
@@ -921,6 +921,121 @@ describe("Custom Domain Plugin", () => {
       await plugin.deleteCustomDomain();
       expect(spy).to.be.called.with({
         domainName: "test_domain",
+      });
+    });
+
+    afterEach(() => {
+      AWS.restore();
+      consoleOutput = [];
+    });
+  });
+
+  describe("Delete the new websocket domain", () => {
+    it("Find available domains", async () => {
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, {  DomainName: "test_domain",
+                          DomainNameConfigurations: [ { ApiGatewayDomainName: "apigw",
+                                                        HostedZoneId: "test_hosted_zone_id",
+                                                        CertificateArn: "arn",
+                                                        CertificateName: "certName",
+                                                        EndpointType: "REGIONAL" } ],
+                          ApiMappingSelectionExpression: "$request.basepath" });
+        });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+
+      const result = await plugin.getDomainInfoWs();
+
+      expect(result.domainName).to.equal("test_domain");
+      expect(result.apiGatewayDomainName).to.equal("apigw");
+      expect(result.hostedZoneId).to.equal("test_hosted_zone_id");
+    });
+
+    it("Delete A Alias Record", async () => {
+      AWS.mock("Route53", "listHostedZones", (params, callback) => {
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
+      });
+
+      AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.route53 = new aws.Route53();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+      const domain = new DomainInfoWs({
+        DomainNameConfigurations: [{
+          HostedZoneId: "test_id",
+          ApiGatewayDomainName: "test_distribution_name",
+        }]
+      });
+
+      await plugin.changeResourceRecordSetWs("DELETE", domain);
+      const expectedParams = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: "DELETE",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "A",
+              },
+            },
+            {
+              Action: "DELETE",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "AAAA",
+              },
+            },
+          ],
+          Comment: "Record created by serverless-domain-manager",
+        },
+        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips the first character
+      };
+      expect(spy).to.be.called.with(expectedParams);
+
+    });
+
+    it("Delete the domain name", async () => {
+      AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+        callback(null, {});
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      const spy = chai.spy.on(plugin.apigatewayv2, "deleteDomainName");
+
+      await plugin.deleteCustomDomainWs();
+      expect(spy).to.be.called.with({
+        DomainName: "test_domain",
       });
     });
 

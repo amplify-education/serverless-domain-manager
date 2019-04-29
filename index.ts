@@ -1032,7 +1032,6 @@ class ServerlessCustomDomain {
             throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainNameWs}\n`);
         }
         const wssApiId = response.StackResourceDetail.PhysicalResourceId;
-        console.log(wssApiId);
         if (!wssApiId) {
             throw new Error(`Error: No WssApiId associated with CloudFormation stack ${stackName}`);
         }

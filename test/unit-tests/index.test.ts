@@ -1889,6 +1889,15 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.endpointTypeWs).to.equal('REGIONAL');
     });
 
+    it("Should set websocket endpoint type to regional even if missing", () => {
+      const plugin = constructPlugin({
+        websockets: { }
+      });
+
+      plugin.initializeVariables();
+      expect(plugin.endpointTypeWs).to.equal('REGIONAL');
+    });
+
     afterEach(() => {
       consoleOutput = [];
     });

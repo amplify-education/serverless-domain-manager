@@ -17,10 +17,8 @@ class DomainInfoWs {
     private defaultHostedZoneId: string = "Z2FDTNDATAQYW2";
 
     constructor(data: any) {
-        this.domainName = data.distributionDomainName || data.regionalDomainName || data.DomainName;
-        this.hostedZoneId = data.distributionHostedZoneId ||
-            data.regionalHostedZoneId || data.DomainNameConfigurations[0].HostedZoneId ||
-            this.defaultHostedZoneId;
+        this.domainName = data.DomainName;
+        this.hostedZoneId = data.DomainNameConfigurations[0].HostedZoneId || this.defaultHostedZoneId;
         this.apiGatewayDomainName = data.DomainNameConfigurations[0].ApiGatewayDomainName;
     }
 }

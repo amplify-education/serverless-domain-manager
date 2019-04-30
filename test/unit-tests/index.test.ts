@@ -278,7 +278,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Add REST Domain Name and HostedZoneId to stack output", () => {
+    it("Add REST Domain Name and HostedZoneId to stack output and check if outputs are defined", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
         websockets: {}
@@ -290,6 +290,20 @@ describe("Custom Domain Plugin", () => {
       }));
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
+    });
+
+    it("Add REST Domain Name and HostedZoneId to stack output and check the output contents", () => {
+      const plugin = constructPlugin({
+        websockets: {}
+      });
+      plugin.addOutputs(new DomainInfo({
+        distributionDomainName: "fake_dist_name",
+        distributionHostedZoneId: "fake_zone_id",
+        domainName: "fake_domain",
+      }));
+      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      expect(cfTemplat.DomainName.Value).to.equal("fake_dist_name");
+      expect(cfTemplat.HostedZoneId.Value).to.equal("fake_zone_id");
     });
 
     it("Add websocket Domain Name and HostedZoneId to stack output and check if outputs are defined", () => {

@@ -278,7 +278,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Add Domain Name and HostedZoneId to stack output", () => {
+    it("Add REST Domain Name and HostedZoneId to stack output", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
         websockets: {}
@@ -290,6 +290,38 @@ describe("Custom Domain Plugin", () => {
       }));
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
+    });
+
+    it("Add websocket Domain Name and HostedZoneId to stack output and check if outputs are defined", () => {
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.addOutputsWs(new DomainInfoWs({
+        DomainNameConfigurations: [{
+          HostedZoneId: "test_id",
+          ApiGatewayDomainName: "test_distribution_name",
+        }]
+      }));
+      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      expect(cfTemplat).to.not.equal(undefined);
+    });
+
+    it("Add websocket Domain Name and HostedZoneId to stack output and check the output contents", () => {
+      const plugin = constructPlugin({
+        websockets: {}
+      });
+      plugin.addOutputsWs(new DomainInfoWs({
+        DomainName: "test_domain",
+        DomainNameConfigurations: [{
+          HostedZoneId: "test_id",
+          ApiGatewayDomainName: "test_distribution_name",
+        }]
+      }));
+      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      expect(cfTemplat.DomainName.Value).to.equal("test_domain");
+      expect(cfTemplat.HostedZoneId.Value).to.equal("test_id");
     });
 
     it("(none) is added if basepath is an empty string", async () => {

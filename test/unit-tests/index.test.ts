@@ -109,8 +109,11 @@ describe("Custom Domain Plugin", () => {
     plugin.initializeVariables();
 
     const returnedCreds = plugin.apigateway.config.credentials;
+    const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+    expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
   });
 
   describe("Domain Endpoint types", () => {

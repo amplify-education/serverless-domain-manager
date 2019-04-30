@@ -266,8 +266,12 @@ class ServerlessCustomDomain {
             this.stageWs = stage;
 
             /* TODO: the same for websockets endpointType */
-            const endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
-                endpointTypes.edge;
+            var endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
+                endpointTypes.regional;
+            if (endpointTypeWithDefault !== endpointTypes.regional ) {
+                this.logIfDebug("Only regional websocket endpoints are supported by AWS now, setting websockets.endpointType to regional and proceeding.");
+                endpointTypeWithDefault = endpointTypes.regional;
+            }
             const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
             if (!endpointTypeToUse) {
                 throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
@@ -1203,7 +1207,7 @@ class ServerlessCustomDomain {
             }
         }
         catch (err) {
-            console.log(err.message);
+            throw new Error(`Error: Unable to create custom domains.\n`);
         }
     }
 

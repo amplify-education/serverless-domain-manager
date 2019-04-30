@@ -393,7 +393,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("stage was not given", async () => {
+    it("REST API stage was not given", async () => {
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
       });
@@ -414,6 +414,31 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
         restApiId: "test_rest_api_id",
         stage: "test",
+      });
+    });
+
+    it("Websocket API stage was not given", async () => {
+      AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          domainName: "test_domain",
+        }
+      });
+      plugin.initializeVariables();
+      plugin.cloudformation = new aws.CloudFormation();
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+      const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
+
+      await plugin.createApiMappingWs("test_wss_api_id");
+      expect(spy).to.have.been.called.with({
+        ApiMappingKey: '',
+        DomainName: "test_domain",
+        ApiId: "test_wss_api_id",
+        Stage: "test",
       });
     });
 

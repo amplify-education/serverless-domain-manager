@@ -1505,6 +1505,47 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Fail createCustomDomain due to missing givenDomainName", async () => {
+      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo" });
+      });
+
+      const plugin = constructPlugin({
+        // no domainName specified to induce an error
+        websockets: {}
+      });
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      return plugin.createCustomDomain("fake_cert").then(() => {
+        throw new Error("Test has failed, createCustomDomain did not catch errors.");
+      }).catch((err) => {
+        const expectedErrorMessage = "Error: Failed to create custom domain undefined\n";
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
+    it("Fail createCustomDomainWs due to missing givenDomainNameWs", async () => {
+      AWS.mock("ApiGatewayV2", "createDomainName", (params, callback) => {
+        callback(null, { DomainName: "test_domain", DomainNameConfigurations: [ {ApiGatewayDomainName: "test_api_gateway_domain_name"} ] });
+      });
+
+      const plugin = constructPlugin({
+        websockets: {
+          // no domainName specified to induce an error
+        }
+      });
+      plugin.apigatewayv2 = new aws.ApiGatewayV2();
+      plugin.givenDomainNameWs = plugin.serverless.service.custom.customDomain.websockets.domainName;
+
+      return plugin.createCustomDomainWs("fake_cert").then(() => {
+        throw new Error("Test has failed, createCustomDomainWs did not catch errors.");
+      }).catch((err) => {
+        const expectedErrorMessage = "Error: Failed to create custom domain undefined\n";
+        expect(err.message).to.equal(expectedErrorMessage);
+      });
+    });
+
     it("Domain summary failed", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, null);

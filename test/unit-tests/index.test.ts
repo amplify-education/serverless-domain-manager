@@ -133,22 +133,6 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
-    it("Unsupported websocket endpoint types throw exception", () => {
-      const plugin = constructPlugin({
-        websockets: {
-          endpointType: "notSupported",
-        } 
-      });
-
-      let errored = false;
-      try {
-        plugin.initializeVariables();
-      } catch (err) {
-        errored = true;
-        expect(err.message).to.equal("notSupported is not supported endpointType, use edge or regional.");
-      }
-      expect(errored).to.equal(true);
-    });
   });
 
   describe("Set Domain Name and Base Path", () => {
@@ -1894,6 +1878,15 @@ describe("Custom Domain Plugin", () => {
         expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
       }
       expect(errored).to.equal(true);
+    });
+
+    it("Should set websocket endpoint type to regional per default", () => {
+      const plugin = constructPlugin({
+        websockets: { endpointType: 'EDGE' }
+      });
+
+      plugin.initializeVariables();
+      expect(plugin.endpointTypeWs).to.equal('REGIONAL');
     });
 
     afterEach(() => {

@@ -265,7 +265,6 @@ class ServerlessCustomDomain {
             }
             this.stageWs = stage;
 
-            /* TODO: the same for websockets endpointType */
             var endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
                 endpointTypes.regional;
             if (endpointTypeWithDefault !== endpointTypes.regional ) {

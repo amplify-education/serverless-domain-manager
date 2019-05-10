@@ -55,7 +55,7 @@ class ServerlessCustomDomain {
             },
         };
         const setupOnPackaging = this.serverless.service.custom.customDomain.setupOnPackaging;
-        const hookName = !setupOnPackaging ? "after:deploy:deploy": "after:package:finalize";
+        const hookName = !setupOnPackaging ? "after:deploy:deploy" : "after:package:finalize";
         this.hooks = {
             [hookName]: this.hookWrapper.bind(this, this.setupBasePathMapping),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummary),

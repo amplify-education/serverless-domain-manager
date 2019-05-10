@@ -66,8 +66,8 @@ const constructPlugin = (customDomainOptions) => {
           endpointType: customDomainOptions.endpointType,
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
-          stage: customDomainOptions.stage,
           setupOnPackaging: customDomainOptions.setupOnPackaging,
+          stage: customDomainOptions.stage,
         },
       },
       provider: {
@@ -1126,19 +1126,20 @@ describe("Custom Domain Plugin", () => {
   describe("Hook Configuration", () => {
     it("Should configure setUpBasePathMapping hook to after:deploy:deploy by default", async () => {
       const plugin = constructPlugin({});
-      expect(plugin.hooks).to.have.property('after:deploy:deploy');
+      expect(plugin.hooks).to.have.property("after:deploy:deploy");
     });
 
     it("Should configure setUpBasePathMapping hook to after:deploy:deploy when passing a false parameter", async () => {
       const plugin = constructPlugin({ setupOnPackaging: false });
-      expect(plugin.hooks).to.have.property('after:deploy:deploy');
+      expect(plugin.hooks).to.have.property("after:deploy:deploy");
     });
 
-    it("Should configure setUpBasePathMapping hook to after:package:finalize when passing a true parameter", async () => {
+    it("Should configure setUpBasePathMapping hook to after:package:finalize when passing a true parameter",
+    async () => {
       const plugin = constructPlugin({ setupOnPackaging: true });
-      expect(plugin.hooks).to.have.property('after:package:finalize');
+      expect(plugin.hooks).to.have.property("after:package:finalize");
     });
-  })
+  });
 
   describe("Missing plugin configuration", () => {
     it("Should thrown an Error when plugin customDomain configuration object is missing", () => {

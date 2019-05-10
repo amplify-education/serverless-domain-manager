@@ -55,7 +55,7 @@ class ServerlessCustomDomain {
             },
         };
         this.hooks = {
-            "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMapping),
+            "before:package:finalize": this.hookWrapper.bind(this, this.setupBasePathMapping),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummary),
             "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMapping),
             "create_domain:create": this.hookWrapper.bind(this, this.createDomain),

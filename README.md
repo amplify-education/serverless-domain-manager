@@ -69,6 +69,7 @@ custom:
     certificateName: '*.foo.com'
     createRoute53Record: true
     endpointType: 'regional'
+    setupOnPackaging: false
 ```
 
 | Parameter Name | Default Value | Description |
@@ -83,6 +84,7 @@ custom:
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+| setupOnPackaging | false | Plugin modifies the Cloudformation template during the `after:deploy:deploy` serverless phase when setting up base path mapping. This may break compatibility with plugins that modify the template during hooks before `before:deploy`. Setting it to `true` will configure the plugin to fire during the `after:package:finalize` |
 
 ## Running
 

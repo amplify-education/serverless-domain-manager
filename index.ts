@@ -94,7 +94,6 @@ class ServerlessCustomDomain {
         } else if (!this.enabledWs) {
             this.serverless.cli.log("serverless-domain-manager: Custom domain for websocket endpoints is disabled.");
         }
-        
         return await lifecycleFunc.call(this);
     }
 
@@ -707,12 +706,18 @@ class ServerlessCustomDomain {
      * If the property's value is undefined, a default value of true is assumed (for backwards
      * compatibility).
      * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
-     * If no customDomain.websockets object exists, an exception is thrown.
+     * If no customDomain.websockets object exists, websocket creation is disabled.
      */
     public evaluateEnabledWs(): boolean {
         if (typeof this.serverless.service.custom === "undefined"
-            || typeof this.serverless.service.custom.customDomain.websockets === "undefined") {
+            || typeof this.serverless.service.custom.customDomain === "undefined") {
             throw new Error("serverless-domain-manager: Plugin configuration is missing.");
+        }
+
+        // disable websocket domain creation if configuration missing
+        if (typeof this.serverless.service.custom.customDomain.websockets === "undefined"
+            || this.serverless.service.custom.customDomain.websockets == null) {
+            return false;
         }
 
         const enabled = this.serverless.service.custom.customDomain.websockets.enabled;

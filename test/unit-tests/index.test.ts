@@ -1923,6 +1923,27 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.endpointTypeWs).to.equal('REGIONAL');
     });
 
+    it("Should disable websocket domain creation if custom.customDomain.websockets is missing", () => {
+      const plugin = constructPlugin({
+        websockets: {},
+      });
+      delete plugin.serverless.service.custom.customDomain.websockets;
+
+      plugin.initializeVariables();
+      expect(plugin.enabledWs).to.equal(false);
+    });
+
+    it("Should disable websocket domain creation if custom.customDomain.websockets is null", () => {
+      const plugin = constructPlugin({
+        websockets: {},
+      });
+
+      plugin.serverless.service.custom.customDomain.websockets = null;
+
+      plugin.initializeVariables();
+      expect(plugin.enabledWs).to.equal(false);
+    });
+
     afterEach(() => {
       consoleOutput = [];
     });

@@ -24,7 +24,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 hostedZonePrivate: boolean | undefined,
                 enabled: boolean | string | undefined,
                 websockets: {
-                    domainName: string | undefined,
+                    domainName: string,
                     basePath: string | undefined,
                     stage: string | undefined,
                     certificateName: string | undefined,

@@ -968,12 +968,6 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Failed to ${action} A Alias for ${this.givenDomainNameWs}\n`);
         }
-        if (action === 'UPSERT') {
-            this.serverless.cli.log(
-                `Custom domain ${this.givenDomainNameWs} was created.
-            New domains may take up to 40 minutes to be initialized.`,
-            );
-        }
     }
 
     /**
@@ -995,6 +989,10 @@ class ServerlessCustomDomain {
             const certArn = await this.getCertArnWs();
             domainInfo = await this.createCustomDomainWs(certArn);
             await this.changeResourceRecordSetWs("UPSERT", domainInfo);
+            this.serverless.cli.log(
+                `Custom domain ${this.givenDomainNameWs} was created.
+            New domains may take up to 40 minutes to be initialized.`,
+            );
         } else {
             this.serverless.cli.log(`Custom domain ${givenDomainName} already exists.`);
         }

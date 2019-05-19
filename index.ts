@@ -1088,14 +1088,16 @@ class ServerlessCustomDomain {
             throw new Error(`Error: Unable to get ApiMappings for ${params.DomainName}`);
         }
         
-        if (apiInfo.Items !== undefined && apiInfo.Items instanceof Array) {
-            for (const apiObj of apiInfo.Items) {
-                if (apiObj.ApiId === wssApiId) {
-                    currentApiMappingId = apiObj.ApiMappingId;
-                    break;
-                }
+        if (apiInfo.Items !== undefined && apiInfo.Items instanceof Array && apiInfo.Items[0] !== undefined) {
+            const apiItems = apiInfo.Items[0];
+            if (apiItems.ApiId == wssApiId) {
+                currentApiMappingId = apiItems.ApiMappingId;
+            }
+            else {
+                currentApiMappingId = undefined;
             }
         }
+
         return currentApiMappingId;
     }
 
@@ -1173,9 +1175,18 @@ class ServerlessCustomDomain {
      */
     public async setupApiMappingWs(): Promise<void> {
 
-        const wssApiId = await this.getWssApiId();
-        const currentApiMappingId = await this.getApiMappingWs(wssApiId);
+        let wssApiId;
+        let currentApiMappingId;
 
+        try {
+            wssApiId = await this.getWssApiId();
+            currentApiMappingId = await this.getApiMappingWs(wssApiId);
+        } catch (ex) {
+            console.log(ex.message);
+        }
+        
+        this.logIfDebug(`Found websocket API ID: ${wssApiId}`);
+        this.logIfDebug(`Found API mapping ID for the websocket API: ${currentApiMappingId}`);
         let apiMapping;
 
         if (!currentApiMappingId) {

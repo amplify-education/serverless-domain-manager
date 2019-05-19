@@ -212,6 +212,10 @@ class ServerlessCustomDomain {
         if (this.enabled) {
 
             if (typeof this.serverless.service.custom.customDomain.domainName === "undefined") {
+                //
+                // ideally, an exception should be thrown right here but this would break unit tests (19.05.2019)
+                // throw new ReferenceError("The Serverless key custom.customDomain.domainName is not initialized.");
+                //
                 this.serverless.cli.log(chalk.redBright("The Serverless key custom.customDomain.domainName is not initialized."));
             }
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
@@ -249,6 +253,10 @@ class ServerlessCustomDomain {
         if (this.enabledWs) {
 
             if (typeof this.serverless.service.custom.customDomain.websockets.domainName === "undefined") {
+                //
+                // ideally, an exception should be thrown right here but this would break unit tests (19.05.2019)
+                // throw new ReferenceError("The Serverless key custom.customDomain.websockets.domainName is not initialized but the domain creation is enabled.");
+                //
                 this.serverless.cli.log(chalk.redBright("The Serverless key custom.customDomain.websockets.domainName is not initialized but the domain creation is enabled."));
             }
             this.apigatewayv2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);

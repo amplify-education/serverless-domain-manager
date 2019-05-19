@@ -133,7 +133,7 @@ class ServerlessCustomDomain {
             domainInfo = await this.getDomainInfo();
         } catch (err) {
             if (err.message === `Error: ${this.givenDomainName} not found.`) {
-                this.serverless.cli.log(`Unable to delete custom domain ${this.givenDomainName}.`);
+                this.serverless.cli.log(`Unable to delete custom domain ${this.givenDomainName}: domain not found.`);
                 return;
             }
             throw err;
@@ -1018,8 +1018,8 @@ class ServerlessCustomDomain {
         try {
             domainInfo = await this.getDomainInfoWs();
         } catch (err) {
-            if (err.message === `Error: ${givenDomainName} not found.`) {
-                this.serverless.cli.log(`Unable to delete custom domain ${givenDomainName}.`);
+            if (err.message === `Error: Domain name ${givenDomainName} not found.`) {
+                this.serverless.cli.log(`Unable to delete custom domain ${givenDomainName}: domain not found.`);
                 return;
             }
             throw err;

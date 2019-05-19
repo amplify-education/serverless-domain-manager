@@ -972,7 +972,9 @@ class ServerlessCustomDomain {
         try {
             domainInfo = await this.getDomainInfoWs();
         } catch (err) {
-            console.log(err.message);
+            if (err.message !== `Error: Domain name ${givenDomainName} not found.`) {
+                throw err;
+            }
         }
 
         if (!domainInfo) {

@@ -90,9 +90,9 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("serverless-domain-manager: Custom domain generation is disabled.");
             return;
         } else if (!this.enabled) {
-            this.serverless.cli.log("serverless-domain-manager: Custom domain for HTTP endpoints is disabled.");
+            this.serverless.cli.log("serverless-domain-manager: Custom domain creation for HTTP endpoints is disabled.");
         } else if (!this.enabledWs) {
-            this.serverless.cli.log("serverless-domain-manager: Custom domain for websocket endpoints is disabled.");
+            this.serverless.cli.log("serverless-domain-manager: Custom domain creation for websocket endpoints is disabled.");
         }
         return await lifecycleFunc.call(this);
     }
@@ -1204,9 +1204,10 @@ class ServerlessCustomDomain {
         try {
             if (this.enabled) {
                 await this.createDomain();
-                await new Promise(done => setTimeout(done, 30000));
             }
             if (this.enabledWs) {
+                this.serverless.cli.log("Sleeping 30 seconds to workaround AWS 'too many requests' exception");
+                await new Promise(done => setTimeout(done, 30000));
                 await this.createDomainWs();
             }
         }

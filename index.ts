@@ -458,9 +458,14 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
+        const actionMap = {
+            UPSERT : "creation",
+            DELETE: "deletion"
+        }
+
         const createRoute53Record = this.serverless.service.custom.customDomain.createRoute53Record;
         if (createRoute53Record !== undefined && createRoute53Record === false) {
-            this.serverless.cli.log("Skipping creation of Route53 record.");
+            this.serverless.cli.log(`Skipping ${actionMap[action]} of Route53 record.`);
             return;
         }
         // Set up parameters
@@ -933,9 +938,14 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
+        const actionMap = {
+            UPSERT : "creation",
+            DELETE: "deletion"
+        }
+
         const createRoute53Record = this.serverless.service.custom.customDomain.websockets.createRoute53Record;
         if (createRoute53Record !== undefined && createRoute53Record === false) {
-            this.serverless.cli.log("Skipping creation of Route53 record.");
+            this.serverless.cli.log(`Skipping ${actionMap[action]} of Route53 record.`);
             return;
         }
 

@@ -1194,6 +1194,14 @@ class ServerlessCustomDomain {
         } else {
             apiMapping = await this.updateApiMappingWs(wssApiId, currentApiMappingId);
         }
+
+        try {
+            const domainInfo = await this.getDomainInfoWs();
+            await this.printDomainSummaryWs(domainInfo);
+        } catch (ex) {
+            this.logIfDebug(ex.message);
+            throw new Error("Unable to print websocket domain summary.");
+        }
     }
 
     /**

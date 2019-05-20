@@ -58,7 +58,7 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration (example for `serverless.foo.com/api`).
+Add the plugin configuration to create a domain for a REST API (example for `serverless.foo.com/api`).
 
 ```yaml
 custom:
@@ -71,6 +71,27 @@ custom:
     endpointType: 'regional'
 ```
 
+Alternatively, you can configure the plugin to create domains for both REST and websocket APIs (example for `serverless.foo.com/api`).
+
+```yaml
+custom:
+  customDomain:
+    domainName: serverless.foo.com
+    stage: ci
+    basePath: api
+    certificateName: '*.foo.com'
+    createRoute53Record: true
+    endpointType: 'regional'
+    websockets:
+      domainName: serverless.foo.com
+      stage: ci
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+```
+
+Only regional websocket endpoints are currently (5/20/2019) supported by AWS.
+
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
 | domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
@@ -82,26 +103,36 @@ custom:
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
-| enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+| enabled | `true` | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+| websockets _(Optional)_| | This optional dictionary indicates to the plugin that a domain name for a websocket API should be created |
+| websockets.domainName _(Required if websockets dictionary is present)_| | The domain name to be created in API Gateway (V2) and Route53 (if enabled) for this API. This domain name should be different from the domain name of your REST API|
+| websockets.stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
+| websockets.certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: The certificate should be located in the same region as specified in `provider.region`|
+| websockets.certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
+| websockets.createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated API gateway domain name. If false, does not create a record. |
+| websockets.endpointType | regional | Defines the endpoint type, accepts `regional` or `edge` but enforces `regional` due to missing support for `edge` endpoints (5/20/2019). |
+| websockets.hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
+| websockets.hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
+| websockets.enabled | `true` | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 
 ## Running
 
-To create the custom domain:
+To create the custom domain(s):
 ```
 serverless create_domain
 ```
 
-To deploy with the custom domain:
+To deploy with the custom domain(s):
 ```
 serverless deploy
 ```
 
-To remove the created custom domain:
+To remove the created custom domain(s):
 ```
 serverless delete_domain
 ```
 # How it works
-Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
+Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping (API mapping in case of websocket API) and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
 
 Note: In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records. Starting in version 3.2, we create AAAA Alias records as well.
 

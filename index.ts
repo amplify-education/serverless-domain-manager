@@ -218,7 +218,8 @@ class ServerlessCustomDomain {
                 // ideally, an exception should be thrown right here but this would break unit tests (19.05.2019)
                 // throw new ReferenceError("The Serverless key custom.customDomain.domainName is not initialized.");
                 //
-                this.serverless.cli.log(chalk.redBright("The Serverless key custom.customDomain.domainName is not initialized."));
+                this.serverless.cli.log(chalk.redBright("The Serverless key custom.customDomain.domainName " +
+                                                        "is not initialized."));
             }
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
 
@@ -255,11 +256,14 @@ class ServerlessCustomDomain {
         if (this.enabledWs) {
 
             if (typeof this.serverless.service.custom.customDomain.websockets.domainName === "undefined") {
-                //
                 // ideally, an exception should be thrown right here but this would break unit tests (19.05.2019)
-                // throw new ReferenceError("The Serverless key custom.customDomain.websockets.domainName is not initialized but the domain creation is enabled.");
-                //
-                this.serverless.cli.log(chalk.redBright("The Serverless key custom.customDomain.websockets.domainName is not initialized but the domain creation is enabled."));
+                /*
+                throw new ReferenceError("The Serverless key custom.customDomain.websockets.domainName " +
+                                         "is not initialized but the domain creation is enabled.");
+                */
+                this.serverless.cli.log(chalk.redBright("The Serverless key " +
+                                                        "custom.customDomain.websockets.domainName " +
+                                                        "is not initialized but the domain creation is enabled."));
             }
             this.apigatewayv2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);
 
@@ -280,10 +284,11 @@ class ServerlessCustomDomain {
             }
             this.stageWs = stage;
 
-            var endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
+            let endpointTypeWithDefault = this.serverless.service.custom.customDomain.websockets.endpointType ||
                 endpointTypes.regional;
             if (endpointTypeWithDefault !== endpointTypes.regional ) {
-                this.logIfDebug("Only regional websocket endpoints are supported by AWS now, setting websockets.endpointType to regional and proceeding.");
+                this.logIfDebug("Only regional websocket endpoints are supported by AWS now, " +
+                                "setting websockets.endpointType to regional and proceeding.");
                 endpointTypeWithDefault = endpointTypes.regional;
             }
             const endpointTypeToUse = endpointTypes[endpointTypeWithDefault.toLowerCase()];
@@ -461,9 +466,9 @@ class ServerlessCustomDomain {
         }
 
         const actionMap = {
+            DELETE: "deletion",
             UPSERT : "creation",
-            DELETE: "deletion"
-        }
+        };
 
         const createRoute53Record = this.serverless.service.custom.customDomain.createRoute53Record;
         if (createRoute53Record !== undefined && createRoute53Record === false) {
@@ -707,20 +712,6 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Prints out a summary of all domain manager related info
-     */
-    private printDomainSummary(domainInfo: DomainInfo): void {
-
-        if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
-            this.serverless.cli.consoleLog(chalk.yellow("Domain Name"));
-            this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
-        }
-
-        this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
-        this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
-    }
-
-    /**
      * Determines whether this plug-in is enabled for a websocket endpoint
      *
      * This method reads the customDomain.websockets property "enabled" to see if this plug-in should be enabled.
@@ -762,7 +753,7 @@ class ServerlessCustomDomain {
     public async getDomainInfoWs(): Promise<DomainInfoWs> {
 
         let domainInfo;
-    
+
         const params = {
             DomainName: this.givenDomainNameWs,
         };
@@ -770,8 +761,7 @@ class ServerlessCustomDomain {
         try {
             domainInfo = await this.apigatewayv2.getDomainName(params).promise();
             return new DomainInfoWs(domainInfo);
-        }
-        catch (err) {
+        } catch (err) {
             if (err.code === "NotFoundException") {
                 throw new Error(`Error: Domain name ${params.DomainName} not found.`);
             }
@@ -780,7 +770,8 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Gets Certificate ARN of a websocket custom domain that most closely matches domain name OR given Cert ARN if provided
+     * Gets Certificate ARN of a websocket custom domain
+     * that most closely matches domain name OR given Cert ARN if provided
      */
     public async getCertArnWs(): Promise<string> {
 
@@ -790,7 +781,8 @@ class ServerlessCustomDomain {
 
         if (this.serverless.service.custom.customDomain.websockets.certificateArn) {
             this.serverless.cli.log(
-                `Selected specific certificateArn ${this.serverless.service.custom.customDomain.websockets.certificateArn}`);
+                "Selected specific certificateArn " +
+                `${this.serverless.service.custom.customDomain.websockets.certificateArn}`);
             return this.serverless.service.custom.customDomain.websockets.certificateArn;
         }
 
@@ -846,10 +838,10 @@ class ServerlessCustomDomain {
             DomainName: this.givenDomainNameWs,
             DomainNameConfigurations: [
                 {
-                    CertificateName: this.certificateNameWs,
                     CertificateArn: certificateArn,
-                }
-            ]
+                    CertificateName: this.certificateNameWs,
+                },
+            ],
         };
 
         // Make API call
@@ -868,7 +860,7 @@ class ServerlessCustomDomain {
      */
     public async getRoute53HostedZoneIdWs(): Promise<string> {
 
-        let givenHostedZoneId = this.serverless.service.custom.customDomain.websockets.hostedZoneId;
+        const givenHostedZoneId = this.serverless.service.custom.customDomain.websockets.hostedZoneId;
 
         if (givenHostedZoneId) {
             this.serverless.cli.log(
@@ -876,7 +868,7 @@ class ServerlessCustomDomain {
             return givenHostedZoneId;
         }
 
-        let hostedZonePrivate = this.hostedZonePrivateWs;
+        const hostedZonePrivate = this.hostedZonePrivateWs;
 
         const filterZone = hostedZonePrivate !== undefined;
         if (filterZone && hostedZonePrivate) {
@@ -941,9 +933,9 @@ class ServerlessCustomDomain {
         }
 
         const actionMap = {
+            DELETE: "deletion",
             UPSERT : "creation",
-            DELETE: "deletion"
-        }
+        };
 
         const createRoute53Record = this.serverless.service.custom.customDomain.websockets.createRoute53Record;
         if (createRoute53Record !== undefined && createRoute53Record === false) {
@@ -1014,7 +1006,7 @@ class ServerlessCustomDomain {
      * Delete a websocket Custom Domain Name through API Gateway V2
      */
     public async deleteCustomDomainWs(): Promise<void> {
-        
+
         const params = {
             DomainName: this.givenDomainNameWs,
         };
@@ -1032,7 +1024,7 @@ class ServerlessCustomDomain {
      */
     public async deleteDomainWs(): Promise<void> {
         let domainInfo;
-        let givenDomainName = this.givenDomainNameWs;
+        const givenDomainName = this.givenDomainNameWs;
         try {
             domainInfo = await this.getDomainInfoWs();
         } catch (err) {
@@ -1077,7 +1069,7 @@ class ServerlessCustomDomain {
      * @param wssApiId: ID of the existing websocket API in the CloudFormation stack
      */
     public async getApiMappingWs(wssApiId: string): Promise<string> {
-        
+
         const params = {
             DomainName: this.givenDomainNameWs,
         };
@@ -1089,13 +1081,12 @@ class ServerlessCustomDomain {
         } catch (err) {
             throw new Error(`Error: Unable to get ApiMappings for ${params.DomainName}`);
         }
-        
+
         if (apiInfo.Items !== undefined && apiInfo.Items instanceof Array && apiInfo.Items[0] !== undefined) {
             const apiItems = apiInfo.Items[0];
-            if (apiItems.ApiId == wssApiId) {
+            if (apiItems.ApiId === wssApiId) {
                 currentApiMappingId = apiItems.ApiMappingId;
-            }
-            else {
+            } else {
                 currentApiMappingId = undefined;
             }
         }
@@ -1109,10 +1100,10 @@ class ServerlessCustomDomain {
      */
     public async createApiMappingWs(wssApiId: string): Promise<any> {
         const params = {
-            DomainName: this.givenDomainNameWs,
             ApiId: wssApiId,
+            ApiMappingKey: "",
+            DomainName: this.givenDomainNameWs,
             Stage: this.stageWs,
-            ApiMappingKey: ''
         };
         // Make API call
         let apiMapping;
@@ -1120,7 +1111,6 @@ class ServerlessCustomDomain {
             apiMapping = await this.apigatewayv2.createApiMapping(params).promise();
             this.serverless.cli.log("Created API mapping.");
         } catch (err) {
-            console.log(err.message);
             throw new Error(`Error: Unable to create an API mapping.\n`);
         }
 
@@ -1134,11 +1124,11 @@ class ServerlessCustomDomain {
      */
     public async updateApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
         const params = {
-            DomainName: this.givenDomainNameWs,
             ApiId: wssApiId,
             ApiMappingId: apiMappingId,
-            ApiMappingKey: '',
-            Stage: this.stageWs
+            ApiMappingKey: "",
+            DomainName: this.givenDomainNameWs,
+            Stage: this.stageWs,
         };
         // Make API call
         try {
@@ -1156,9 +1146,9 @@ class ServerlessCustomDomain {
      */
     public async deleteApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
         const params = {
+            ApiId: wssApiId,
             ApiMappingId: apiMappingId,
             DomainName: this.givenDomainNameWs,
-            ApiId: wssApiId
         };
         // Make API call
         try {
@@ -1182,9 +1172,9 @@ class ServerlessCustomDomain {
             wssApiId = await this.getWssApiId();
             currentApiMappingId = await this.getApiMappingWs(wssApiId);
         } catch (ex) {
-            console.log(ex.message);
+            this.logIfDebug(ex.message);
         }
-        
+
         this.logIfDebug(`Found websocket API ID: ${wssApiId}`);
         this.logIfDebug(`Found API mapping ID for the websocket API: ${currentApiMappingId}`);
         let apiMapping;
@@ -1206,7 +1196,7 @@ class ServerlessCustomDomain {
 
     /**
      * Adds the websocket domain name and distribution domain name to the CloudFormation outputs
-     * @param domainInfo: Information about custom domain received from API gateway V2 
+     * @param domainInfo: Information about custom domain received from API gateway V2
      */
     public addOutputsWs(domainInfo: DomainInfoWs): void {
         const service = this.serverless.service;
@@ -1224,21 +1214,6 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Prints websocket custom domain summary
-     * @param domainInfo: Information about custom domain received from API gateway V2
-     */
-    private printDomainSummaryWs(domainInfo: DomainInfoWs): void {
-
-        if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
-            this.serverless.cli.consoleLog(chalk.yellow("Websockets Domain Name"));
-            this.serverless.cli.consoleLog(`  ${this.givenDomainNameWs}`);
-        }
-
-        this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
-        this.serverless.cli.consoleLog(`  ${domainInfo.apiGatewayDomainName}`);
-    }
-
-    /**
      * Lifecycle function to create both HTTP and WSS domains
      * Wraps creating domains and resource record sets
      */
@@ -1253,8 +1228,7 @@ class ServerlessCustomDomain {
                 await new Promise((done) => setTimeout(done, 30000));
                 await this.createDomainWs();
             }
-        }
-        catch (err) {
+        } catch (err) {
             throw new Error(`Error: Unable to create custom domains.\n`);
         }
     }
@@ -1264,7 +1238,7 @@ class ServerlessCustomDomain {
      * Wraps deleting domains and resource record sets
      */
     public async deleteDomains(): Promise<void> {
-        
+
         try {
             if (this.enabled) {
                 await this.deleteDomain();
@@ -1272,9 +1246,8 @@ class ServerlessCustomDomain {
             if (this.enabledWs) {
                 await this.deleteDomainWs();
             }
-        }
-        catch (err) {
-            console.log(err.message);
+        } catch (err) {
+            this.logIfDebug(err.message);
         }
     }
 
@@ -1290,12 +1263,11 @@ class ServerlessCustomDomain {
             if (this.enabledWs) {
                 await this.setupApiMappingWs();
             }
-        }
-        catch (err) {
-            console.log(err.message);
+        } catch (err) {
+            this.logIfDebug(err.message);
         }
     }
-    
+
     /**
      * Lifecycle function to remove API mappings for HTTP and websocket endpoints
      */
@@ -1310,10 +1282,38 @@ class ServerlessCustomDomain {
                 const currentApiMappingId = await this.getApiMappingWs(wssApiId);
                 await this.deleteApiMappingWs(wssApiId, currentApiMappingId);
             }
+        } catch (err) {
+            this.logIfDebug(err.message);
         }
-        catch (err) {
-            console.log(err.message);
+    }
+
+    /**
+     * Prints out a summary of all domain manager related info
+     */
+    private printDomainSummary(domainInfo: DomainInfo): void {
+
+        if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+            this.serverless.cli.consoleLog(chalk.yellow("Domain Name"));
+            this.serverless.cli.consoleLog(`  ${this.givenDomainName}`);
         }
+
+        this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
+        this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
+    }
+
+    /**
+     * Prints websocket custom domain summary
+     * @param domainInfo: Information about custom domain received from API gateway V2
+     */
+    private printDomainSummaryWs(domainInfo: DomainInfoWs): void {
+
+        if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
+            this.serverless.cli.consoleLog(chalk.yellow("Websockets Domain Name"));
+            this.serverless.cli.consoleLog(`  ${this.givenDomainNameWs}`);
+        }
+
+        this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
+        this.serverless.cli.consoleLog(`  ${domainInfo.apiGatewayDomainName}`);
     }
 
 }

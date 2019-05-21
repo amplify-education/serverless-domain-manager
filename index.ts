@@ -90,9 +90,11 @@ class ServerlessCustomDomain {
             this.serverless.cli.log("serverless-domain-manager: Custom domain generation is disabled.");
             return;
         } else if (!this.enabled) {
-            this.serverless.cli.log("serverless-domain-manager: Custom domain creation for HTTP endpoints is disabled.");
+            this.serverless.cli.log("serverless-domain-manager: " +
+                                    "Custom domain creation for HTTP endpoints is disabled.");
         } else if (!this.enabledWs) {
-            this.serverless.cli.log("serverless-domain-manager: Custom domain creation for websocket endpoints is disabled.");
+            this.serverless.cli.log("serverless-domain-manager: " +
+                                    "Custom domain creation for websocket endpoints is disabled.");
         }
         return await lifecycleFunc.call(this);
     }
@@ -1103,7 +1105,7 @@ class ServerlessCustomDomain {
 
     /**
      * Creates an API mapping for a custom domain using API gateway V2
-     * @param wssApiId: ID of the existing websocket API in the CloudFormation stack 
+     * @param wssApiId: ID of the existing websocket API in the CloudFormation stack
      */
     public async createApiMappingWs(wssApiId: string): Promise<any> {
         const params = {
@@ -1115,7 +1117,6 @@ class ServerlessCustomDomain {
         // Make API call
         let apiMapping;
         try {
-            //apiMapping = await this.serverless.providers.aws.request('ApiGatewayV2', 'createApiMapping', params);
             apiMapping = await this.apigatewayv2.createApiMapping(params).promise();
             this.serverless.cli.log("Created API mapping.");
         } catch (err) {
@@ -1128,8 +1129,8 @@ class ServerlessCustomDomain {
 
     /**
      * Updates existing websocket API mapping using API gateway V2
-     * @param wssApiId: ID of a websocket API for the custom domain to be mapped on 
-     * @param apiMappingId: ID of an already existing API mapping in API gateway V2 
+     * @param wssApiId: ID of a websocket API for the custom domain to be mapped on
+     * @param apiMappingId: ID of an already existing API mapping in API gateway V2
      */
     public async updateApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
         const params = {
@@ -1150,8 +1151,8 @@ class ServerlessCustomDomain {
 
     /**
      * Deletes existing websocket API mapping using API gateway V2
-     * @param wssApiId: ID of a websocket API which the custom domain is mapped on 
-     * @param apiMappingId: ID of an already existing API mapping in API gateway V2 
+     * @param wssApiId: ID of a websocket API which the custom domain is mapped on
+     * @param apiMappingId: ID of an already existing API mapping in API gateway V2
      */
     public async deleteApiMappingWs(wssApiId: string, apiMappingId: string): Promise<void> {
         const params = {
@@ -1161,7 +1162,6 @@ class ServerlessCustomDomain {
         };
         // Make API call
         try {
-            //await this.serverless.providers.aws.request('ApiGatewayV2', 'deleteApiMapping', params);
             await this.apigatewayv2.deleteApiMapping(params).promise();
             this.serverless.cli.log("Removed basepath mapping.");
         } catch (err) {
@@ -1250,7 +1250,7 @@ class ServerlessCustomDomain {
             }
             if (this.enabledWs) {
                 this.serverless.cli.log("Sleeping 30 seconds to workaround AWS 'too many requests' exception");
-                await new Promise(done => setTimeout(done, 30000));
+                await new Promise((done) => setTimeout(done, 30000));
                 await this.createDomainWs();
             }
         }

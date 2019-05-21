@@ -1916,7 +1916,7 @@ describe("Custom Domain Plugin", () => {
       });
 
       plugin.initializeVariables();
-      expect(plugin.endpointTypeWs).to.equal('REGIONAL');
+      expect(plugin.endpointTypeWs).to.equal("REGIONAL");
     });
 
     it("Should set websocket endpoint type to regional even if missing", () => {
@@ -1925,7 +1925,7 @@ describe("Custom Domain Plugin", () => {
       });
 
       plugin.initializeVariables();
-      expect(plugin.endpointTypeWs).to.equal('REGIONAL');
+      expect(plugin.endpointTypeWs).to.equal("REGIONAL");
     });
 
     it("Should disable websocket domain creation if custom.customDomain.websockets is missing", () => {

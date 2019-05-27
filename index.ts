@@ -184,6 +184,9 @@ class ServerlessCustomDomain {
 
         if (domainInfo) {
             this.printDomainSummary(domainInfo);
+            if (domainInfoWs) {
+                this.serverless.cli.consoleLog(chalk.yellow("---"));
+            }
         } else {
             this.serverless.cli.log("Unable to print Serverless Domain Manager Summary for HTTP endpoints");
         }
@@ -1259,6 +1262,9 @@ class ServerlessCustomDomain {
         try {
             if (this.enabled) {
                 await this.setupBasePathMapping();
+                if (this.enabledWs) {
+                    this.serverless.cli.consoleLog(chalk.yellow("---"));
+                }
             }
             if (this.enabledWs) {
                 await this.setupApiMappingWs();

@@ -1312,8 +1312,11 @@ class ServerlessCustomDomain {
             this.serverless.cli.consoleLog(`  ${this.givenDomainNameWs}`);
         }
 
-        this.serverless.cli.consoleLog(chalk.yellow("API Gateway Domain Name"));
+        this.serverless.cli.consoleLog(chalk.yellow("Regional API Gateway Domain Name"));
         this.serverless.cli.consoleLog(`  ${domainInfo.apiGatewayDomainName}`);
+
+        this.serverless.cli.consoleLog(chalk.yellow("Hosted Zone ID"));
+        this.serverless.cli.consoleLog(`  ${domainInfo.hostedZoneId}`);
     }
 
 }

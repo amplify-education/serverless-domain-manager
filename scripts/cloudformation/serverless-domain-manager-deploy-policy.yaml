@@ -51,3 +51,8 @@ Resources:
               - route53:GetHostedZone
               - route53:ListResourceRecordSets
             Resource: !Sub arn:aws:route53:::hostedzone/${HostedZoneId}
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway

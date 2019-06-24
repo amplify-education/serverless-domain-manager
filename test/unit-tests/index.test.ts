@@ -561,6 +561,21 @@ describe("Custom Domain Plugin", () => {
 
   describe("Gets Rest API correctly", () => {
     it("Fetches restApiId correctly when no ApiGateway specified", async () => {
+      AWS.mock("CloudFormation", "describeStacks", (params, callback) => {
+        callback(null, {
+          Stacks: [
+            {
+              StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK",
+            },
+            {
+              StackName: "custom-stage-name-NestedStackTwo-U89W84TQIHJK",
+            },
+            {
+              StackName: "outside-stack-NestedStackZERO-U89W84TQIHJK",
+            },
+          ],
+        });
+      });
       AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
         callback(null, {
           StackResourceDetail:
@@ -766,6 +781,21 @@ describe("Custom Domain Plugin", () => {
       });
       AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
         callback(null, params);
+      });
+      AWS.mock("CloudFormation", "describeStacks", (params, callback) => {
+        callback(null, {
+          Stacks: [
+            {
+              StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK",
+            },
+            {
+              StackName: "custom-stage-name-NestedStackTwo-U89W84TQIHJK",
+            },
+            {
+              StackName: "outside-stack-NestedStackZERO-U89W84TQIHJK",
+            },
+          ],
+        });
       });
       AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
         callback(null, {

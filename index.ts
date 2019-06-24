@@ -579,11 +579,11 @@ class ServerlessCustomDomain {
             };
             // Make API call
             try {
-                await this.apigateway.createBasePathMapping(params).promise();
+                const resp = await this.apigateway.createBasePathMapping(params).promise();
                 this.serverless.cli.log("Created basepath mapping.");
             } catch (err) {
                 this.logIfDebug(err);
-                throw new Error(`Error: Unable to create basepath mapping.\n`);
+                throw new Error(`Error: Unable to create basepath mapping.\n API Gateway: ${err.message}`);
             }
 
         } else if (this.apiType === "HTTP" || this.apiType === "WEBSOCKET") { // V2 HTTP and WEBSOCKET
@@ -639,7 +639,7 @@ class ServerlessCustomDomain {
             return this.serverless.service.provider.apiGateway.restApiId;
         }
 
-        const stackName = this.serverless.service.provider.stackName ||
+        const stackFamilyName = this.serverless.service.provider.stackName ||
             `${this.serverless.service.service}-${this.stage}`;
 
         let LogicalResourceId = "ApiGatewayRestApi";
@@ -649,22 +649,47 @@ class ServerlessCustomDomain {
             LogicalResourceId = "WebsocketsApi";
         }
 
-        const params = {
-            LogicalResourceId,
-            StackName: stackName,
-        };
-
+        const allStackDescriptions = [];
+        let nextToken = true;
+        this.serverless.cli.log("Searching for apiId in stacks");
+        while (nextToken) {
+          try {
+              const params = { NextToken: undefined };
+              if (typeof nextToken === "string") {
+                params.NextToken = nextToken;
+              }
+              const describeStacksResponse = await this.cloudformation.describeStacks(params).promise();
+              for (const stackDescription of describeStacksResponse.Stacks) {
+                  allStackDescriptions.push(stackDescription);
+              }
+              nextToken = describeStacksResponse.NextToken;
+          } catch (err) {
+              this.logIfDebug(err);
+          }
+        }
+        const familyStackNames = allStackDescriptions
+            .map((stack) => stack.StackName)
+            .filter((stackName) => stackName.includes(stackFamilyName));
         let response;
-        try {
-            response = await this.cloudformation.describeStackResource(params).promise();
-        } catch (err) {
-            this.logIfDebug(err);
-            throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
+        for (const familyStackName of familyStackNames) {
+            try {
+                response = await this.cloudformation.describeStackResource({
+                    LogicalResourceId,
+                    StackName: familyStackName,
+                }).promise();
+                break;
+            } catch (err) {
+                this.logIfDebug(err);
+            }
+        }
+        if (!response) {
+            throw new Error(`Error: Failed to find a stack ${stackFamilyName}\n`);
         }
 
         const apiId = response.StackResourceDetail.PhysicalResourceId;
+        this.serverless.cli.log(`Found apiId: ${apiId}`);
         if (!apiId) {
-            throw new Error(`Error: No ApiId associated with CloudFormation stack ${stackName}`);
+            throw new Error(`Error: No ApiId associated with CloudFormation stack ${stackFamilyName}`);
         }
         return apiId;
     }

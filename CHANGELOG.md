@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.2.5] - 2019-06-24
+
+### Added
+- Add `iam:CreateServiceLinkedRole` to CloudFormation template
+
 ## [3.2.4] - 2019-06-24
 
 ### Changed

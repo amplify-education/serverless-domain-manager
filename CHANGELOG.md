@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [3.2.4] - 2019-06-24
+
+### Changed
+- Update the minimum required permissions to run the serverless domain manager plugin to include `apigateway:PATCH
+
 ## [3.2.3] - 2019-06-24
 
 ### Changed

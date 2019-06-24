@@ -615,7 +615,8 @@ class ServerlessCustomDomain {
         }
 
         this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
-        this.serverless.cli.consoleLog(`  ${domainInfo.domainName}`);
+        this.serverless.cli.consoleLog(`  Target Domain: ${domainInfo.domainName}`);
+        this.serverless.cli.consoleLog(`  Hosted Zone Id: ${domainInfo.hostedZoneId}`);
     }
 }
 

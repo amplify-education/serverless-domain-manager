@@ -31,8 +31,11 @@ Resources:
             Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
           - Effect: Allow
             Action:
+              - apigateway:PATCH
               - apigateway:POST
-            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings
+            Resource:
+              - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings
+              - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings/*
           - Effect: Allow
             Action:
               - cloudfront:UpdateDistribution
@@ -51,3 +54,8 @@ Resources:
               - route53:GetHostedZone
               - route53:ListResourceRecordSets
             Resource: !Sub arn:aws:route53:::hostedzone/${HostedZoneId}
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway

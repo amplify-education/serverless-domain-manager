@@ -54,7 +54,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "mocha-param": "^2.0.0",
-    "nyc": "^13.1.0",
+    "nyc": "^14.1.1",
     "randomstring": "^1.1.5",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",

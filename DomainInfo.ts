@@ -5,6 +5,7 @@ class DomainInfo {
 
     public domainName: string;
     public hostedZoneId: string;
+    public securityPolicy: string;
 
     /**
      * Sometimes, the getDomainName call doesn't return either a distributionHostedZoneId or a regionalHostedZoneId.
@@ -14,12 +15,14 @@ class DomainInfo {
      * PR: https://github.com/amplify-education/serverless-domain-manager/pull/171
      */
     private defaultHostedZoneId: string = "Z2FDTNDATAQYW2";
+    private defaultSecurityPolicy: string = "TLS_1_2";
 
     constructor(data: any) {
         this.domainName = data.distributionDomainName || data.regionalDomainName;
         this.hostedZoneId = data.distributionHostedZoneId ||
             data.regionalHostedZoneId ||
             this.defaultHostedZoneId;
+        this.securityPolicy = data.securityPolicy || this.defaultSecurityPolicy;
     }
 }
 

@@ -9,6 +9,11 @@ const endpointTypes = {
     regional: "REGIONAL",
 };
 
+const tlsVersions = {
+    tls_1_0: "TLS_1_0",
+    tls_1_2: "TLS_1_2",
+};
+
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
 class ServerlessCustomDomain {
@@ -33,6 +38,7 @@ class ServerlessCustomDomain {
     public basePath: string;
     private endpointType: string;
     private stage: string;
+    private securityPolicy: string;
 
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
         this.serverless = serverless;
@@ -197,6 +203,14 @@ class ServerlessCustomDomain {
             }
             this.endpointType = endpointTypeToUse;
 
+            const securityPolicyDefault = this.serverless.service.custom.customDomain.securityPolicy ||
+                tlsVersions.tls_1_2;
+            const tlsVersionToUse = tlsVersions[securityPolicyDefault.toLowerCase()];
+            if (!tlsVersionToUse) {
+                throw new Error(`${securityPolicyDefault} is not a supported securityPolicy, use tls_1_0 or tls_1_2.`);
+            }
+            this.securityPolicy = tlsVersionToUse;
+
             this.acmRegion = this.endpointType === endpointTypes.regional ?
                 this.serverless.providers.aws.getRegion() : "us-east-1";
             const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
@@ -317,6 +331,7 @@ class ServerlessCustomDomain {
                 types: [this.endpointType],
             },
             regionalCertificateArn: certificateArn,
+            securityPolicy: this.securityPolicy,
         };
         if (this.endpointType === endpointTypes.edge) {
             params.regionalCertificateArn = undefined;

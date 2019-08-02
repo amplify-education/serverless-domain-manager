@@ -52,7 +52,7 @@ const constructPlugin = (customDomainOptions) => {
           CloudFormation: aws.CloudFormation,
           Route53: aws.Route53,
           config: {
-            update: (toUpdate:object) => null
+            update: (toUpdate: object) => null,
           },
         },
       },

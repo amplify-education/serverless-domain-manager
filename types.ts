@@ -34,8 +34,8 @@ export interface ServerlessInstance { // tslint:disable-line
                 CloudFormation: any,
                 ACM: any,
                 config: {
-                    update(toUpdate:object): void,
-                }
+                    update(toUpdate: object): void,
+                },
              }
             getCredentials(),
             getRegion(),

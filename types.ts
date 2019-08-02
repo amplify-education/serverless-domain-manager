@@ -35,11 +35,10 @@ export interface ServerlessInstance { // tslint:disable-line
                 ACM: any,
                 config: {
                     update(toUpdate:object): void,
-                },
-             },
+                }
+             }
             getCredentials(),
             getRegion(),
-            
         },
     };
     cli: {

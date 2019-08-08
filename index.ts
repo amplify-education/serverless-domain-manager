@@ -171,6 +171,7 @@ class ServerlessCustomDomain {
         if (this.enabled) {
             const credentials = this.serverless.providers.aws.getCredentials();
 
+            this.serverless.providers.aws.sdk.config.update({maxRetries: 20});
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
             this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);

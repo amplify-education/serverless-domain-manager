@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "3.2.7",
+  "version": "3.3.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -66,7 +66,7 @@
     "wrappy": "^1.0.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.177.0",
+    "aws-sdk": "^2.490.0",
     "chalk": "^2.4.1"
   }
 }

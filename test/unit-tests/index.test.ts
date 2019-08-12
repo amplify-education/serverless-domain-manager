@@ -69,6 +69,7 @@ const constructPlugin = (customDomainOptions) => {
           endpointType: customDomainOptions.endpointType,
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+          securityPolicy: customDomainOptions.securityPolicy,
           stage: customDomainOptions.stage,
         },
       },
@@ -308,7 +309,7 @@ describe("Custom Domain Plugin", () => {
 
     it("Create a domain name", async () => {
       AWS.mock("APIGateway", "createDomainName", (params, callback) => {
-        callback(null, { distributionDomainName: "foo" });
+        callback(null, { distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
       });
 
       const plugin = constructPlugin({ domainName: "test_domain"});
@@ -318,6 +319,22 @@ describe("Custom Domain Plugin", () => {
       const result = await plugin.createCustomDomain("fake_cert");
 
       expect(result.domainName).to.equal("foo");
+      expect(result.securityPolicy).to.equal("TLS_1_2");
+    });
+
+    it("Create a domain name with specific TLS version", async () => {
+      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
+      });
+
+      const plugin = constructPlugin({ domainName: "test_domain", securityPolicy: "tls_1_2"});
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      const result = await plugin.createCustomDomain("fake_cert");
+
+      expect(result.domainName).to.equal("foo");
+      expect(result.securityPolicy).to.equal("TLS_1_2");
     });
 
     it("Create a new A Alias Record", async () => {

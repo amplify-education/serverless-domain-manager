@@ -58,18 +58,32 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration (example for `serverless.foo.com/api`).
+Add the plugin configuration (examples for `rest.foo.com/api` and `websocket.bar.com`).
 
+REST
 ```yaml
 custom:
   customDomain:
-    domainName: serverless.foo.com
-    stage: ci
-    basePath: api
-    certificateName: '*.foo.com'
-    createRoute53Record: true
-    endpointType: 'regional'
-    securityPolicy: tls_1_2
+    - domainName: rest.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+```
+
+Websocket
+```yaml
+custom:
+  customDomain:
+    - domainName: websocket.bar.com
+      stage: ci
+      certificateName: '*.bar.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+      websocket: true
 ```
 
 | Parameter Name | Default Value | Description |

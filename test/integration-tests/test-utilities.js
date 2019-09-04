@@ -6,8 +6,15 @@ const dns = require("dns");
 const shell = require("shelljs");
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
-const apiGateway = new aws.APIGateway({
-  region: "us-west-2",
+const apigatewayv2 = new aws.ApiGatewayV2({
+  region: "us-east-1",
+  credentials: new aws.SharedIniFileCredentials(
+    { profile: AWS_PROFILE },
+  ),
+});
+
+const apigateway = new aws.APIGateway({
+  region: "us-east-1",
   credentials: new aws.SharedIniFileCredentials(
     { profile: AWS_PROFILE },
   ),
@@ -89,54 +96,72 @@ async function curlUrl(url) {
 }
 
 /**
- * Gets endpoint type of given URL from AWS
- * @param url
+ * Gets endpoint type of given URLs from AWS
+ * @param urls
  * @returns {Promise<String|null>} Resolves to String if endpoint exists, else null.
  */
-async function getEndpointType(url) {
-  const params = {
-    domainName: url,
-  };
-  try {
-    const result = await apiGateway.getDomainName(params).promise();
-    return result.endpointConfiguration.types[0];
-  } catch (err) {
-    return null;
+async function getEndpointType(urls) {
+  const results = new Map();
+
+  const iterator = urls.entries();
+  let url = iterator.next();
+  while (!url.done) {
+      try {
+          const resp = await apigatewayv2.getDomainName({DomainName: url.value[1]}).promise();
+          results.set(url.value[0], resp.DomainNameConfigurations[0].EndpointType);
+          url = iterator.next();
+      } catch(err) {
+          results.set(url.value[0], null);
+          url = iterator.next();
+      }
   }
+  return [...results.values()]
 }
 
 /**
- * Gets stage of given URL from AWS
- * @param url
+ * Gets stage of given URLs from AWS
+ * @param urls
  * @returns {Promise<String|null>} Resolves to String if stage exists, else null.
  */
-async function getStage(url) {
-  const params = {
-    domainName: url,
-  };
-  try {
-    const result = await apiGateway.getBasePathMappings(params).promise();
-    return result.items[0].stage;
-  } catch (err) {
-    return null;
+async function getStage(urls) {
+  const results = new Map();
+
+  const iterator = urls.entries();
+  let url = iterator.next();
+  while (!url.done) {
+      try {
+          const resp = await apigatewayv2.getApiMappings({DomainName: url.value[1]}).promise();
+          results.set(url.value[0], resp.Items[0].Stage);
+          url = iterator.next();
+      } catch(err) {
+          results.set(url.value[0], null);
+          url = iterator.next();
+      }
   }
+  return [...results.values()]
 }
 
 /**
- * Gets basePath of given URL from AWS
- * @param url
+ * Gets basePath of given URLs from AWS
+ * @param urls
  * @returns {Promise<String|null>} Resolves to String if basePath exists, else null.
  */
-async function getBasePath(url) {
-  const params = {
-    domainName: url,
-  };
-  try {
-    const result = await apiGateway.getBasePathMappings(params).promise();
-    return result.items[0].basePath;
-  } catch (err) {
-    return null;
+async function getBasePath(urls) {
+  const results = new Map();
+
+  const iterator = urls.entries();
+  let url = iterator.next();
+  while (!url.done) {
+      try {
+          const resp = await apigatewayv2.getApiMappings({DomainName: url.value[1]}).promise();
+          results.set(url.value[0], resp.Items[0].ApiMappingKey);
+          url = iterator.next();
+      } catch(err) {
+          results.set(url.value[0], null);
+          url = iterator.next();
+      }
   }
+  return [...results.values()]
 }
 
 /**
@@ -146,7 +171,7 @@ async function getBasePath(url) {
  */
 function dnsLookup(url) {
   return new Promise((resolve) => {
-    dns.resolveAny(url, (err) => {
+    dns.lookup(url, (err) => {
       if (err) {
         return resolve(false);
       }
@@ -161,22 +186,29 @@ function dnsLookup(url) {
  * @param enabled
  * @returns {Promise<boolean>} Resolves true if records found, else false.
  */
-async function verifyDnsPropogation(url, enabled) {
+async function verifyDnsPropogation(urls, enabled) {
   console.debug("\tWaiting for DNS to Propogate..."); // eslint-disable-line no-console
   if (!enabled) {
     return true;
   }
+  const results = {
+    "REST": null,
+    "WEBSOCKET": null
+  }
   let numRetries = 0;
-  let dnsPropogated = false;
-  while (numRetries < 40 && !dnsPropogated && enabled) {
-    dnsPropogated = await dnsLookup(url); // eslint-disable-line no-await-in-loop
+  fifo = [...urls]
+  while (numRetries < 40 && fifo.length != 0 && enabled) {
+    url = fifo.shift()
+    dnsPropogated = await dnsLookup(url[1]); // eslint-disable-line no-await-in-loop
     if (dnsPropogated) {
-      break;
+        results[url[0]] = dnsPropogated
+    } else {
+        fifo.push(url)
     }
     numRetries += 1;
-    await sleep(60); // eslint-disable-line no-await-in-loop
+    await sleep(5); // eslint-disable-line no-await-in-loop
   }
-  return dnsPropogated;
+  return Object.values(results)
 }
 
 /**
@@ -185,9 +217,9 @@ async function verifyDnsPropogation(url, enabled) {
  * @return {Object} Contains restApiId and resourceId
  */
 async function setupApiGatewayResources(randString) {
-  const restApiInfo = await apiGateway.createRestApi({ name: `rest-api-${randString}` }).promise();
+  const restApiInfo = await apigateway.createRestApi({ name: `rest-api-${randString}` }).promise();
   const restApiId = restApiInfo.id;
-  const resourceInfo = await apiGateway.getResources({ restApiId }).promise();
+  const resourceInfo = await apigateway.getResources({ restApiId }).promise();
   const resourceId = resourceInfo.items[0].id;
   shell.env.REST_API_ID = restApiId;
   shell.env.RESOURCE_ID = resourceId;
@@ -200,7 +232,7 @@ async function setupApiGatewayResources(randString) {
  * @return {boolean} Returns true if deleted
  */
 async function deleteApiGatewayResources(restApiId) {
-  return apiGateway.deleteRestApi({ restApiId }).promise();
+  return apigateway.deleteRestApi({ restApiId }).promise();
 }
 
 /**
@@ -303,21 +335,23 @@ async function removeLambdas(tempDir, domainIdentifier) {
  * @param enabled
  * @returns {Promise<boolean>} Resolves true if resources created, else false.
  */
-async function createResources(folderName, url, domainIdentifier, enabled) {
-  console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
+async function createResources(folderName, urls, domainIdentifier, enabled) {
+  const resources = [...urls.values()]
+  console.debug(`\tCreating Resources for ${resources[0]} & ${resources[1]}`); // eslint-disable-line no-console
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   await createTempDir(tempDir, folderName);
   const created = await deployLambdas(tempDir, domainIdentifier);
-  let dnsVerified = false;
+  let [dnsVerifiedRest, dnsVerifiedWebsocket] = [false, false]
   if (created) {
-    dnsVerified = await verifyDnsPropogation(url, enabled);
+    console.log("verify dns")
+    [dnsVerifiedRest, dnsVerifiedWebsocket] = await verifyDnsPropogation(urls, enabled);
   }
-  if (created && dnsVerified) {
+  if (created && dnsVerifiedRest && dnsVerifiedWebsocket) {
     console.debug("\tResources Created"); // eslint-disable-line no-console
   } else {
     console.debug("\tResources Failed to Create"); // eslint-disable-line no-console
   }
-  return created && dnsVerified;
+  return created && dnsVerifiedRest && dnsVerifiedWebsocket;
 }
 
 /**
@@ -326,8 +360,9 @@ async function createResources(folderName, url, domainIdentifier, enabled) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
  */
-async function destroyResources(url, domainIdentifier) {
-  console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
+async function destroyResources(urls, domainIdentifier) {
+  const resources = [...urls.values()]
+  console.debug(`\tCleaning Up Resources for ${resources[0]} & ${resources[1]}`); // eslint-disable-line no-console
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   const removed = await removeLambdas(tempDir, domainIdentifier);
   await exec(`rm -rf ${tempDir}`);

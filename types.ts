@@ -1,3 +1,19 @@
+export interface Domain { // tslint:disable-line
+    domainName: string;
+    basePath?: string | undefined;
+    stage?: string | undefined;
+    certificateName?: string | undefined;
+    certificateArn?: string | undefined;
+    securityPolicy?: string | undefined;
+    createRoute53Record?: boolean | undefined;
+    endpointType?: string | undefined;
+    hostedZoneId?: string | undefined;
+    hostedZonePrivate?: boolean | undefined;
+    enabled?: boolean | string | undefined;
+    websocket?: boolean | string | undefined;
+    aliasTarget?: string | undefined;
+}
+
 export interface ServerlessInstance { // tslint:disable-line
     service: {
         service: string
@@ -9,33 +25,11 @@ export interface ServerlessInstance { // tslint:disable-line
             },
             apiGateway: {
                 restApiId: string,
+                websocketApiId: string,
             },
         }
         custom: {
-            customDomain: {
-                domainName: string,
-                basePath: string | undefined,
-                stage: string | undefined,
-                certificateName: string | undefined,
-                certificateArn: string | undefined,
-                createRoute53Record: boolean | undefined,
-                endpointType: string | undefined,
-                hostedZoneId: string | undefined,
-                hostedZonePrivate: boolean | undefined,
-                enabled: boolean | string | undefined,
-                websockets: {
-                    domainName: string,
-                    basePath: string | undefined,
-                    stage: string | undefined,
-                    certificateName: string | undefined,
-                    certificateArn: string | undefined,
-                    createRoute53Record: boolean | undefined,
-                    endpointType: string | undefined,
-                    hostedZoneId: string | undefined,
-                    hostedZonePrivate: boolean | undefined,
-                    enabled: boolean | string | undefined,
-                },
-            },
+            customDomain: Domain[],
         },
     };
     providers: {

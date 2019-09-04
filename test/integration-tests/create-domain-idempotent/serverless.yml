@@ -2,8 +2,8 @@
 service: create-domain-idempotent
 provider:
   name: aws
-  runtime: nodejs6.10
-  region: us-west-2
+  runtime: nodejs10.x
+  region: us-east-1
   stage: test
 functions:
   helloWorld:
@@ -13,9 +13,15 @@ functions:
           path: hello-world
           method: get
           cors: true
+package:
+  exclude:
+    - node_modules/**
 plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: create-domain-idempotent-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    basePath: ''
+    - domainName: create-domain-idempotent-rest-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      basePath: ''
+    - domainName: create-domain-idempotent-websocket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      basePath: ''
+      websocket: true

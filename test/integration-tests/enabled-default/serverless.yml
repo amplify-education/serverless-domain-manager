@@ -2,8 +2,8 @@
 service: enabled-default
 provider:
   name: aws
-  runtime: nodejs6.10
-  region: us-west-2
+  runtime: nodejs10.x
+  region: us-east-1
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -12,8 +12,13 @@ functions:
           path: hello-world
           method: get
           cors: true
+package:
+  exclude:
+    - node_modules/**
 plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    - domainName: enabled-default-rest-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    - domainName: enabled-default-websocket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN} 
+      websocket: true

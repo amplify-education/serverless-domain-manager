@@ -2,8 +2,8 @@
 service: enabled-custom-apigateway
 provider:
   name: aws
-  runtime: nodejs6.10
-  region: us-west-2
+  runtime: nodejs10.x
+  region: us-east-1
   apiGateway:
     restApiId: ${env:REST_API_ID}
     restApiResources:
@@ -16,8 +16,13 @@ functions:
           path: hello-world
           method: get
           cors: true
+package:
+  exclude:
+    - node_modules/**
 plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    - domainName: enabled-custom-apigateway-rest-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    - domainName: enabled-custom-apigateway-websocket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      websocket: true

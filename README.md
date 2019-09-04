@@ -58,7 +58,7 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration to create a domain for a REST API (example for `serverless.foo.com/api`).
+Add the plugin configuration (example for `serverless.foo.com/api`).
 
 ```yaml
 custom:
@@ -71,27 +71,6 @@ custom:
     endpointType: 'regional'
     securityPolicy: tls_1_2
 ```
-
-Alternatively, you can configure the plugin to create domains for both REST and websocket APIs (example for `serverless.foo.com/api`).
-
-```yaml
-custom:
-  customDomain:
-    domainName: serverless.foo.com
-    stage: ci
-    basePath: api
-    certificateName: '*.foo.com'
-    createRoute53Record: true
-    endpointType: 'regional'
-    websockets:
-      domainName: serverless.foo.com
-      stage: ci
-      certificateName: '*.foo.com'
-      createRoute53Record: true
-      endpointType: 'regional'
-```
-
-Only regional websocket endpoints are currently (5/20/2019) supported by AWS.
 
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
@@ -109,22 +88,22 @@ securityPolicy | tls_1_2 | The security policy to apply to the custom domain nam
 
 ## Running
 
-To create the custom domain(s):
+To create the custom domain:
 ```
 serverless create_domain
 ```
 
-To deploy with the custom domain(s):
+To deploy with the custom domain:
 ```
 serverless deploy
 ```
 
-To remove the created custom domain(s):
+To remove the created custom domain:
 ```
 serverless delete_domain
 ```
 # How it works
-Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping (API mapping in case of websocket API) and assign the lambda to the custom domain name through CloudFront (API gateway in case of websocket API). All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
+Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
 
 Note: In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records. Starting in version 3.2, we create AAAA Alias records as well.
 

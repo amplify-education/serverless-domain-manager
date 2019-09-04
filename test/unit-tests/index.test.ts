@@ -55,6 +55,9 @@ const constructPlugin = (customDomainOptions) => {
           ApiGatewayV2: aws.ApiGatewayV2,
           CloudFormation: aws.CloudFormation,
           Route53: aws.Route53,
+          config: {
+            update: (toUpdate: object) => null,
+          },
         },
       },
     },
@@ -70,13 +73,15 @@ const constructPlugin = (customDomainOptions) => {
           endpointType: customDomainOptions.endpointType,
           hostedZoneId: customDomainOptions.hostedZoneId,
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+          securityPolicy: customDomainOptions.securityPolicy,
           stage: customDomainOptions.stage,
           websocket: customDomainOptions.websocket,
         }],
       },
       provider: {
         apiGateway: {
-          apiId: null,
+          restApiId: null,
+          websocketApiId: null,
         },
         compiledCloudFormationTemplate: {
           Outputs: null,
@@ -600,7 +605,7 @@ describe("Custom Domain Plugin", () => {
 
       plugin.initializeVariables();
 
-      plugin.serverless.service.provider.apiGateway.apiId = "custom_test_api_id";
+      plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_api_id";
 
       const result = await plugin.getApiId(plugin.domains[0]);
       expect(result).to.equal("custom_test_api_id");
@@ -746,7 +751,7 @@ describe("Custom Domain Plugin", () => {
 
       const spy = chai.spy.on(plugin, "createApiMapping");
 
-      await plugin.setupBasePathMapping(plugin.domains[0]);
+      await plugin.propogateMappings();
 
       expect(spy).to.be.called();
     });
@@ -772,7 +777,7 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.initializeVariables();
 
-      await plugin.deleteDomain(plugin.domains[0]);
+      await plugin.deleteDomains();
 
       expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].domainName} was deleted.`);
     });
@@ -797,7 +802,7 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.initializeVariables();
 
-      await plugin.createDomain();
+      await plugin.createDomains();
       const output = `${plugin.domains[0].domainName} was created. Could take up to 40 minutes to be initialized.`;
       expect(consoleOutput[0]).to.equal(output);
     });
@@ -824,7 +829,7 @@ describe("Custom Domain Plugin", () => {
       });
       plugin.initializeVariables();
 
-      await plugin.createDomain();
+      await plugin.createDomains();
       expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].domainName} already exists.`);
     });
 
@@ -1271,7 +1276,7 @@ describe("Custom Domain Plugin", () => {
         websocket: false,
       });
 
-      const result = await plugin.hookWrapper(plugin.setupMappings);
+      const result = await plugin.hookWrapper(plugin.propogateMappings);
 
       expect(plugin.domains[0].enabled).to.equal(false);
       expect(plugin.domains[0].websocket).to.equal(false);
@@ -1284,7 +1289,7 @@ describe("Custom Domain Plugin", () => {
         websocket: false,
       });
 
-      const result = await plugin.hookWrapper(plugin.removeMapping);
+      const result = await plugin.hookWrapper(plugin.propogateMappings);
 
       expect(plugin.domains[0].enabled).to.equal(false);
       expect(plugin.domains[0].websocket).to.equal(false);

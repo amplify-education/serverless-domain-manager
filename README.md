@@ -69,6 +69,7 @@ custom:
     certificateName: '*.foo.com'
     createRoute53Record: true
     endpointType: 'regional'
+    securityPolicy: tls_1_2
 ```
 
 Alternatively, you can configure the plugin to create domains for both REST and websocket APIs (example for `serverless.foo.com/api`).
@@ -103,17 +104,8 @@ Only regional websocket endpoints are currently (5/20/2019) supported by AWS.
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
-| enabled | `true` | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
-| websockets _(Optional)_| | This optional dictionary indicates to the plugin that a domain name for a websocket API should be created |
-| websockets.domainName _(Required if websockets dictionary is present)_| | The domain name to be created in API Gateway (V2) and Route53 (if enabled) for this API. This domain name should be different from the domain name of your REST API|
-| websockets.stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
-| websockets.certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: The certificate should be located in the same region as specified in `provider.region`|
-| websockets.certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
-| websockets.createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated API gateway domain name. If false, does not create a record. |
-| websockets.endpointType | regional | Defines the endpoint type, accepts `regional` or `edge` but enforces `regional` due to missing support for `edge` endpoints (5/20/2019). |
-| websockets.hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
-| websockets.hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
-| websockets.enabled | `true` | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+| enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
 
 ## Running
 

@@ -5,18 +5,8 @@ import { Domain, ServerlessInstance, ServerlessOptions } from "./types";
  */
 class DomainInfo {
 
-  // AWS SDK resources
-  public apigateway: any;
-  public apigatewayv2: any;
-  public route53: any;
-  public acm: any;
-  public acmRegion: string;
-  public cloudformation: any;
-
-  public serverless: any;
-
   public domainName: string;
-  public basePath?: string | undefined = "(none)";
+  public basePath?: string | undefined = "";
   public stage?: string | undefined;
   public certificateName?: string | undefined;
   public certificateArn?: string | undefined;
@@ -41,21 +31,14 @@ class DomainInfo {
     tls_1_2: "TLS_1_2",
   };
 
-  private defaultHostedZoneId = "Z2FDTNDATAQYW2";
+  private fallbackHostedZoneId = "Z2FDTNDATAQYW2";
 
   constructor(domain: Domain, serverless: ServerlessInstance, options: ServerlessOptions) {
     this.domainName = domain.domainName;
 
-    let credentials;
-    credentials = serverless.providers.aws.getCredentials();
-
-    this.apigateway = new serverless.providers.aws.sdk.APIGateway(credentials);
-    this.apigatewayv2 = new serverless.providers.aws.sdk.ApiGatewayV2(credentials);
-    this.route53 = new serverless.providers.aws.sdk.Route53(credentials);
-    this.cloudformation = new serverless.providers.aws.sdk.CloudFormation(credentials);
-    this.acm = new serverless.providers.aws.sdk.ACM(credentials);
-
-    this.serverless = serverless;
+    if (typeof this.domainName === "undefined") {
+      throw new Error(`domainName is required. Pass it on your serverless.yaml file.`);
+    }
 
     if (typeof domain.enabled !== "undefined") {
       this.enabled = this.evaluateEnabled(domain.enabled);
@@ -114,7 +97,7 @@ class DomainInfo {
 
   public SetApiGatewayRespV1(data: any) {
     this.aliasTarget = data.distributionDomainName || data.regionalDomainName;
-    this.aliasHostedZoneId = data.distributionHostedZoneId || data.regionalHostedZoneId;
+    this.aliasHostedZoneId = data.distributionHostedZoneId || data.regionalHostedZoneId || this.fallbackHostedZoneId;
   }
 
   public SetApiGatewayRespV2(data: any) {

@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.458.0",
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.1",
+    "example-lambda": "file:../../tmp/domain-manager-test-uy35s"
   }
 }

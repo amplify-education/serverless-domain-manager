@@ -60,7 +60,13 @@ class ServerlessCustomDomain {
      */
     public async hookWrapper(lifecycleFunc: any) {
 
-        this.initializeVariables();
+        this.initializeDomainManager();
+
+        if (this.domains.size === 0) {
+            const msg = "No domains are enabled. To use Domain Manager pass 'enabled: true' in your serverless.yaml";
+            this.domainManagerLog(msg);
+        }
+
         return await lifecycleFunc.call(this);
     }
 
@@ -68,6 +74,7 @@ class ServerlessCustomDomain {
      * Lifecycle function to create a domain
      * Wraps creating a domain and resource record set
      */
+    // TODO: refigure so only the needed components are retried
     public async createDomains(): Promise<void> {
 
         const iterator = this.domains.entries();
@@ -116,7 +123,7 @@ class ServerlessCustomDomain {
      * Lifecycle function to delete a domain
      * Wraps deleting a domain and resource record set
      */
-
+    // TODO: refigure so only the needed components are retried
     public async deleteDomains(): Promise<void> {
 
         const iterator = this.domains.entries();
@@ -130,7 +137,7 @@ class ServerlessCustomDomain {
                 await this.deleteCustomDomain(domainInfo);
                 await this.changeResourceRecordSet("DELETE", domainInfo);
 
-                const msg = `Custom domain ${domainInfo.domainName} was deleted.`;
+                const msg = `Domain ${domainInfo.domainName} was deleted.`;
                 results.set(domain.value[0], msg);
                 domain = iterator.next();
             } catch (err) {
@@ -161,33 +168,41 @@ class ServerlessCustomDomain {
     /**
      * Lifecycle function to setup API mappings for HTTP and websocket endpoints
      */
+    // TODO: refigure so only the needed components are retried
     public async propogateMappings(): Promise<void> {
         const iterator = this.domains.entries();
+        const successful = new Map();
 
         let domain = iterator.next();
         while (!domain.done) {
             const domainInfo = domain.value[1];
             try {
+
                 if (domainInfo.enabled) {
 
                     const apiId = await this.getApiId(domainInfo);
+                    this.serverless.cli.log(apiId);
                     const mapping = await this.getMapping(apiId, domainInfo);
 
-                    if (!mapping.id) {
+                    if (!mapping) {
                         await this.createApiMapping(apiId, domainInfo);
                         domain = iterator.next();
                         this.addOutputs(domainInfo);
+                        successful.set(domainInfo, "successful");
                         continue;
                     }
 
-                    if (mapping.key !== domainInfo.basePath) {
-                        await this.updateApiMapping(mapping.id, domainInfo, apiId);
+                    if (mapping.apiMappingKey !== domainInfo.basePath) {
+                        await this.updateApiMapping(mapping.apiMappingId, domainInfo, apiId);
                         domain = iterator.next();
                         this.addOutputs(domainInfo);
+                        successful.set(domainInfo, "successful");
                         continue;
                     } else {
-                        this.logIfDebug(`Path for ${domainInfo.domain} is already current. Skipping...`);
+                        this.logIfDebug(`Path for ${domainInfo.domainName} is already current. Skipping...`);
+                        domain = iterator.next();
                     }
+
                 }
             } catch (err) {
                 this.logIfDebug(err.message);
@@ -195,7 +210,9 @@ class ServerlessCustomDomain {
             }
         }
 
-        await this.domainSummary();
+        if (successful.size > 0) {
+            await this.domainSummary();
+        }
     }
 
     /**
@@ -232,10 +249,12 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Goes through custom domain property and initializes local variables and cloudformation template
+     * Initializes DomainInfo class with domain specific variables, and
+     * SDK APIs if and only if there are enabled domains. Otherwise will
+     * return undefined.
      */
 
-    public initializeVariables(): void {
+    public initializeDomainManager(): void {
 
         if (typeof this.serverless.service.custom === "undefined") {
             throw new Error("serverless-domain-manager: Plugin configuration is missing.");
@@ -338,6 +357,7 @@ class ServerlessCustomDomain {
         try {
             const domainInfo = await this.apigatewayv2.getDomainName({ DomainName: domain.domainName }).promise();
             domain.SetApiGatewayRespV2(domainInfo);
+            this.domains.set(domain.domainName, domain);
         } catch (err) {
             if (err.code === "NotFoundException") {
                 throw err;
@@ -372,6 +392,7 @@ class ServerlessCustomDomain {
 
                 createdDomain = await this.apigateway.createDomainName(params).promise();
                 domain.SetApiGatewayRespV1(createdDomain);
+                this.domains.set(domain.domainName, domain);
             } else {
                 const params = {
                     DomainName: domain.domainName,
@@ -385,6 +406,7 @@ class ServerlessCustomDomain {
 
                 createdDomain = await this.apigatewayv2.createDomainName(params).promise();
                 domain.SetApiGatewayRespV2(createdDomain);
+                this.domains.set(domain.domainName, domain);
             }
 
         } catch (err) {
@@ -527,8 +549,8 @@ class ServerlessCustomDomain {
         };
 
         let mappingInfo;
-        let currentMappingId;
-        let currentMappingKey;
+        let apiMappingId;
+        let apiMappingKey;
 
         try {
             mappingInfo = await this.apigatewayv2.getApiMappings(params).promise();
@@ -542,17 +564,14 @@ class ServerlessCustomDomain {
         if (mappingInfo.Items !== undefined && mappingInfo.Items instanceof Array) {
             for (const m of mappingInfo.Items) {
                 if (m.ApiId === ApiId) {
-                    currentMappingId = m.ApiMappingId;
-                    currentMappingKey = m.ApiMappingKey;
+                    apiMappingId = m.ApiMappingId;
+                    apiMappingKey = m.ApiMappingKey;
                     break;
                 }
             }
         }
 
-        return {
-            id: currentMappingId,
-            key: currentMappingKey,
-        };
+        return apiMappingId ? {apiMappingId, apiMappingKey} : undefined;
     }
 
     /**
@@ -570,7 +589,7 @@ class ServerlessCustomDomain {
             await this.apigatewayv2.createApiMapping(params).promise();
             this.domainManagerLog(`Created API mapping for ${domain.domainName}.`);
         } catch (err) {
-            throw new Error(`Unable to create an API mapping for ${domain.domainName}.\n`);
+            throw new Error(`${err}`);
         }
     }
 
@@ -627,6 +646,8 @@ class ServerlessCustomDomain {
         } else {
             params.LogicalResourceId = "WebsocketsApi";
         }
+        const str = JSON.stringify(params, null, 4);
+        this.serverless.cli.log(str);
 
         let response;
         try {
@@ -685,7 +706,7 @@ class ServerlessCustomDomain {
      */
     public logIfDebug(message: any): void {
         if (process.env.SLS_DEBUG) {
-            this.serverless.cli.log(message, "Domain Manager [DEBUG]");
+            this.serverless.cli.log(message, "Domain Manager");
         }
     }
 
@@ -741,6 +762,7 @@ class ServerlessCustomDomain {
                 this.serverless.cli.consoleLog(chalk.yellow(`${v.domainName} (${apiType}):`));
                 this.serverless.cli.consoleLog(`  Alias Target: ${v.aliasTarget}`);
                 this.serverless.cli.consoleLog(`  Alias Hosted Zone Id: ${v.aliasHostedZoneId}`);
+                this.serverless.cli.consoleLog(`  URL: ${v.url}`);
             } else {
                 this.serverless.cli.consoleLog(print);
             }

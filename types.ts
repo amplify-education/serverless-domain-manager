@@ -43,7 +43,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 config: {
                     update(toUpdate: object): void,
                 },
-             }
+             },
             getCredentials(),
             getRegion(),
         },

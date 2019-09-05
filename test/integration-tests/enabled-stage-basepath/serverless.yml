@@ -2,8 +2,8 @@
 service: enabled-stage-basepath
 provider:
   name: aws
-  runtime: nodejs10.x
-  region: us-east-1
+  runtime: nodejs6.10
+  region: us-west-2
   stage: test
 functions:
   helloWorld:
@@ -13,17 +13,10 @@ functions:
           path: hello-world
           method: get
           cors: true
-package:
-  exclude:
-    - node_modules/**
 plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    - domainName: enabled-stage-basepath-rest-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-      stage: test
-      basePath: ''
-    - domainName: enabled-stage-basepath-websocket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-      stage: test
-      basePath: ''
-      websocket: true
+    domainName: enabled-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: test
+    basePath: ''

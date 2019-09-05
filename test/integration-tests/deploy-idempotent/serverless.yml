@@ -2,8 +2,8 @@
 service: deploy-idempotent
 provider:
   name: aws
-  runtime: nodejs10.x
-  region: us-east-1
+  runtime: nodejs6.10
+  region: us-west-2
   stage: test
 functions:
   helloWorld:
@@ -13,15 +13,9 @@ functions:
           path: hello-world
           method: get
           cors: true
-package:
-  exclude:
-    - node_modules/**
 plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    - domainName: deploy-idempotent-rest-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-      basePath: ''
-    - domainName: deploy-idempotent-websocket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-      basePath: ''
-      websocket: true
+    domainName: deploy-idempotent-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: ''

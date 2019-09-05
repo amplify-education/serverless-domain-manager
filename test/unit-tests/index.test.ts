@@ -104,7 +104,7 @@ describe("Custom Domain Plugin", () => {
       domainName: "test_domain",
     });
 
-    plugin.initializeVariables();
+    plugin.initializeDomainManager();
 
     const returnedCreds = plugin.apigateway.config.credentials;
     const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
@@ -114,39 +114,97 @@ describe("Custom Domain Plugin", () => {
     expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
   });
 
-  describe("Domain Endpoint types", () => {
-    it("Unsupported endpoint types throw exception", () => {
-      const plugin = constructPlugin({
-        domainName: "test_domain",
-        endpointType: "notSupported",
-      });
-      let errored = false;
-      try {
-        plugin.initializeVariables();
-      } catch (err) {
-        errored = true;
-        expect(err.message).to.equal("notSupported is not supported endpointType, use edge or regional.");
-      }
-      expect(errored).to.equal(true);
+  it("Checks for correct default value of basePath", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
     });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.basePath).to.equal("");
+
+  });
+
+  it("Checks for correct default value of securityPolicy", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
+    });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.securityPolicy).to.equal("TLS_1_2");
+
+  });
+
+  it("Checks for correct default value of endpointType", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
+    });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.endpointType).to.equal("EDGE");
+
+  });
+
+  it("Checks for correct default value of enabled", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
+    });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.enabled).to.equal(true);
+
+  });
+
+  it("Checks for correct default value of websocket", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
+    });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.websocket).to.equal(false);
+
+  });
+
+  it("Checks for correct default value of createRoute53Record", () => {
+    const plugin = constructPlugin({
+      domainName: "test_domain",
+    });
+
+    plugin.initializeDomainManager();
+
+    const domain = plugin.domains.values().next().value;
+    expect(domain.createRoute53Record).to.equal(true);
 
   });
 
   describe("Set Domain Name and Base Path", () => {
-    it("Creates basepath mapping (REST)", async () => {
+    it("Creates api mapping", async () => {
       AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
         callback(null, params);
       });
+
       const plugin = constructPlugin({
         basePath: "test_basepath",
         domainName: "test_domain",
         stage: "test",
       });
-      plugin.initializeVariables();
+
+      plugin.initializeDomainManager();
+
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
 
-      await plugin.createApiMapping("test_api_id", plugin.domains[0]);
+      await plugin.createApiMapping("test_api_id", iterator.next().value);
       expect(spy).to.have.been.called.with({
         ApiId: "test_api_id",
         ApiMappingKey: "test_basepath",
@@ -155,7 +213,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Updates basepath mapping", async () => {
+    it("Updates api mapping", async () => {
       AWS.mock("ApiGatewayV2", "updateApiMapping", (params, callback) => {
         callback(null, params);
       });
@@ -164,11 +222,13 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
         stage: "test_stage",
       });
-      plugin.initializeVariables();
+
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "updateApiMapping");
 
-      await plugin.updateApiMapping("mapping_id", plugin.domains[0], "test_api_id");
+      await plugin.updateApiMapping("mapping_id", iterator.next().value, "test_api_id");
       expect(spy).to.have.been.called.with({
         ApiId: "test_api_id",
         ApiMappingId: "mapping_id",
@@ -183,13 +243,20 @@ describe("Custom Domain Plugin", () => {
         domainName: "fake_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      let iterator = plugin.domains.values();
+      let domain = iterator.next().value;
 
-      plugin.domains[0].SetApiGatewayRespV1({
+      domain.SetApiGatewayRespV1({
         distributionDomainName: "fake_dist_name",
         distributionHostedZoneId: "fake_zone_id"});
 
-      plugin.addOutputs(plugin.domains[0]);
+      plugin.domains.set(domain.domainName, domain);
+
+      iterator = plugin.domains.values();
+      domain = iterator.next().value;
+
+      plugin.addOutputs(domain);
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -200,14 +267,22 @@ describe("Custom Domain Plugin", () => {
         websocket: true,
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      let iterator = plugin.domains.values();
+      let domain = iterator.next().value;
 
-      plugin.domains[0].SetApiGatewayRespV2({
+      domain.SetApiGatewayRespV2({
         DomainNameConfigurations: [{
           ApiGatewayDomainName: "fake_dist_name",
-          HostedZoneId: "fake_zone_id"}]});
+          HostedZoneId: "fake_zone_id",
+        }]});
 
-      plugin.addOutputs(plugin.domains[0]);
+      plugin.domains.set(domain.domainName, domain);
+
+      iterator = plugin.domains.values();
+      domain = iterator.next().value;
+
+      plugin.addOutputs(domain);
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat).to.not.equal(undefined);
     });
@@ -217,61 +292,51 @@ describe("Custom Domain Plugin", () => {
         domainName: "fake_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      let iterator = plugin.domains.values();
+      let domain = iterator.next().value;
 
-      plugin.domains[0].SetApiGatewayRespV1({
+      domain.SetApiGatewayRespV1({
         distributionDomainName: "fake_dist_name",
         distributionHostedZoneId: "fake_zone_id"});
+      plugin.domains.set(domain.domainName, domain);
 
-      plugin.addOutputs(plugin.domains[0]);
+      iterator = plugin.domains.values();
+      domain = iterator.next().value;
+
+      plugin.addOutputs(domain);
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat.aliasTarget.Value).to.equal("fake_dist_name");
       expect(cfTemplat.aliasHostedZoneId.Value).to.equal("fake_zone_id");
     });
 
-    it("Add Domain Name and HostedZoneId to stack output and check the output contents (Websocket) ", () => {
+    it("Add Domain Name and HostedZoneId to stack output and check the output contents (Websocket)", () => {
       const plugin = constructPlugin({
         domainName: "fake_domain",
         websocket: true,
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      let iterator = plugin.domains.values();
+      let domain = iterator.next().value;
 
-      plugin.domains[0].SetApiGatewayRespV2({
+      domain.SetApiGatewayRespV2({
         DomainNameConfigurations: [{
           ApiGatewayDomainName: "fake_dist_name",
-          HostedZoneId: "fake_zone_id"}]});
+          HostedZoneId: "fake_zone_id",
+        }]});
+      plugin.domains.set(domain.domainName, domain);
 
-      plugin.addOutputs(plugin.domains[0]);
+      iterator = plugin.domains.values();
+      domain = iterator.next().value;
+
+      plugin.addOutputs(domain);
       const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
       expect(cfTemplat.aliasTarget.Value).to.equal("fake_dist_name");
       expect(cfTemplat.aliasHostedZoneId.Value).to.equal("fake_zone_id");
     });
 
-    it("(none) is added if basepath is an empty string", async () => {
-      AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
-        callback(null, params);
-      });
-
-      const plugin = constructPlugin({
-        basePath: "",
-        domainName: "test_domain",
-      });
-
-      plugin.initializeVariables();
-
-      const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
-
-      await plugin.createApiMapping("test_api_id", plugin.domains[0]);
-      expect(spy).to.have.been.called.with({
-        ApiId: "test_api_id",
-        ApiMappingKey: "(none)",
-        DomainName: "test_domain",
-        Stage: "test",
-      });
-    });
-
-    it("(none) is added if no value is given for basepath (null)", async () => {
+    it("Empty string is added if no value is given for basepath (null)", async () => {
       AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
         callback(null, params);
       });
@@ -280,36 +345,37 @@ describe("Custom Domain Plugin", () => {
         basePath: null,
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
 
-      await plugin.createApiMapping("test_api_id", plugin.domains[0]);
+      await plugin.createApiMapping("test_api_id", iterator.next().value);
       expect(spy).to.have.been.called.with({
         ApiId: "test_api_id",
-        ApiMappingKey: "(none)",
+        ApiMappingKey: "",
         DomainName: "test_domain",
         Stage: "test",
       });
     });
 
-    it("(none) is added if basepath attribute is missing (undefined)", async () => {
+    it("Empty string is added if basepath attribute is missing (undefined)", async () => {
       AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
         callback(null, params);
       });
 
       const plugin = constructPlugin({
         domainName: "test_domain",
-        websocket: false,
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
 
-      await plugin.createApiMapping("test_api_id", plugin.domains[0]);
+      await plugin.createApiMapping("test_api_id", iterator.next().value);
       expect(spy).to.have.been.called.with({
         ApiId: "test_api_id",
-        ApiMappingKey: "(none)",
+        ApiMappingKey: "",
         DomainName: "test_domain",
         Stage: "test",
       });
@@ -322,16 +388,16 @@ describe("Custom Domain Plugin", () => {
 
       const plugin = constructPlugin({
         domainName: "test_domain",
-        websocket: false,
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "createApiMapping");
 
-      await plugin.createApiMapping("test_api_id", plugin.domains[0]);
+      await plugin.createApiMapping("test_api_id", iterator.next().value);
       expect(spy).to.have.been.called.with({
         ApiId: "test_api_id",
-        ApiMappingKey: "(none)",
+        ApiMappingKey: "",
         DomainName: "test_domain",
         Stage: "test",
       });
@@ -352,27 +418,32 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
         endpointType: "REGIONAL",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      await plugin.getCertArn(plugin.domains[0]);
+      await plugin.getCertArn(domain);
 
-      expect(plugin.domains[0].certificateArn).to.equal("test_given_arn");
+      expect(domain.certificateArn).to.equal("test_given_arn");
     });
 
     it("Get a given certificate name for a domain", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
       const plugin = constructPlugin({
+        domainName: "test_domain",
         certificateName: "cert_name",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      await plugin.getCertArn(plugin.domains[0]);
+      await plugin.getCertArn(domain);
 
-      expect(plugin.domains[0].certificateArn).to.equal("test_given_cert_name");
+      expect(domain.certificateArn).to.equal("test_given_cert_name");
     });
 
-    it("Create a new A Alias Record (REST)", async () => {
+    it("Create a new A Alias Record", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
@@ -385,16 +456,18 @@ describe("Custom Domain Plugin", () => {
         basePath: "test_basepath",
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
-      plugin.domains[0].SetApiGatewayRespV1({
+      domain.SetApiGatewayRespV1({
         distributionDomainName: "test_distribution_name",
         distributionHostedZoneId: "test_id",
       });
 
-      await plugin.changeResourceRecordSet("UPSERT", plugin.domains[0]);
+      await plugin.changeResourceRecordSet("UPSERT", domain);
 
       const expectedParams = {
         ChangeBatch: {
@@ -431,7 +504,7 @@ describe("Custom Domain Plugin", () => {
       expect(spy).to.have.been.called.with(expectedParams);
     });
 
-    it("Create a new A Alias Record (Websocket)", async () => {
+    it("Create a new A Alias Record", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
@@ -445,18 +518,20 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
         websocket: true,
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
-      plugin.domains[0].SetApiGatewayRespV2({
+      domain.SetApiGatewayRespV2({
         DomainNameConfigurations: [{
           ApiGatewayDomainName: "test_distribution_name",
           HostedZoneId: "test_id",
         }],
       });
 
-      await plugin.changeResourceRecordSet("UPSERT", plugin.domains[0]);
+      await plugin.changeResourceRecordSet("UPSERT", domain);
 
       const expectedParams = {
         ChangeBatch: {
@@ -493,28 +568,30 @@ describe("Custom Domain Plugin", () => {
       expect(spy).to.have.been.called.with(expectedParams);
     });
 
-    it("Do not create a Route53 record for a domain (REST)", async () => {
+    it("Do not create a Route53 record for a domain", async () => {
       const plugin = constructPlugin({
         createRoute53Record: false,
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
-      const result = await plugin.changeResourceRecordSet("UPSERT", plugin.domains[0]);
+      const result = await plugin.changeResourceRecordSet("UPSERT", iterator.next().value);
       expect(result).to.equal(undefined);
     });
 
-    it("Do not create a Route53 record for a domain (Websocket)", async () => {
+    it("Do not create a Route53 record for a domain", async () => {
       const plugin = constructPlugin({
         createRoute53Record: false,
         domainName: "test_domain",
         websocket: true,
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
-      const result = await plugin.changeResourceRecordSet("UPSERT", plugin.domains[0]);
+      const result = await plugin.changeResourceRecordSet("UPSERT", iterator.next().value);
       expect(result).to.equal(undefined);
     });
 
@@ -534,13 +611,14 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
-      const result = await plugin.getMapping("test_api_id", plugin.domains[0]);
+      const result = await plugin.getMapping("test_api_id", iterator.next().value);
       expect(result).to.equal(undefined);
     });
 
-    it("Returns current api", async () => {
+    it("Returns current apiMappingKey and apiMappingId", async () => {
       AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
         callback(null, {
           Items: [
@@ -553,10 +631,13 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
-      const result = await plugin.getMapping("test_api_id", plugin.domains[0]);
-      expect(result).to.equal("test_api_mapping_id");
+      const iterator = plugin.domains.values();
+
+      const result = await plugin.getMapping("test_api_id", iterator.next().value);
+      expect(result.apiMappingId).to.equal("test_api_mapping_id");
+      expect(result.apiMappingKey).to.equal("api");
     });
 
     afterEach(() => {
@@ -581,9 +662,10 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
-      const result = await plugin.getApiId(plugin.domains[0]);
+      const result = await plugin.getApiId(iterator.next().value);
       expect(result).to.equal("test_api_id");
     });
 
@@ -603,11 +685,12 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_api_id";
 
-      const result = await plugin.getApiId(plugin.domains[0]);
+      const result = await plugin.getApiId(iterator.next().value);
       expect(result).to.equal("custom_test_api_id");
     });
 
@@ -628,11 +711,14 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      let iterator = plugin.domains.values();
 
-      await plugin.getAliasInfo(plugin.domains[0]);
+      await plugin.getAliasInfo(iterator.next().value);
 
-      expect(plugin.domains[0].aliasTarget).to.equal("test_domain");
+      iterator = plugin.domains.values();
+
+      expect(iterator.next().value.aliasTarget).to.equal("test_domain");
     });
 
     it("Delete A Alias Record", async () => {
@@ -649,16 +735,19 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
-      plugin.domains[0].SetApiGatewayRespV1({
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
+
+      domain.SetApiGatewayRespV1({
         distributionDomainName: "test_distribution_name",
         distributionHostedZoneId: "test_id",
       });
 
       const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
 
-      await plugin.changeResourceRecordSet("DELETE", plugin.domains[0]);
+      await plugin.changeResourceRecordSet("DELETE", domain);
       const expectedParams = {
         ChangeBatch: {
           Changes: [
@@ -706,11 +795,12 @@ describe("Custom Domain Plugin", () => {
 
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
       const spy = chai.spy.on(plugin.apigatewayv2, "deleteDomainName");
 
-      await plugin.deleteCustomDomain(plugin.domains[0]);
+      await plugin.deleteCustomDomain(iterator.next().value);
       expect(spy).to.be.called.with({
         DomainName: "test_domain",
       });
@@ -723,7 +813,7 @@ describe("Custom Domain Plugin", () => {
   });
 
   describe("Hook Methods", () => {
-    it("setupBasePathMapping", async () => {
+    it("propogateMappings", async () => {
       AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
         callback(null, {
           DomainName: "fake_domain",
@@ -744,10 +834,12 @@ describe("Custom Domain Plugin", () => {
           },
         });
       });
+
       const plugin = constructPlugin({
         domainName: "fake_domain",
       });
-      plugin.initializeVariables();
+
+      plugin.initializeDomainManager();
 
       const spy = chai.spy.on(plugin, "createApiMapping");
 
@@ -775,11 +867,13 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "fake_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       await plugin.deleteDomains();
 
-      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].domainName} was deleted.`);
+      expect(consoleOutput[0]).to.equal(`Domain ${domain.domainName} was deleted.`);
     });
 
     it("createDomain if one does not exist before", async () => {
@@ -800,11 +894,16 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       await plugin.createDomains();
-      const output = `${plugin.domains[0].domainName} was created. Could take up to 40 minutes to be initialized.`;
-      expect(consoleOutput[0]).to.equal(output);
+      const output0 = `Domain ${domain.domainName} not found. Creating...`;
+      const output1 = `${domain.domainName} was created. Could take up to 40 minutes to be initialized.`;
+      expect(consoleOutput[0]).to.equal(output0);
+      expect(consoleOutput[1]).to.equal(output1);
     });
 
     it("Does not create domain if one existed before", async () => {
@@ -827,10 +926,12 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       await plugin.createDomains();
-      expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].domainName} already exists.`);
+      expect(consoleOutput[0]).to.equal(`Domain ${domain.domainName} already exists. Skipping...`);
     });
 
     afterEach(() => {
@@ -855,9 +956,10 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "ccc.bbb.aaa.com",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(iterator.next().value);
       expect(result).to.equal("test_id_2");
     });
 
@@ -876,9 +978,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test.ccc.bbb.aaa.com",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_1");
     });
 
@@ -897,9 +1001,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test.ccc.bbb.aaa.com",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_2");
     });
 
@@ -917,9 +1023,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "bar.foo.bbb.fr",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_1");
     });
 
@@ -936,9 +1044,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test.a.aaa.com",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_0");
     });
 
@@ -957,9 +1067,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "bar.foo.bbb.fr",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_3");
     });
 
@@ -978,9 +1090,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "bar.foo.bbb.fr",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_3");
     });
 
@@ -998,9 +1112,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "bar.foo.bbb.fr",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_3");
     });
 
@@ -1017,9 +1133,11 @@ describe("Custom Domain Plugin", () => {
         domainName: "aaa.com",
         hostedZonePrivate: true,
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_0");
     });
 
@@ -1037,9 +1155,11 @@ describe("Custom Domain Plugin", () => {
         domainName: "aaa.com",
         hostedZonePrivate: true,
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
+      const result = await plugin.getRoute53HostedZoneId(domain);
       expect(result).to.equal("test_id_0");
     });
 
@@ -1057,9 +1177,11 @@ describe("Custom Domain Plugin", () => {
         certificateName: "does_not_exist",
         domainName: "",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      return plugin.getCertArn(plugin.domains[0]).then(() => {
+      return plugin.getCertArn(domain).then(() => {
         throw new Error("Test has failed. getCertArn did not catch errors.");
       }).catch((err) => {
         const expectedErrorMessage = "Error: Could not find the certificate does_not_exist.";
@@ -1075,9 +1197,11 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
-      return plugin.getRoute53HostedZoneId(plugin.domains[0]).then(() => {
+      return plugin.getRoute53HostedZoneId(domain).then(() => {
         throw new Error("Test has failed, getHostedZone did not catch errors.");
       }).catch((err) => {
         const expectedErrorMessage = "Error: Could not find hosted zone \"test_domain\"";
@@ -1085,23 +1209,20 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Fail createCustomDomain due to missing domainName", async () => {
+    it("Fail domain initialization due to missing domainName", async () => {
       AWS.mock("APIGateway", "createDomainName", (params, callback) => {
         callback(null, { distributionDomainName: "foo" });
       });
 
       const plugin = constructPlugin({
-        domainName: undefined,
+        domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
-
-      return plugin.createCustomDomain(plugin.domains[0]).then(() => {
-        throw new Error("Test has failed, createCustomDomain did not catch errors.");
-      }).catch((err) => {
-        const expectedErrorMessage = "Error: Failed to create custom domain undefined\n";
-        expect(err.message).to.equal(expectedErrorMessage);
-      });
+      try {
+        const domain = new DomainInfo({domainName: undefined}, plugin.serverless, plugin.options);
+      } catch (err) {
+        expect(err.message).to.equal("domainName is required. Pass it on your serverless.yaml file.");
+      }
     });
 
     it("Domain summary failed", async () => {
@@ -1111,7 +1232,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
       return plugin.domainSummary().then(() => {
         // check if distribution domain name is printed
@@ -1125,7 +1246,7 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
       // set sls debug to true
       process.env.SLS_DEBUG = "True";
@@ -1138,10 +1259,25 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
       plugin.logIfDebug("test message");
       expect(consoleOutput).to.not.contain("test message");
+    });
+
+    it("Unsupported endpoint types throw exception", () => {
+      const plugin = constructPlugin({
+        domainName: "test_domain",
+        endpointType: "notSupported",
+      });
+      let errored = false;
+      try {
+        plugin.initializeDomainManager();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("notSupported is not supported endpointType, use edge or regional.");
+      }
+      expect(errored).to.equal(true);
     });
 
     afterEach(() => {
@@ -1161,7 +1297,7 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
 
       await plugin.domainSummary();
       expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
@@ -1182,7 +1318,9 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const returnedCreds = plugin.apigateway.config.credentials;
       const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
@@ -1190,15 +1328,17 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.domains[0].enabled).to.equal(true);
+      expect(domain.enabled).to.equal(true);
     });
 
-    it("Should be disabled by default (Websocket)", () => {
+    it("Should be disabled by default", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const returnedCreds = plugin.apigateway.config.credentials;
       const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
@@ -1206,17 +1346,19 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.domains[0].websocket).to.equal(false);
+      expect(domain.websocket).to.equal(false);
     });
 
-    it("Should enable the plugin when passing a true parameter with type boolean (REST | Websocket)", () => {
+    it("Should enable the domain when passing a true parameter with type boolean", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
         enabled: true,
         websocket: true,
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const returnedCreds = plugin.apigateway.config.credentials;
       const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
@@ -1224,17 +1366,20 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.domains[0].enabled).to.equal(true);
-      expect(plugin.domains[0].websocket).to.equal(true);
+      expect(domain.enabled).to.equal(true);
+      expect(domain.websocket).to.equal(true);
     });
 
-    it("Should enable the plugin when passing a true parameter with type string (REST | Websocket)", () => {
+    it("Should enable the plugin when passing a true parameter with type string", () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: "true",
         websocket: "true",
       });
 
-      plugin.initializeVariables();
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
 
       const returnedCreds = plugin.apigateway.config.credentials;
       const returnedCredsV2 = plugin.apigatewayv2.config.credentials;
@@ -1242,83 +1387,84 @@ describe("Custom Domain Plugin", () => {
       expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
       expect(returnedCredsV2.accessKeyId).to.equal(testCreds.accessKeyId);
       expect(returnedCredsV2.sessionToken).to.equal(testCreds.sessionToken);
-      expect(plugin.domains[0].enabled).to.equal(true);
-      expect(plugin.domains[0].websocket).to.equal(true);
+      expect(domain.enabled).to.equal(true);
+      expect(domain.websocket).to.equal(true);
     });
 
-    it("Should disable the plugin when passing a false parameter with type boolean (REST | Websocket)", () => {
+    it("Should disable the plugin when passing a false parameter with type boolean", async () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: false,
-        websocket: false,
       });
 
-      plugin.initializeVariables();
+      await plugin.hookWrapper(plugin.propogateMappings)
 
-      expect(plugin.domains[0].enabled).to.equal(false);
-      expect(plugin.domains[0].websocket).to.equal(false);
+      const output0 = "Domain generation for test_domain has been disabled. Skipping...";
+      const output1 = "No domains are enabled. To use Domain Manager pass \'enabled: true\' in your serverless.yaml";
+      expect(consoleOutput[0]).to.equal(output0);
+      expect(consoleOutput[1]).to.equal(output1);
     });
 
-    it("Should disable the plugin when passing a false parameter with type string (REST | Websocket)", () => {
+    it("Should disable the plugin when passing a false parameter with type string", async () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: "false",
         websocket: "false",
       });
 
-      plugin.initializeVariables();
+      await plugin.hookWrapper(plugin.propogateMappings)
 
-      expect(plugin.domains[0].enabled).to.equal(false);
-      expect(plugin.domains[0].websocket).to.equal(false);
+      const output0 = "Domain generation for test_domain has been disabled. Skipping...";
+      const output1 = "No domains are enabled. To use Domain Manager pass \'enabled: true\' in your serverless.yaml";
+      expect(consoleOutput[0]).to.equal(output0);
+      expect(consoleOutput[1]).to.equal(output1);
     });
 
-    it("setupMappings should do nothing when domain manager is disabled (REST | Websocket)", async () => {
+    it("propogateMappings should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
+        enabled: false,
+      });
+
+      const result = await plugin.hookWrapper(plugin.propogateMappings);
+
+      expect(result).to.equal(undefined);
+    });
+
+    it("removeMappings should do nothing when domain manager is disabled", async () => {
+      const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: false,
         websocket: false,
       });
 
       const result = await plugin.hookWrapper(plugin.propogateMappings);
 
-      expect(plugin.domains[0].enabled).to.equal(false);
-      expect(plugin.domains[0].websocket).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
-    it("removeMappings should do nothing when domain manager is disabled (REST | Websocket)", async () => {
+    it("domainSummary should do nothing when domain manager is disabled", async () => {
       const plugin = constructPlugin({
-        enabled: false,
-        websocket: false,
-      });
-
-      const result = await plugin.hookWrapper(plugin.propogateMappings);
-
-      expect(plugin.domains[0].enabled).to.equal(false);
-      expect(plugin.domains[0].websocket).to.equal(false);
-      expect(result).to.equal(undefined);
-    });
-
-    it("domainSummary should do nothing when domain manager is disabled (REST | Websocket)", async () => {
-      const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: false,
         websocket: false,
       });
 
       const result = await plugin.hookWrapper(plugin.domainSummary);
 
-      expect(plugin.domains[0].enabled).to.equal(false);
-      expect(plugin.domains[0].websocket).to.equal(false);
       expect(result).to.equal(undefined);
     });
 
-    it("Should throw an Error when passing a parameter that is not boolean (REST | Websocket)", () => {
-      const stringWithValueYes = "yes";
+    it("Should throw an Error when passing a parameter that is not boolean", () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: 0,
         websocket: 0,
       });
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        plugin.initializeDomainManager();
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"0\"");
@@ -1326,15 +1472,16 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
-    it("Should throw an Error when passing a parameter that cannot be converted to boolean (REST | Websocket)", () => {
+    it("Should throw an Error when passing a parameter that cannot be converted to boolean", () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         enabled: "yes",
         websocket: "yes",
       });
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        plugin.initializeDomainManager();
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"yes\"");
@@ -1354,7 +1501,7 @@ describe("Custom Domain Plugin", () => {
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        plugin.initializeDomainManager();
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
@@ -1368,7 +1515,8 @@ describe("Custom Domain Plugin", () => {
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        plugin.initializeDomainManager();
+
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
@@ -1376,22 +1524,28 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
-    it("Should set endpoint type to regional per default (Websocket)", () => {
+    it("Should set endpoint type to regional per default", () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         websocket: true,
       });
 
-      plugin.initializeVariables();
-      expect(plugin.domains[0].endpointType).to.equal("REGIONAL");
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
+      expect(domain.endpointType).to.equal("REGIONAL");
     });
 
-    it("Should set endpoint type to regional even if missing  (Websocket)", () => {
+    it("Should set endpoint type to regional even if missing ", () => {
       const plugin = constructPlugin({
+        domainName: "test_domain",
         websocket: true,
       });
 
-      plugin.initializeVariables();
-      expect(plugin.domains[0].endpointType).to.equal("REGIONAL");
+      plugin.initializeDomainManager();
+      const iterator = plugin.domains.values();
+      const domain = iterator.next().value;
+      expect(domain.endpointType).to.equal("REGIONAL");
     });
 
     afterEach(() => {

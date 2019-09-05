@@ -431,8 +431,8 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("ACM", "listCertificates", certTestData);
 
       const plugin = constructPlugin({
-        domainName: "test_domain",
         certificateName: "cert_name",
+        domainName: "test_domain",
       });
       plugin.initializeDomainManager();
       const iterator = plugin.domains.values();
@@ -1397,7 +1397,7 @@ describe("Custom Domain Plugin", () => {
         enabled: false,
       });
 
-      await plugin.hookWrapper(plugin.propogateMappings)
+      await plugin.hookWrapper(plugin.propogateMappings);
 
       const output0 = "Domain generation for test_domain has been disabled. Skipping...";
       const output1 = "No domains are enabled. To use Domain Manager pass \'enabled: true\' in your serverless.yaml";
@@ -1412,7 +1412,7 @@ describe("Custom Domain Plugin", () => {
         websocket: "false",
       });
 
-      await plugin.hookWrapper(plugin.propogateMappings)
+      await plugin.hookWrapper(plugin.propogateMappings);
 
       const output0 = "Domain generation for test_domain has been disabled. Skipping...";
       const output1 = "No domains are enabled. To use Domain Manager pass \'enabled: true\' in your serverless.yaml";

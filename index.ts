@@ -74,7 +74,6 @@ class ServerlessCustomDomain {
      * Lifecycle function to create a domain
      * Wraps creating a domain and resource record set
      */
-    // TODO: refigure so only the needed components are retried
     public async createDomains(): Promise<void> {
 
         const iterator = this.domains.entries();
@@ -123,7 +122,6 @@ class ServerlessCustomDomain {
      * Lifecycle function to delete a domain
      * Wraps deleting a domain and resource record set
      */
-    // TODO: refigure so only the needed components are retried
     public async deleteDomains(): Promise<void> {
 
         const iterator = this.domains.entries();
@@ -168,7 +166,7 @@ class ServerlessCustomDomain {
     /**
      * Lifecycle function to setup API mappings for HTTP and websocket endpoints
      */
-    // TODO: refigure so only the needed components are retried
+
     public async propogateMappings(): Promise<void> {
         const iterator = this.domains.entries();
         const successful = new Map();

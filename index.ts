@@ -226,20 +226,22 @@ class ServerlessCustomDomain {
         let domain = iterator.next();
         while (!domain.done) {
             const domainInfo = domain.value[1];
-            try {
-                await this.getAliasInfo(domainInfo);
-                results.set(domain.value[0], {
-                   aliasHostedZoneId: domainInfo.aliasHostedZoneId,
-                   aliasTarget: domainInfo.aliasTarget,
-                   domainName: domainInfo.domainName,
-                   websocket: domainInfo.websocket,
-                });
-                domain = iterator.next();
-            } catch (err) {
-               const msg = `Unable to print Serverless Domain Manager Summary for ${domainInfo.domainName}`;
-               this.domainManagerLog(err);
-               results.set(domain.value[0], msg);
-               domain = iterator.next();
+            if (domainInfo.createRoute53Record !== false) {
+                try {
+                    await this.getAliasInfo(domainInfo);
+                    results.set(domain.value[0], {
+                       aliasHostedZoneId: domainInfo.aliasHostedZoneId,
+                       aliasTarget: domainInfo.aliasTarget,
+                       domainName: domainInfo.domainName,
+                       websocket: domainInfo.websocket,
+                    });
+                    domain = iterator.next();
+                } catch (err) {
+                   const msg = `Unable to print Serverless Domain Manager Summary for ${domainInfo.domainName}`;
+                   this.domainManagerLog(err);
+                   results.set(domain.value[0], msg);
+                   domain = iterator.next();
+                }
             }
         }
 
@@ -760,9 +762,9 @@ class ServerlessCustomDomain {
             if (typeof v === "object") {
                 const apiType = !v.websocket ? "REST" : "Websocket";
                 this.serverless.cli.consoleLog(chalk.yellow(`${v.domainName} (${apiType}):`));
-                this.serverless.cli.consoleLog(`  Alias Target: ${v.aliasTarget}`);
-                this.serverless.cli.consoleLog(`  Alias Hosted Zone Id: ${v.aliasHostedZoneId}`);
-                this.serverless.cli.consoleLog(`  URL: ${v.url}`);
+                this.serverless.cli.consoleLog(`  Domain Name: ${v.aliasTarget}`);
+                this.serverless.cli.consoleLog(`  Target Domain: ${v.aliasTarget}`);
+                this.serverless.cli.consoleLog(`  Hosted Zone Id: ${v.aliasHostedZoneId}`);
             } else {
                 this.serverless.cli.consoleLog(print);
             }

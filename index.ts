@@ -762,6 +762,10 @@ class ServerlessCustomDomain {
             if (typeof v === "object") {
                 const apiType = !v.websocket ? "REST" : "Websocket";
                 this.serverless.cli.consoleLog(chalk.yellow(`${v.domainName} (${apiType}):`));
+<<<<<<< HEAD
+=======
+                this.serverless.cli.consoleLog(`  Domain Name: ${v.aliasTarget}`);
+>>>>>>> ef88091340d3583316f9ba3e3fe3af1cf7021c22
                 this.serverless.cli.consoleLog(`  Target Domain: ${v.aliasTarget}`);
                 this.serverless.cli.consoleLog(`  Hosted Zone Id: ${v.aliasHostedZoneId}`);
             } else {

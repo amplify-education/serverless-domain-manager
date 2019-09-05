@@ -106,8 +106,8 @@ class DomainInfo {
   }
 
   public isRegional(): boolean {
-    const regionality = this.endpointType === this.endpointTypes.regional ? true : false;
-    return regionality;
+    const regional = this.endpointType === this.endpointTypes.regional ? true : false;
+    return regional;
   }
 
   /**

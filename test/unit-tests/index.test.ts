@@ -876,7 +876,7 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[0]).to.equal(`Domain ${domain.domainName} was deleted.`);
     });
 
-    it("createDomain if one does not exist before", async () => {
+    it("createDomain if one didn't exist before", async () => {
       AWS.mock("ACM", "listCertificates", certTestData);
       AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
         callback({ code: "NotFoundException" }, {});
@@ -900,10 +900,8 @@ describe("Custom Domain Plugin", () => {
       const domain = iterator.next().value;
 
       await plugin.createDomains();
-      const output0 = `Domain ${domain.domainName} not found. Creating...`;
-      const output1 = `${domain.domainName} was created. Could take up to 40 minutes to be initialized.`;
-      expect(consoleOutput[0]).to.equal(output0);
-      expect(consoleOutput[1]).to.equal(output1);
+      const output = `${domain.domainName} was created. Could take up to 40 minutes to be initialized.`;
+      expect(consoleOutput).to.be.an("array").that.includes(output);
     });
 
     it("Does not create domain if one existed before", async () => {

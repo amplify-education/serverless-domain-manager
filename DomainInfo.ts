@@ -21,12 +21,12 @@ class DomainInfo {
   public aliasTarget?: string | undefined;
   public aliasHostedZoneId?: string | undefined;
 
-  private endpointTypes? = {
+  private endpointTypes = {
     edge: "EDGE",
     regional: "REGIONAL",
   };
 
-  private tlsVersions? = {
+  private tlsVersions = {
     tls_1_0: "TLS_1_0",
     tls_1_2: "TLS_1_2",
   };

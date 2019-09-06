@@ -142,7 +142,7 @@ describe("Custom Domain Plugin", () => {
     const plugin = constructPlugin({
       domainName: "test_domain",
     });
-
+    git+https://git@github.com/kenpachiii/serverless-domain-manager
     plugin.initializeDomainManager();
 
     const domain = plugin.domains.values().next().value;

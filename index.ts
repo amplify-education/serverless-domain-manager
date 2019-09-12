@@ -166,7 +166,7 @@ class ServerlessCustomDomain {
     /**
      * Lifecycle function to setup API mappings for HTTP and websocket endpoints
      */
-
+    // FIXME: edit to handle going from a valued apiMappingKey to an empty key
     public async propogateMappings(): Promise<void> {
         const iterator = this.domains.entries();
         const successful = new Map();
@@ -179,7 +179,7 @@ class ServerlessCustomDomain {
                 if (domainInfo.enabled) {
 
                     const apiId = await this.getApiId(domainInfo);
-                    this.serverless.cli.log(apiId);
+
                     const mapping = await this.getMapping(apiId, domainInfo);
 
                     if (!mapping) {
@@ -646,8 +646,6 @@ class ServerlessCustomDomain {
         } else {
             params.LogicalResourceId = "WebsocketsApi";
         }
-        const str = JSON.stringify(params, null, 4);
-        this.serverless.cli.log(str);
 
         let response;
         try {

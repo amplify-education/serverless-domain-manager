@@ -417,62 +417,46 @@ class ServerlessCustomDomain {
      * Gets Route53 HostedZoneId from user or from AWS
      */
     public async getRoute53HostedZoneId(): Promise<string> {
-        if (this.serverless.service.custom.customDomain.hostedZoneId) {
-            this.serverless.cli.log(
-                `Selected specific hostedZoneId ${this.serverless.service.custom.customDomain.hostedZoneId}`);
-            return this.serverless.service.custom.customDomain.hostedZoneId;
+        const { hostedZoneId } = this.serverless.service.custom.customDomain;
+        const log = this.serverless.cli.log;
+
+        if (hostedZoneId) {
+            log(`Selected specific hostedZoneId ${hostedZoneId}`);
+            return hostedZoneId;
         }
 
         const filterZone = this.hostedZonePrivate !== undefined;
-        if (filterZone && this.hostedZonePrivate) {
-            this.serverless.cli.log("Filtering to only private zones.");
-        } else if (filterZone && !this.hostedZonePrivate) {
-            this.serverless.cli.log("Filtering to only public zones.");
+        if (filterZone) {
+            const zoneTypeString = this.hostedZonePrivate ? "private" : "public";
+            log(`Filtering to only ${zoneTypeString} zones.`);
         }
 
-        let hostedZoneData;
-        const givenDomainNameReverse = this.givenDomainName.split(".").reverse();
+        let hostedZones = [];
 
         try {
-            hostedZoneData = await this.route53.listHostedZones({}).promise();
-            const targetHostedZone = hostedZoneData.HostedZones
-                .filter((hostedZone) => {
-                    let hostedZoneName;
-                    if (hostedZone.Name.endsWith(".")) {
-                        hostedZoneName = hostedZone.Name.slice(0, -1);
-                    } else {
-                        hostedZoneName = hostedZone.Name;
-                    }
-                    if (!filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone) {
-                        const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
-
-                        if (givenDomainNameReverse.length === 1
-                            || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
-                            for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
-                                if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-                .shift();
-
-            if (targetHostedZone) {
-                const hostedZoneId = targetHostedZone.Id;
-                // Extracts the hostzone Id
-                const startPos = hostedZoneId.indexOf("e/") + 2;
-                const endPos = hostedZoneId.length;
-                return hostedZoneId.substring(startPos, endPos);
-            }
+            const hostedZoneData = await this.route53.listHostedZones({}).promise();
+            hostedZones = hostedZoneData.HostedZones;
         } catch (err) {
             this.logIfDebug(err);
             throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
         }
-        throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
+
+        const targetHostedZone = hostedZones
+            .filter((hostedZone) => {
+                return !filterZone || this.hostedZonePrivate === hostedZone.Config.PrivateZone;
+            })
+            .filter((hostedZone) => {
+                const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
+                return this.givenDomainName.endsWith(hostedZoneName);
+            })
+            .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+            .shift();
+
+        if (targetHostedZone) {
+            return targetHostedZone.Id.replace("/hostedzone/", "");
+        } else {
+            throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
+        }
     }
 
     public async getBasePathMapping(restApiId: string): Promise<string> {

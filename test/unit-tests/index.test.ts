@@ -390,7 +390,7 @@ describe("Custom Domain Plugin", () => {
           ],
           Comment: "Record created by serverless-domain-manager",
         },
-        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+        HostedZoneId: "test_host_id",
       };
       expect(spy).to.have.been.called.with(expectedParams);
     });
@@ -577,7 +577,7 @@ describe("Custom Domain Plugin", () => {
           ],
           Comment: "Record created by serverless-domain-manager",
         },
-        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips the first character
+        HostedZoneId: "test_host_id",
       };
       expect(spy).to.be.called.with(expectedParams);
 

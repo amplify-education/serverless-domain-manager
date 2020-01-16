@@ -67,6 +67,6 @@
   },
   "dependencies": {
     "aws-sdk": "^2.490.0",
-    "chalk": "^2.4.1"
+    "chalk": "^3.0.0"
   }
 }

@@ -176,6 +176,7 @@ class ServerlessCustomDomain {
         this.enabled = this.evaluateEnabled();
         if (this.enabled) {
             const credentials = this.serverless.providers.aws.getCredentials();
+            credentials.region = this.serverless.providers.aws.getRegion();
 
             this.serverless.providers.aws.sdk.config.update({maxRetries: 20});
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);

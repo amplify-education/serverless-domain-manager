@@ -58,7 +58,7 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration (example for `serverless.foo.com/api`).
+Add the plugin configuration (example for `serverless.foo.com/api`). For a single domain and API type the following sturcture can be used.
 
 ```yaml
 custom:
@@ -70,6 +70,38 @@ custom:
     createRoute53Record: true
     endpointType: 'regional'
     securityPolicy: tls_1_2
+    apiType: rest
+```
+
+Multiple API types mapped to different domains can also be supported with the follow structure. The key is the API Gateway API type.
+
+```yaml
+custom:
+  customDomain:
+    rest:
+      domainName: rest.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    http:
+      domainName: http.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    websocket:
+      domainName: ws.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
 ```
 
 | Parameter Name | Default Value | Description |
@@ -81,10 +113,13 @@ custom:
 | certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
 | createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
+| apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
+allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an udpate. This should ony be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for moe information.  |
+
 
 ## Running
 
@@ -138,6 +173,25 @@ npm install
 
 ## Writing Integration Tests
 Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.js`.
+
+## Changing API Types
+AWS API Gateway has three different API types: REST, HTTP, and WebSocket. Special steps need to be taken when migrating from one api type to another. A common migration will be from a REST API to an HTTP API given the potential cost savings. Below are the steps required to change from REST to HTTP. A similar process can be applied for other API type migrations.
+
+**REST to HTTP**
+1) Confirm the Domain name is a Regional domain name. Edge domains are not supported by AWS for HTTP APIs. See this [guide for migrating an edge-optimized custom domain name to regional](
+https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-migrate.html).
+2) Wait for all DNS changes to take effect/propagate and ensure all traffic is being routed to the regional domain name before proceeding.
+3) Make sure you have setup new or modified existing routes to use [httpApi event](https://serverless.com/framework/docs/providers/aws/events/http-api) in your serverless.yml file.
+4) Make the following changes to the `customDomain` properties in the serverless.yml confg:
+    ```yaml
+    endpointType: regional
+    apiType: http
+    allowPathMatching: true # Only for one deploy
+    ```
+5) Run `sls deploy`
+6) Remove the `allowPathMatching` option, it should only be used once when migrating a base path from one API type to another.
+
+NOTE: Always test this process in a lower level staging or development environment before performing it in production.
 
 
 # Known Issues

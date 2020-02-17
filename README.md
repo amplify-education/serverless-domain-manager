@@ -70,6 +70,7 @@ custom:
     createRoute53Record: true
     endpointType: 'regional'
     securityPolicy: tls_1_2
+    apiType: http
 ```
 
 | Parameter Name | Default Value | Description |
@@ -81,6 +82,7 @@ custom:
 | certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
 | createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
+| apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |

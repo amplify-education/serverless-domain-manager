@@ -20,6 +20,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 certificateArn: string | undefined,
                 createRoute53Record: boolean | undefined,
                 endpointType: string | undefined,
+                apiType: string | undefined,
                 hostedZoneId: string | undefined,
                 hostedZonePrivate: boolean | undefined,
                 enabled: boolean | string | undefined,
@@ -31,6 +32,7 @@ export interface ServerlessInstance { // tslint:disable-line
         aws: {
             sdk: {
                 APIGateway: any,
+                ApiGatewayV2: any,
                 Route53: any,
                 CloudFormation: any,
                 ACM: any,

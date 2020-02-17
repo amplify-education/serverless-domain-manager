@@ -9,6 +9,12 @@ const endpointTypes = {
     regional: "REGIONAL",
 };
 
+const apiTypes = {
+    http: "HTTP",
+    rest: "REST",
+    websocket: "WEBSOCKET",
+};
+
 const tlsVersions = {
     tls_1_0: "TLS_1_0",
     tls_1_2: "TLS_1_2",
@@ -20,6 +26,7 @@ class ServerlessCustomDomain {
 
     // AWS SDK resources
     public apigateway: any;
+    public apigatewayV2: any;
     public route53: any;
     public acm: any;
     public acmRegion: string;
@@ -39,6 +46,7 @@ class ServerlessCustomDomain {
     private endpointType: string;
     private stage: string;
     private securityPolicy: string;
+    private apiType: string;
 
     constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
         this.serverless = serverless;
@@ -135,11 +143,12 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMapping(): Promise<void> {
         // check if basepathmapping exists
-        const restApiId = await this.getRestApiId();
-        const currentBasePath = await this.getBasePathMapping(restApiId);
-        // if basepath that matches restApiId exists, update; else, create
+        const apiId = await this.getApiId();
+        const currentBasePath = await this.getBasePathMapping(apiId);
+
+        // if basepath that matches apiId exists, update; else, create
         if (!currentBasePath) {
-            await this.createBasePathMapping(restApiId);
+            await this.createBasePathMapping(apiId);
         } else {
             await this.updateBasePathMapping(currentBasePath);
         }
@@ -180,6 +189,7 @@ class ServerlessCustomDomain {
 
             this.serverless.providers.aws.sdk.config.update({maxRetries: 20});
             this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
+            this.apigatewayV2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);
             this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
             this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
 
@@ -203,6 +213,14 @@ class ServerlessCustomDomain {
                 throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
             }
             this.endpointType = endpointTypeToUse;
+
+            const apiTypeWithDefault = this.serverless.service.custom.customDomain.apiType ||
+                apiTypes.rest;
+            const apiTypeToUse = apiTypes[apiTypeWithDefault.toLowerCase()];
+            if (!apiTypeToUse) {
+                throw new Error(`${apiTypeWithDefault} is not supported api type, use REST, HTTP or WEBSOCKET.`);
+            }
+            this.apiType = apiTypeToUse;
 
             const securityPolicyDefault = this.serverless.service.custom.customDomain.securityPolicy ||
                 tlsVersions.tls_1_2;
@@ -324,30 +342,56 @@ class ServerlessCustomDomain {
      * @param certificateArn: Certificate ARN to use for custom domain
      */
     public async createCustomDomain(certificateArn: string): Promise<DomainInfo> {
-        // Set up parameters
-        const params = {
-            certificateArn,
-            domainName: this.givenDomainName,
-            endpointConfiguration: {
-                types: [this.endpointType],
-            },
-            regionalCertificateArn: certificateArn,
-            securityPolicy: this.securityPolicy,
-        };
-        if (this.endpointType === endpointTypes.edge) {
-            params.regionalCertificateArn = undefined;
-        } else if (this.endpointType === endpointTypes.regional) {
-            params.certificateArn = undefined;
+
+        let createdDomain = {};
+
+        // Gateway API is completely different for v1 and v2 so seperating into two blocks
+        if (this.apiType === "REST") {
+            // Set up parameters
+            const params = {
+                certificateArn,
+                domainName: this.givenDomainName,
+                endpointConfiguration: {
+                    types: [this.endpointType],
+                },
+                regionalCertificateArn: certificateArn,
+                securityPolicy: this.securityPolicy,
+            };
+            if (this.endpointType === endpointTypes.edge) {
+                params.regionalCertificateArn = undefined;
+            } else if (this.endpointType === endpointTypes.regional) {
+                params.certificateArn = undefined;
+            }
+
+            // Make API call to create domain
+            try {
+                // If creating REST api use v1 of api gateway, else use v2 for HTTP and Websocket
+                createdDomain = await this.apigateway.createDomainName(params).promise();
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Failed to create custom domain ${this.givenDomainName}\n`);
+            }
+
+        } else if (this.apiType === "HTTP" || this.apiType === "WEBSOCKET") {
+            const params = {
+                DomainName: this.givenDomainName,
+                DomainNameConfigurations: [{
+                    CertificateArn: certificateArn,
+                    EndpointType: this.endpointType,
+                    SecurityPolicy: this.securityPolicy,
+                }],
+            };
+
+            // Make API call to create domain
+            try {
+                // If creating REST api use v1 of api gateway, else use v2 for HTTP and Websocket
+                createdDomain = await this.apigatewayV2.createDomainName(params).promise();
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Failed to create custom domain ${this.givenDomainName}\n`);
+            }
         }
 
-        // Make API call
-        let createdDomain = {};
-        try {
-            createdDomain = await this.apigateway.createDomainName(params).promise();
-        } catch (err) {
-            this.logIfDebug(err);
-            throw new Error(`Error: Failed to create custom domain ${this.givenDomainName}\n`);
-        }
         return new DomainInfo(createdDomain);
     }
 
@@ -477,45 +521,86 @@ class ServerlessCustomDomain {
     }
 
     public async getBasePathMapping(restApiId: string): Promise<string> {
-        const params = {
-            domainName: this.givenDomainName,
-        };
         let basepathInfo;
         let currentBasePath;
-        try {
-            basepathInfo = await this.apigateway.getBasePathMappings(params).promise();
-        } catch (err) {
-            this.logIfDebug(err);
-            throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
-        }
-        if (basepathInfo.items !== undefined && basepathInfo.items instanceof Array) {
-            for (const basepathObj of basepathInfo.items) {
-                if (basepathObj.restApiId === restApiId) {
-                    currentBasePath = basepathObj.basePath;
-                    break;
+
+        if (this.apiType === "REST") {
+            const params = {
+                domainName: this.givenDomainName,
+            };
+            try {
+                basepathInfo = await this.apigateway.getBasePathMappings(params).promise();
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
+            }
+            if (basepathInfo.items !== undefined && basepathInfo.items instanceof Array) {
+                for (const basepathObj of basepathInfo.items) {
+                    if (basepathObj.restApiId === restApiId) {
+                        currentBasePath = basepathObj.basePath;
+                        break;
+                    }
                 }
             }
+            return currentBasePath;
+
+        } else if (this.apiType === "HTTP" || this.apiType === "WEBSOCKET") { // V2 HTTP and WEBSOCKET
+            const params = {
+                DomainName: this.givenDomainName,
+            };
+            try {
+                basepathInfo = await this.apigatewayV2.getApiMappings(params).promise();
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Unable to get BasePathMappings for ${this.givenDomainName}`);
+            }
+            if (basepathInfo.Items !== undefined && basepathInfo.Items instanceof Array) {
+                for (const basepathObj of basepathInfo.Items) {
+                    if (basepathObj.ApiId === restApiId) {
+                        currentBasePath = basepathObj.ApiMappingKey;
+                        break;
+                    }
+                }
+            }
+            return currentBasePath;
         }
-        return currentBasePath;
     }
 
     /**
      * Creates basepath mapping
      */
     public async createBasePathMapping(restApiId: string): Promise<void> {
-        const params = {
-            basePath: this.basePath,
-            domainName: this.givenDomainName,
-            restApiId,
-            stage: this.stage,
-        };
-        // Make API call
-        try {
-            await this.apigateway.createBasePathMapping(params).promise();
-            this.serverless.cli.log("Created basepath mapping.");
-        } catch (err) {
-            this.logIfDebug(err);
-            throw new Error(`Error: Unable to create basepath mapping.\n`);
+        if (this.apiType === "REST") {
+            const params = {
+                basePath: this.basePath,
+                domainName: this.givenDomainName,
+                restApiId,
+                stage: this.stage,
+            };
+            // Make API call
+            try {
+                await this.apigateway.createBasePathMapping(params).promise();
+                this.serverless.cli.log("Created basepath mapping.");
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Unable to create basepath mapping.\n`);
+            }
+
+        } else if (this.apiType === "HTTP" || this.apiType === "WEBSOCKET") { // V2 HTTP and WEBSOCKET
+            const params = {
+                ApiId: restApiId,
+                ApiMappingKey: this.basePath,
+                DomainName: this.givenDomainName,
+                Stage: this.stage,
+            };
+            // Make API call
+            try {
+                await this.apigatewayV2.createApiMapping(params).promise();
+                this.serverless.cli.log("Created basepath mapping.");
+            } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Unable to create basepath mapping.\n`);
+            }
         }
     }
 
@@ -547,16 +632,25 @@ class ServerlessCustomDomain {
     /**
      * Gets rest API id from CloudFormation stack
      */
-    public async getRestApiId(): Promise<string> {
+    public async getApiId(): Promise<string> {
         if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
             this.serverless.cli.log(`Mapping custom domain to existing API
                 ${this.serverless.service.provider.apiGateway.restApiId}.`);
             return this.serverless.service.provider.apiGateway.restApiId;
         }
+
         const stackName = this.serverless.service.provider.stackName ||
             `${this.serverless.service.service}-${this.stage}`;
+
+        let LogicalResourceId = "ApiGatewayRestApi";
+        if (this.apiType === "HTTP") {
+            LogicalResourceId = "HttpApi";
+        } else if (this.apiType === "WEBSOCKET") {
+            LogicalResourceId = "WebsocketsApi";
+        }
+
         const params = {
-            LogicalResourceId: "ApiGatewayRestApi",
+            LogicalResourceId,
             StackName: stackName,
         };
 
@@ -567,11 +661,12 @@ class ServerlessCustomDomain {
             this.logIfDebug(err);
             throw new Error(`Error: Failed to find CloudFormation resources for ${this.givenDomainName}\n`);
         }
-        const restApiId = response.StackResourceDetail.PhysicalResourceId;
-        if (!restApiId) {
-            throw new Error(`Error: No RestApiId associated with CloudFormation stack ${stackName}`);
+
+        const apiId = response.StackResourceDetail.PhysicalResourceId;
+        if (!apiId) {
+            throw new Error(`Error: No ApiId associated with CloudFormation stack ${stackName}`);
         }
-        return restApiId;
+        return apiId;
     }
 
     /**

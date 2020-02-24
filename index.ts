@@ -260,13 +260,18 @@ class ServerlessCustomDomain {
 
         let certificateArn; // The arn of the choosen certificate
         let certificateName = this.serverless.service.custom.customDomain.certificateName; // The certificate name
-        let certData;
         try {
-            certData = await this.acm.listCertificates(
-                { CertificateStatuses: certStatuses }).promise();
+            let certificates = [];
+            let nextToken;
+            do {
+                const certData = await this.acm.listCertificates(
+                    { CertificateStatuses: certStatuses, NextToken: nextToken }).promise();
+                certificates = certificates.concat(certData.CertificateSummaryList);
+                nextToken = certData.NextToken;
+            } while (nextToken);
+
             // The more specific name will be the longest
             let nameLength = 0;
-            const certificates = certData.CertificateSummaryList;
 
             // Checks if a certificate name is given
             if (certificateName != null) {

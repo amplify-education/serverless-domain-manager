@@ -591,7 +591,7 @@ class ServerlessCustomDomain {
                 ApiId: restApiId,
                 ApiMappingKey: this.basePath,
                 DomainName: this.givenDomainName,
-                Stage: this.stage,
+                Stage: this.apiType === "HTTP" ? '$default': this.stage,
             };
             // Make API call
             try {

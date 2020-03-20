@@ -608,8 +608,11 @@ class ServerlessCustomDomain {
         if (!service.provider.compiledCloudFormationTemplate.Outputs) {
             service.provider.compiledCloudFormationTemplate.Outputs = {};
         }
-        service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
+        service.provider.compiledCloudFormationTemplate.Outputs.DistributionDomainName = {
             Value: domainInfo.domainName,
+        };
+        service.provider.compiledCloudFormationTemplate.Outputs.DomainName = {
+            Value: this.givenDomainName,
         };
         if (domainInfo.hostedZoneId) {
             service.provider.compiledCloudFormationTemplate.Outputs.HostedZoneId = {

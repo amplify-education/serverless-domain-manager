@@ -63,6 +63,7 @@ class ServerlessCustomDomain {
         this.hooks = {
             "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMapping),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummary),
+            "before:deploy:deploy": this.hookWrapper.bind(this, this.updateCloudFormationOutputs),
             "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMapping),
             "create_domain:create": this.hookWrapper.bind(this, this.createDomain),
             "delete_domain:delete": this.hookWrapper.bind(this, this.deleteDomain),
@@ -130,6 +131,14 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Lifecycle function to add domain info to the CloudFormation stack's Outputs
+     */
+    public async updateCloudFormationOutputs(): Promise<void> {
+        const domainInfo = await this.getDomainInfo();
+        this.addOutputs(domainInfo);
+    }
+
+    /**
      * Lifecycle function to create basepath mapping
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
@@ -144,7 +153,6 @@ class ServerlessCustomDomain {
             await this.updateBasePathMapping(currentBasePath);
         }
         const domainInfo = await this.getDomainInfo();
-        this.addOutputs(domainInfo);
         await this.printDomainSummary(domainInfo);
     }
 

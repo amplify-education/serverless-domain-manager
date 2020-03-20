@@ -170,7 +170,7 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
-    it("Add Domain Name and HostedZoneId to stack output", () => {
+    it("Add Distribution Domain Name, Domain Name, and HostedZoneId to stack output", () => {
       const plugin = constructPlugin({
         domainName: "test_domain",
       });

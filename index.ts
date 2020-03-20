@@ -635,7 +635,7 @@ class ServerlessCustomDomain {
      * Prints out a summary of all domain manager related info
      */
     private printDomainSummary(domainInfo: DomainInfo): void {
-        this.serverless.cli.consoleLog(chalk.yellow.underline("Serverless Domain Manager Summary"));
+        this.serverless.cli.consoleLog(chalk.yellow.underline("\nServerless Domain Manager Summary"));
 
         if (this.serverless.service.custom.customDomain.createRoute53Record !== false) {
             this.serverless.cli.consoleLog(chalk.yellow("Domain Name"));

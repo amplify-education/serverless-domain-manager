@@ -5,7 +5,6 @@ import spies = require("chai-spies");
 import "mocha";
 import DomainInfo = require("../../DomainInfo");
 import ServerlessCustomDomain = require("../../index");
-import { ServerlessInstance, ServerlessOptions } from "../../types";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -71,6 +70,7 @@ const constructPlugin = (customDomainOptions) => {
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
           securityPolicy: customDomainOptions.securityPolicy,
           stage: customDomainOptions.stage,
+          createDomainName: customDomainOptions.createDomainName
         },
       },
       provider: {
@@ -1169,6 +1169,115 @@ describe("Custom Domain Plugin", () => {
         expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
       }
       expect(errored).to.equal(true);
+    });
+
+    afterEach(() => {
+      consoleOutput = [];
+    });
+  });
+
+  describe("create domain name deploy", () => {
+    it("Should be disabled by default", () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.initializeVariables();
+      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.be.undefined;
+    });
+    
+    it("setUpBasePathMapping should call createDomain when createDomainName is true", async () => {
+      AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+        callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
+      });
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, { items: [] });
+      });
+      AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+        callback(null, {
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
+        });
+      });
+      const plugin = constructPlugin({ domainName: "test_domain", createDomainName: true });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.cloudformation = new aws.CloudFormation();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin, "createDomain");
+
+      await plugin.setupBasePathMapping();
+
+      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.be.true;
+      expect(spy).to.have.been.called.once;
+    });
+
+    it("setUpBasePathMapping should not call createDomain when createDomainName is not true", async () => {
+      AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+        callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
+      });
+      AWS.mock("APIGateway", "getBasePathMappings", (params, callback) => {
+        callback(null, { items: [] });
+      });
+      AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+        callback(null, {
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
+        });
+      });
+      const plugin = constructPlugin({ domainName: "test_domain", createDomainName: false });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.cloudformation = new aws.CloudFormation();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin, "createDomain");
+
+      await plugin.setupBasePathMapping();
+
+      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.be.false;
+      expect(spy).to.not.have.been.called;
+    });
+
+    it("removeBasePathMapping should call deleteDomain when createDomainName is true", async () => {
+      AWS.mock("APIGateway", "deleteBasePathMapping", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+        callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
+      });
+      AWS.mock("APIGateway", "deleteDomainName", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({ domainName: "test_domain", createDomainName: true, createRoute53Record: false });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+      const spy = chai.spy.on(plugin, "deleteDomain");
+
+      await plugin.removeBasePathMapping();
+
+      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.be.true;
+      expect(spy).to.have.been.called.once;
+    });
+
+    it("removeBasePathMapping should not call deleteDomain when createDomainName is not true", async () => {
+      const plugin = constructPlugin({ createDomainName: false });
+      plugin.initializeVariables();
+      const spy = chai.spy.on(plugin, "deleteDomain");
+
+      await plugin.removeBasePathMapping();
+
+      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.be.false;
+      expect(spy).to.not.have.been.called;
     });
 
     afterEach(() => {

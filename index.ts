@@ -136,6 +136,11 @@ class ServerlessCustomDomain {
     public async setupBasePathMapping(): Promise<void> {
         // check if basepathmapping exists
         const restApiId = await this.getRestApiId();
+        const createDomainName = this.serverless.service.custom.customDomain.createDomainName;
+        if (createDomainName === true) {
+            this.serverless.cli.log("Creating domain name before setting up base path mapping.");
+            await this.createDomain();
+        }
         const currentBasePath = await this.getBasePathMapping(restApiId);
         // if basepath that matches restApiId exists, update; else, create
         if (!currentBasePath) {
@@ -154,6 +159,11 @@ class ServerlessCustomDomain {
      */
     public async removeBasePathMapping(): Promise<void> {
         await this.deleteBasePathMapping();
+        const createDomainName = this.serverless.service.custom.customDomain.createDomainName;
+        if (createDomainName === true) {
+            this.serverless.cli.log("Deleting domain name after removing base path mapping.");
+            await this.deleteDomain();
+        }
     }
 
     /**

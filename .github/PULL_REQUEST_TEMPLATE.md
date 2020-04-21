@@ -8,3 +8,5 @@ Fixes #0000
 
 * Change 1
 * Change 2
+
+<!--- Please remember to allow edits from maintainers: https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/allowing-changes-to-a-pull-request-branch-created-from-a-fork --->

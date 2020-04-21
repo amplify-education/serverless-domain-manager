@@ -2,6 +2,11 @@ language: node_js
 node_js:
   - 10.4.0
 before_install:
+  # Only deploy if the version number has changed
+  - |
+    if git diff --unified=0 $TRAVIS_COMMIT_RANGE package.json | grep version ; then
+      export VERSION_CHANGED="yes"
+    fi
   - npm i -g npm@6.4.1
 install:
   - npm install
@@ -9,12 +14,7 @@ script:
   - npm run lint
   - npm test
 before_deploy:
-  # Only deploy if the version number has changed
-  - |
-    if git diff --unified=0 $TRAVIS_COMMIT_RANGE package.json | grep version ; then
-      export VERSION_CHANGED="yes"
-      npm run build
-    fi
+  - npm run build
 deploy:
   skip_cleanup: true
   provider: npm

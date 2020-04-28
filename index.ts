@@ -289,7 +289,7 @@ class ServerlessCustomDomain {
      */
     public async createCustomDomain(domain: Domain): Promise<DomainInfo> {
         // Set up parameters
-        const certArn = await this.getCertArn(domain)
+        const certArn = await this.getCertArn(domain);
         const params = {
             certificateArn: certArn,
             domainName: domain.DomainName,

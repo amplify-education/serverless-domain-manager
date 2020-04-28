@@ -2,7 +2,6 @@
 
 import chalk from "chalk";
 import DomainInfo = require("./DomainInfo");
-import { format } from "path";
 import { Domain, endpointTypes } from "./domain";
 import { ServerlessInstance, ServerlessOptions } from "./types";
 
@@ -138,7 +137,7 @@ class ServerlessCustomDomain {
             await this.updateBasePathMapping(currentBasePath, domain);
         }
         const domainInfo = await this.getDomainInfo(domain);
-        await this.printDomainSummary(domainInfo, domain);
+        this.printDomainSummary(domainInfo, domain);
     }
 
     /**

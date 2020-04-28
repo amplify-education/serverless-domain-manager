@@ -37,7 +37,6 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
   aws.config.update(testCreds);
   aws.config.region = "eu-west-1";
 
-
   const custom = {
     basePath: customDomainOptions.basePath,
     certificateArn: customDomainOptions.certificateArn,
@@ -50,7 +49,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
     hostedZonePrivate: customDomainOptions.hostedZonePrivate,
     securityPolicy: customDomainOptions.securityPolicy,
     stage: customDomainOptions.stage,
-  }
+  };
 
   const serverless = {
     cli: {
@@ -1095,12 +1094,12 @@ describe("Custom Domain Plugin", () => {
       expect(result).to.equal(undefined);
     });
 
-    it("Should throw an Error when passing a parameter that is not boolean", () => {
+    it("Should throw an Error when passing a parameter that is not boolean", async () => {
       const plugin = constructPlugin({ enabled: 0 });
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        await plugin.hookWrapper(null);
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"0\"");
@@ -1108,12 +1107,12 @@ describe("Custom Domain Plugin", () => {
       expect(errored).to.equal(true);
     });
 
-    it("Should throw an Error when passing a parameter that cannot be converted to boolean", () => {
+    it("Should throw an Error when passing a parameter that cannot be converted to boolean", async () => {
       const plugin = constructPlugin({ enabled: "yes" });
 
       let errored = false;
       try {
-        plugin.initializeVariables();
+        await plugin.hookWrapper(null);
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"yes\"");

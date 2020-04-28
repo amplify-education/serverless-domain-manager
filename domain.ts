@@ -20,7 +20,7 @@ export class Domain {
     public Stage: string;
     public EndpointType: string;
     public SecurityPolicy: string;
-    public Enabled: boolean | string;
+    public Enabled: boolean | string | undefined;
     public CertificateARN: string;
     public CertificateName: string;
     public CreateRoute53Record: boolean;

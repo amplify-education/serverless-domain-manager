@@ -2,6 +2,7 @@
 
 import chalk from "chalk";
 import DomainInfo = require("./DomainInfo");
+import { format } from "path";
 import { Domain, endpointTypes } from "./domain";
 import { ServerlessInstance, ServerlessOptions } from "./types";
 
@@ -59,14 +60,14 @@ class ServerlessCustomDomain {
     public async hookWrapper(lifecycleFunc: any) {
         this.initializeVariables();
 
-        this.domains.forEach(async (domain) => {
+        await Promise.all(this.domains.map(async (domain) => {
             if (!domain.evaluateEnabled()) {
                 this.serverless.cli.log(`serverless-domain-manager: Custom domain ${domain.DomainName} is disabled.`);
                 return;
             } else {
                 return await lifecycleFunc.call(this, domain);
             }
-        });
+        }));
     }
 
     /**
@@ -186,13 +187,6 @@ class ServerlessCustomDomain {
                 new Domain(this.serverless, this.options, this.serverless.service.custom.customDomain),
             ];
         }
-        this.domains = this.domains.map((domain) => {
-            if (!domain.evaluateEnabled()) {
-                this.serverless.cli.log(`serverless-domain-manager: Custom domain ${domain.DomainName} is disabled.`);
-                return;
-            }
-            return domain;
-        }).filter((d) => d === undefined);
     }
 
     /**

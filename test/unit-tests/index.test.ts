@@ -33,9 +33,24 @@ const testCreds = {
   sessionToken: "test_session",
 };
 
-const constructPlugin = (customDomainOptions) => {
+const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
   aws.config.update(testCreds);
   aws.config.region = "eu-west-1";
+
+
+  const custom = {
+    basePath: customDomainOptions.basePath,
+    certificateArn: customDomainOptions.certificateArn,
+    certificateName: customDomainOptions.certificateName,
+    createRoute53Record: customDomainOptions.createRoute53Record,
+    domainName: customDomainOptions.domainName,
+    enabled: customDomainOptions.enabled,
+    endpointType: customDomainOptions.endpointType,
+    hostedZoneId: customDomainOptions.hostedZoneId,
+    hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+    securityPolicy: customDomainOptions.securityPolicy,
+    stage: customDomainOptions.stage,
+  }
 
   const serverless = {
     cli: {
@@ -59,19 +74,8 @@ const constructPlugin = (customDomainOptions) => {
     },
     service: {
       custom: {
-        customDomain: {
-          basePath: customDomainOptions.basePath,
-          certificateArn: customDomainOptions.certificateArn,
-          certificateName: customDomainOptions.certificateName,
-          createRoute53Record: customDomainOptions.createRoute53Record,
-          domainName: customDomainOptions.domainName,
-          enabled: customDomainOptions.enabled,
-          endpointType: customDomainOptions.endpointType,
-          hostedZoneId: customDomainOptions.hostedZoneId,
-          hostedZonePrivate: customDomainOptions.hostedZonePrivate,
-          securityPolicy: customDomainOptions.securityPolicy,
-          stage: customDomainOptions.stage,
-        },
+        customDomain: multiple ? undefined : custom,
+        customDomains: multiple ? [custom] : undefined,
       },
       provider: {
         apiGateway: {
@@ -1140,6 +1144,20 @@ describe("Custom Domain Plugin", () => {
     it("Should thrown an Error when Serverless custom configuration object is missing", () => {
       const plugin = constructPlugin({});
       delete plugin.serverless.service.custom;
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Should thrown an Error when Serverless custom configuration object is missing for multiple domains", () => {
+      const plugin = constructPlugin({}, true);
+      delete plugin.serverless.service.custom.customDomains;
 
       let errored = false;
       try {

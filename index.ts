@@ -186,7 +186,7 @@ class ServerlessCustomDomain {
                 new Domain(this.serverless, this.options, this.serverless.service.custom.customDomain),
             ];
         }
-        this.domains.map((domain) => {
+        this.domains = this.domains.map((domain) => {
             if (!domain.evaluateEnabled()) {
                 this.serverless.cli.log(`serverless-domain-manager: Custom domain ${domain.DomainName} is disabled.`);
                 return;

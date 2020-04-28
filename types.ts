@@ -1,3 +1,17 @@
+export interface CustomDomain { // tslint:disable-line
+    domainName: string;
+    basePath: string | undefined;
+    stage: string | undefined;
+    certificateName: string | undefined;
+    certificateArn: string | undefined;
+    createRoute53Record: boolean | undefined;
+    endpointType: string | undefined;
+    hostedZoneId: string | undefined;
+    hostedZonePrivate: boolean | undefined;
+    enabled: boolean | string | undefined;
+    securityPolicy: string | undefined;
+}
+
 export interface ServerlessInstance { // tslint:disable-line
     service: {
         service: string
@@ -12,19 +26,8 @@ export interface ServerlessInstance { // tslint:disable-line
             },
         }
         custom: {
-            customDomain: {
-                domainName: string,
-                basePath: string | undefined,
-                stage: string | undefined,
-                certificateName: string | undefined,
-                certificateArn: string | undefined,
-                createRoute53Record: boolean | undefined,
-                endpointType: string | undefined,
-                hostedZoneId: string | undefined,
-                hostedZonePrivate: boolean | undefined,
-                enabled: boolean | string | undefined,
-                securityPolicy: string | undefined,
-            },
+            customDomain?: CustomDomain,
+            customDomains?: CustomDomain[],
         },
     };
     providers: {

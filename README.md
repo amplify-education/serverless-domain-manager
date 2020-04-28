@@ -72,6 +72,20 @@ custom:
     securityPolicy: tls_1_2
 ```
 
+Or for multiple domains
+
+```yaml
+custom:
+  customDomains:
+    - domainName: serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+```
+
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
 | domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
@@ -85,6 +99,7 @@ custom:
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
+
 
 ## Running
 

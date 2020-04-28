@@ -207,7 +207,7 @@ class ServerlessCustomDomain {
     public evaluateEnabled(): boolean {
         if (typeof this.serverless.service.custom === "undefined"
             || ( typeof this.serverless.service.custom.customDomain === "undefined"
-            && typeof this.serverless.service.custom.customDomain === "undefined")) {
+            && typeof this.serverless.service.custom.customDomains === "undefined")) {
             throw new Error("serverless-domain-manager: Plugin configuration is missing.");
         }
         return true;

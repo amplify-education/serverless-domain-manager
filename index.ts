@@ -289,13 +289,14 @@ class ServerlessCustomDomain {
      */
     public async createCustomDomain(domain: Domain): Promise<DomainInfo> {
         // Set up parameters
+        const certArn = await this.getCertArn(domain)
         const params = {
-            certificateArn: await this.getCertArn(domain),
+            certificateArn: certArn,
             domainName: domain.DomainName,
             endpointConfiguration: {
                 types: [domain.EndpointType],
             },
-            regionalCertificateArn: await this.getCertArn(domain),
+            regionalCertificateArn: certArn,
             securityPolicy: domain.SecurityPolicy,
         };
         if (domain.EndpointType === endpointTypes.edge) {

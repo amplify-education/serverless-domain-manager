@@ -71,6 +71,7 @@ const constructPlugin = (customDomainOptions) => {
           hostedZonePrivate: customDomainOptions.hostedZonePrivate,
           securityPolicy: customDomainOptions.securityPolicy,
           stage: customDomainOptions.stage,
+          tags: customDomainOptions.tags,
         },
       },
       provider: {
@@ -328,6 +329,21 @@ describe("Custom Domain Plugin", () => {
       });
 
       const plugin = constructPlugin({ domainName: "test_domain", securityPolicy: "tls_1_2"});
+      plugin.apigateway = new aws.APIGateway();
+      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+
+      const result = await plugin.createCustomDomain("fake_cert");
+
+      expect(result.domainName).to.equal("foo");
+      expect(result.securityPolicy).to.equal("TLS_1_2");
+    });
+
+    it("Create a domain name with tags", async () => {
+      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+        callback(null, { distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
+      });
+
+      const plugin = constructPlugin({ domainName: "test_domain", tags: {foo: "bar"}});
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
 

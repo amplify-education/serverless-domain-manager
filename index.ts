@@ -36,6 +36,7 @@ class ServerlessCustomDomain {
     public givenDomainName: string;
     public hostedZonePrivate: boolean;
     public basePath: string;
+    public tags?: {};
     private endpointType: string;
     private stage: string;
     private securityPolicy: string;
@@ -212,6 +213,8 @@ class ServerlessCustomDomain {
             }
             this.endpointType = endpointTypeToUse;
 
+            this.tags = this.serverless.service.custom.customDomain.tags;
+
             const securityPolicyDefault = this.serverless.service.custom.customDomain.securityPolicy ||
                 tlsVersions.tls_1_2;
             const tlsVersionToUse = tlsVersions[securityPolicyDefault.toLowerCase()];
@@ -346,6 +349,7 @@ class ServerlessCustomDomain {
             },
             regionalCertificateArn: certificateArn,
             securityPolicy: this.securityPolicy,
+            tags: this.tags || {},
         };
         if (this.endpointType === endpointTypes.edge) {
             params.regionalCertificateArn = undefined;

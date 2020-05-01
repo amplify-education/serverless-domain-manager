@@ -1,0 +1,21 @@
+# Enabled and testing basepath mapping
+service: basepath-mapping
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: basepath-mapping-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: 'api'

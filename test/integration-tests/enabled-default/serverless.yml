@@ -1,0 +1,19 @@
+# Enabled with default values
+service: enabled-default
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: us-west-2
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: enabled-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}

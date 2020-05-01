@@ -25,14 +25,18 @@ The IAM role that is deploying the lambda will need the following permissions:
 ```
 acm:ListCertificates                *
 apigateway:GET                      /domainnames/*
+apigateway:GET                      /domainnames/*/basepathmappings
 apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
 apigateway:POST                     /domainnames/*/basepathmappings
+apigateway:PATCH                    /domainnames/*/basepathmapping
+cloudformation:GET                  *
 cloudfront:UpdateDistribution       *
 route53:ListHostedZones             *
 route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
-route53:GetHostedZone               hostedzone/{HostedZoneId}
-route53:ListResourceRecordSets      hostedzone/{HostedZoneId}
+route53:GetHostedZone               *
+route53:ListResourceRecordSets      *
+iam:CreateServiceLinkedRole         arn:aws:iam::${AWS::AccountId}: role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway
 ```
 ### CloudFormation
 Alternatively you can generate an least privileged IAM Managed Policy for deployment with this:
@@ -65,6 +69,7 @@ custom:
     certificateName: '*.foo.com'
     createRoute53Record: true
     endpointType: 'regional'
+    securityPolicy: tls_1_2
 ```
 
 | Parameter Name | Default Value | Description |
@@ -74,11 +79,12 @@ custom:
 | stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
 | certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
 | certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
-| createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias record in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
+| createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
+securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
 
 ## Running
 
@@ -97,24 +103,48 @@ To remove the created custom domain:
 serverless delete_domain
 ```
 # How it works
-Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront.
+Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
+
+Note: In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records. Starting in version 3.2, we create AAAA Alias records as well.
+
+### Behavior Change in Version 3
+
+In version 3, we decided to create/update/delete all resources through the API. Previously, only the basepath mapping was managed through CloudFormation. We moved away from creating anything through the stack for two reasons.
+
+1) It seemed cleaner to have all resources be created in the same fashion, rather than just having one created elsewhere. Since multiple CloudFormation stacks can't create the same custom domain, we decided to have everything be done through the API.
+
+2) We ran into issues such as [#57](https://github.com/amplify-education/serverless-domain-manager/issues/57) where the CloudFormation wasn't always being applied.
+
+However, we still add the domain name and distribution domain name to the CloudFormation outputs, preserving the functionality requested in [#43](https://github.com/amplify-education/serverless-domain-manager/issues/43) implemented in [#47](https://github.com/amplify-education/serverless-domain-manager/pull/47).
 
 ## Running Tests
-To run the test:
+To run unit tests:
 ```
 npm test
 ```
-All tests should pass.
 
-If there is an error update the node_module inside the serverless-vpc-discovery folder:
+To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). Then,
+```
+export TEST_DOMAIN=example.com
+npm run integration-test
+```
+
+All tests should pass. All unit tests should pass before merging. Integration tests will take an extremely long time, as DNS records have to propogate for the resources created - therefore, integration tests will not be run on every commit.
+
+If there is an error update the node_modules inside the serverless-domain-manager folder:
 ```
 npm install
 ```
+
+## Writing Integration Tests
+Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.js`.
+
 
 # Known Issues
 * (5/23/2017) CloudFormation does not support changing the base path from empty to something or vice a versa. You must run `sls remove` to remove the base path mapping.
 * (1/17/2018) The `create_domain` command provided by this plugin does not currently update an existing Custom Domain's configuration. Instead, it only supports updating the Route 53 record pointing to the Custom Domain. For example, one must delete and recreate a Custom Domain to migrate it from regional to edge or vice versa, or to modify the certificate.
 * (8/22/2018) Creating a custom domain creates a CloudFront Distribution behind the scenes for fronting your API Gateway. This CloudFront Distribution is managed by AWS and cannot be viewed/managed by you. This is not a bug, but a quirk of how the Custom Domain feature works in API Gateway.
+* (2/12/2019) Users who upgraded from 2.x.x to version 3.0.4 (now unpublished) and then reverted back to 2.x.x will be unable to deploy because of a bug that will be fixed in 3.1.0. The workaround is to delete the basepath mapping manually, which will let them successfully revert back to 2.x.x.
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

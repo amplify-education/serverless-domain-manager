@@ -58,7 +58,7 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration (example for `serverless.foo.com/api`). For a single domain and API type the following sturcture can be used.
+Add the plugin configuration (example for `serverless.foo.com/api`). For a single domain and API type the following structure can be used.
 
 ```yaml
 custom:
@@ -118,7 +118,7 @@ custom:
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
-allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an udpate. This should ony be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for moe information.  |
+allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
 
 
 ## Running

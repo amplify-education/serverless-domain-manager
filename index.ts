@@ -119,7 +119,7 @@ class ServerlessCustomDomain {
                     domain.domainInfo = undefined;
                     this.serverless.cli.log(`Custom domain ${domain.givenDomainName} was deleted.`);
                 } else {
-                    this.serverless.cli.log(`Custom domain ${domain.givenDomainName} does not exists.`);
+                    this.serverless.cli.log(`Custom domain ${domain.givenDomainName} does not exist.`);
                 }
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -158,7 +158,6 @@ class ServerlessCustomDomain {
                 }
 
                 await this.getDomainInfo();
-                // this.addOutputs(domain);
 
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -181,7 +180,7 @@ class ServerlessCustomDomain {
             try {
                 domain.apiId = await this.getApiId(domain);
 
-                // Unable to find the correspond API, manuall clean up will be required
+                // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
                     this.serverless.cli.log(`Unable to find corresponding API for ${domain.givenDomainName},
                         API Mappings may need to be manually removed.`, "Serverless Domain Manager");
@@ -403,7 +402,7 @@ class ServerlessCustomDomain {
 
             // Make API call to create domain
             try {
-                // If creating REST api use v1 of api gateway, else use v2 for HTTP and Websocket
+                // Creating EDGE domain so use APIGateway (v1) service
                 createdDomain = await this.apigateway.createDomainName(params).promise();
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
@@ -423,7 +422,7 @@ class ServerlessCustomDomain {
 
             // Make API call to create domain
             try {
-                // If creating REST api use v1 of api gateway, else use v2 for HTTP and Websocket
+                // Creating Regional domain so use ApiGatewayV2
                 createdDomain = await this.apigatewayV2.createDomainName(params).promise();
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {

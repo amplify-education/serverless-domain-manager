@@ -81,7 +81,7 @@ class DomainConfig {
      * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
      * If no customDomain object exists, an exception is thrown.
      */
-    public evaluateEnabled(enabled: any): boolean {
+    private evaluateEnabled(enabled: any): boolean {
         // const enabled = this.serverless.service.custom.customDomain.enabled;
         if (enabled === undefined) {
             return true;

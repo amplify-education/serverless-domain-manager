@@ -1176,7 +1176,7 @@ describe("Custom Domain Plugin", () => {
     });
   });
 
-  describe("create domain name deploy", () => {
+  describe("autoDomain deploy", () => {
     it("Should be disabled by default", () => {
       const plugin = constructPlugin({ domainName: "test_domain" });
       plugin.initializeVariables();

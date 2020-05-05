@@ -194,7 +194,8 @@ class ServerlessCustomDomain {
                         API Mappings may need to be manually removed.`, "Serverless Domain Manager");
                 } else {
                     this.logIfDebug(err, domain.givenDomainName);
-                    throw new Error(`Error: Unable to remove base bath mappings for domain ${domain.givenDomainName}`);
+                    this.serverless.cli.log(`Error: Unable to remove base bath mappings
+                        for domain ${domain.givenDomainName}`);
                 }
             }
         }));

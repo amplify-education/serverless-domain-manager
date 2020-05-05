@@ -59,10 +59,10 @@ const constructPlugin = (customDomainOptions) => {
     service: {
       custom: {
         customDomain: {
+          autoDomain: customDomainOptions.autoDomain,
           basePath: customDomainOptions.basePath,
           certificateArn: customDomainOptions.certificateArn,
           certificateName: customDomainOptions.certificateName,
-          createDomainName: customDomainOptions.createDomainName,
           createRoute53Record: customDomainOptions.createRoute53Record,
           domainName: customDomainOptions.domainName,
           enabled: customDomainOptions.enabled,
@@ -1180,10 +1180,10 @@ describe("Custom Domain Plugin", () => {
     it("Should be disabled by default", () => {
       const plugin = constructPlugin({ domainName: "test_domain" });
       plugin.initializeVariables();
-      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.equal(undefined);
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(undefined);
     });
 
-    it("setUpBasePathMapping should call createDomain when createDomainName is true", async () => {
+    it("setUpBasePathMapping should call createDomain when autoDomain is true", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
       });
@@ -1202,7 +1202,7 @@ describe("Custom Domain Plugin", () => {
           },
         });
       });
-      const plugin = constructPlugin({ domainName: "test_domain", createDomainName: true });
+      const plugin = constructPlugin({ domainName: "test_domain", autoDomain: true });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.cloudformation = new aws.CloudFormation();
@@ -1211,11 +1211,11 @@ describe("Custom Domain Plugin", () => {
 
       await plugin.setupBasePathMapping();
 
-      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.equal(true);
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
       expect(spy).to.have.been.called();
     });
 
-    it("setUpBasePathMapping should not call createDomain when createDomainName is not true", async () => {
+    it("setUpBasePathMapping should not call createDomain when autoDomain is not true", async () => {
       AWS.mock("APIGateway", "getDomainName", (params, callback) => {
         callback(null, { domainName: "fake_domain", distributionDomainName: "fake_dist_name" });
       });
@@ -1234,7 +1234,7 @@ describe("Custom Domain Plugin", () => {
           },
         });
       });
-      const plugin = constructPlugin({ createDomainName: false, domainName: "test_domain" });
+      const plugin = constructPlugin({ autoDomain: false, domainName: "test_domain" });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.cloudformation = new aws.CloudFormation();
@@ -1243,11 +1243,11 @@ describe("Custom Domain Plugin", () => {
 
       await plugin.setupBasePathMapping();
 
-      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.equal(false);
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
       expect(spy).to.not.have.been.called();
     });
 
-    it("removeBasePathMapping should call deleteDomain when createDomainName is true", async () => {
+    it("removeBasePathMapping should call deleteDomain when autoDomain is true", async () => {
       AWS.mock("APIGateway", "deleteBasePathMapping", (params, callback) => {
         callback(null, params);
       });
@@ -1257,7 +1257,7 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("APIGateway", "deleteDomainName", (params, callback) => {
         callback(null, params);
       });
-      const plugin = constructPlugin({ createDomainName: true, createRoute53Record: false, domainName: "test_domain" });
+      const plugin = constructPlugin({ autoDomain: true, createRoute53Record: false, domainName: "test_domain" });
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
@@ -1265,18 +1265,18 @@ describe("Custom Domain Plugin", () => {
 
       await plugin.removeBasePathMapping();
 
-      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.equal(true);
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
       expect(spy).to.have.been.called();
     });
 
-    it("removeBasePathMapping should not call deleteDomain when createDomainName is not true", async () => {
-      const plugin = constructPlugin({ createDomainName: false });
+    it("removeBasePathMapping should not call deleteDomain when autoDomain is not true", async () => {
+      const plugin = constructPlugin({ autoDomain: false });
       plugin.initializeVariables();
       const spy = chai.spy.on(plugin, "deleteDomain");
 
       await plugin.removeBasePathMapping();
 
-      expect(plugin.serverless.service.custom.customDomain.createDomainName).to.equal(false);
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
       expect(spy).to.not.have.been.called();
     });
 

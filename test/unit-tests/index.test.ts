@@ -337,8 +337,8 @@ describe("Custom Domain Plugin", () => {
 
       plugin.addOutputs(dc);
 
-      const cfTemplat = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
-      expect(cfTemplat).to.not.equal(undefined);
+      const cfTemplate = plugin.serverless.service.provider.compiledCloudFormationTemplate.Outputs;
+      expect(cfTemplate).to.not.equal(undefined);
     });
 
     it("(none) is added if basepath is an empty string", async () => {

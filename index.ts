@@ -98,7 +98,7 @@ class ServerlessCustomDomain {
                 }
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
-                throw new Error(`Error: Unable to craete domain ${domain.givenDomainName}`);
+                throw new Error(`Error: Unable to create domain ${domain.givenDomainName}`);
             }
         }));
     }
@@ -238,7 +238,7 @@ class ServerlessCustomDomain {
         this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
 
-        // Loop over the domain configurations and popluates the domains array with DomainConfigs
+        // Loop over the domain configurations and populate the domains array with DomainConfigs
         this.domains = [];
 
         // If the key of the item in config is an api type it is using per api type domain structure
@@ -248,7 +248,7 @@ class ServerlessCustomDomain {
                     this.serverless.service.custom.customDomain[configApiType].apiType = configApiType;
                     this.domains.push(new DomainConfig(this.serverless.service.custom.customDomain[configApiType]));
                 } else {
-                    throw Error(`Error: Invalud API Type, ${configApiType}`);
+                    throw Error(`Error: Invalid API Type, ${configApiType}`);
                 }
             }
         } else { // Default to single domain config
@@ -266,7 +266,7 @@ class ServerlessCustomDomain {
             this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
         }
 
-        // Validate the domain configuraitons
+        // Validate the domain configurations
         this.validateDomainConfigs();
     }
 
@@ -309,7 +309,7 @@ class ServerlessCustomDomain {
             return domain.certificateArn;
         }
 
-        let certificateArn; // The arn of the choosen certificate
+        let certificateArn; // The arn of the selected certificate
 
         let certificateName = domain.certificateName; // The certificate name
 

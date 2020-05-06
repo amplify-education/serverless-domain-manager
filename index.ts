@@ -1,8 +1,8 @@
 "use strict";
 
 import chalk from "chalk";
-import DomainInfo = require("./DomainInfo");
 import DomainConfig = require("./DomainConfig");
+import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
 import { ServerlessInstance, ServerlessOptions } from "./types";
 

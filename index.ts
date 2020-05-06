@@ -489,6 +489,7 @@ class ServerlessCustomDomain {
         throw new Error(`Error: Could not find hosted zone "${this.givenDomainName}"`);
     }
 
+<<<<<<< HEAD
     public async getBasePathMapping(restApiId: string): Promise<string> {
         const params = {
             domainName: this.givenDomainName,
@@ -508,6 +509,38 @@ class ServerlessCustomDomain {
                     break;
                 }
             }
+=======
+    public async getBasePathMapping(domain: DomainConfig): Promise<AWS.ApiGatewayV2.GetApiMappingResponse> {
+        let params = {
+            DomainName: domain.givenDomainName,
+        };
+	      try {
+          	let moreMappings:boolean = true;
+            let mappings;
+            while (moreMappings){
+                mappings = await this.apigatewayV2.getApiMappings(params).promise();
+                if (mappings.Items.length === 0) {
+                  moreMappings = false;
+                } else {
+                    for (const mapping of mappings.Items) {
+                        if (mapping.ApiId === domain.apiId
+                            || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
+                            return mapping;
+                        }
+                    }
+                    if (mappings.hasOwnProperty('NextToken')) {
+                        // there are more
+                        params['NextToken'] = mappings['NextToken'];
+                    }
+                    else{
+                        moreMappings = false;
+                    }
+                 }
+              }
+        } catch (err) {
+            this.logIfDebug(err, domain.givenDomainName);
+            throw new Error(`Error: Unable to get API Mappings for ${domain.givenDomainName}`);
+>>>>>>> 8c0c368... When there are more than one page of api mappings, iterate with NextToken to find the base path mapping
         }
         return currentBasePath;
     }

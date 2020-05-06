@@ -131,9 +131,14 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Lifecycle function to add domain info to the CloudFormation stack's Outputs
+     * Lifecycle function to createDomain before deploy and add domain info to the CloudFormation stack's Outputs
      */
     public async updateCloudFormationOutputs(): Promise<void> {
+        const autoDomain = this.serverless.service.custom.customDomain.autoDomain;
+        if (autoDomain === true) {
+            this.serverless.cli.log("Creating domain name before deploy.");
+            await this.createDomain();
+        }
         const domainInfo = await this.getDomainInfo();
         this.addOutputs(domainInfo);
     }
@@ -145,11 +150,6 @@ class ServerlessCustomDomain {
     public async setupBasePathMapping(): Promise<void> {
         // check if basepathmapping exists
         const restApiId = await this.getRestApiId();
-        const autoDomain = this.serverless.service.custom.customDomain.autoDomain;
-        if (autoDomain === true) {
-            this.serverless.cli.log("Creating domain name before setting up base path mapping.");
-            await this.createDomain();
-        }
         const currentBasePath = await this.getBasePathMapping(restApiId);
         // if basepath that matches restApiId exists, update; else, create
         if (!currentBasePath) {

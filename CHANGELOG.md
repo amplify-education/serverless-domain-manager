@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - Unreleased
+## [4.0.0] - 2020-05-06
 
 ### Added
 - Add support for WebSocket and HTTP APIs. A domain name can be created for each API type (Rest, WebSocket, HTTP) 

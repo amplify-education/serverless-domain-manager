@@ -18,11 +18,19 @@ class DomainInfo {
     private defaultSecurityPolicy: string = "TLS_1_2";
 
     constructor(data: any) {
-        this.domainName = data.distributionDomainName || data.regionalDomainName;
-        this.hostedZoneId = data.distributionHostedZoneId ||
-            data.regionalHostedZoneId ||
-            this.defaultHostedZoneId;
-        this.securityPolicy = data.securityPolicy || this.defaultSecurityPolicy;
+        this.domainName = data.distributionDomainName
+            || data.regionalDomainName
+            || data.DomainNameConfigurations && data.DomainNameConfigurations[0].ApiGatewayDomainName
+            || data.DomainName;
+
+        this.hostedZoneId = data.distributionHostedZoneId
+            || data.regionalHostedZoneId
+            || data.DomainNameConfigurations && data.DomainNameConfigurations[0].HostedZoneId
+            || this.defaultHostedZoneId;
+
+        this.securityPolicy = data.securityPolicy
+            || data.DomainNameConfigurations && data.DomainNameConfigurations[0].SecurityPolicy
+            || this.defaultSecurityPolicy;
     }
 }
 

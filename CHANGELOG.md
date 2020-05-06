@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.0.0] - Unreleased
+
+### Added
+- Add support for WebSocket and HTTP APIs. A domain name can be created for each API type (Rest, WebSocket, HTTP) 
+for up to 3 domain names in a single Serverless config. Thanks @TehNrd ([#319](https://github.com/amplify-education/serverless-domain-manager/pull/319))
+
 
 ## [3.2.7] - 2019-08-02
 
@@ -72,7 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 - Support for migrating CNAMEs to A Alias Records
-  - In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records.
+- In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records.
 
 
 ## [2.6.13] - 2019-01-25

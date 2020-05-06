@@ -2,9 +2,9 @@
  * Wrapper class for Custom Domain information
  */
 
-import Globals from "./Globals";
-import DomainInfo = require("./DomainInfo");
 import * as AWS from "aws-sdk"; // imported for Types
+import DomainInfo = require("./DomainInfo");
+import Globals from "./Globals";
 
 class DomainConfig {
 

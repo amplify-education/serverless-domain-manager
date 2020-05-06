@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add support for WebSocket and HTTP APIs. A domain name can be created for each API type (Rest, WebSocket, HTTP) 
 for up to 3 domain names in a single Serverless config. Thanks @TehNrd ([#319](https://github.com/amplify-education/serverless-domain-manager/pull/319))
 
+## [3.3.2] - 2020-04-21
+
+### Changed
+- Fix CloudFormation stack's Outputs. Thanks @davidrosson ([#320](https://github.com/amplify-education/serverless-domain-manager/pull/320)) 
+- Use pagination when there are too many certificates. Thanks @cbm-gplassard ([#315](https://github.com/amplify-education/serverless-domain-manager/pull/315))
+
+## [3.3.1] - 2020-01-16
+
+### Changed
+- Fix AWS SDK initialization after internal change in serverless. Thanks @medikoo ([#307](https://github.com/amplify-education/serverless-domain-manager/pull/307))
+
+## [3.3.0] - 2019-08-12
+
+### Added
+- Add ability to choose TLS version. Thanks @drexler ([#240](https://github.com/amplify-education/serverless-domain-manager/pull/240))
 
 ## [3.2.7] - 2019-08-02
 

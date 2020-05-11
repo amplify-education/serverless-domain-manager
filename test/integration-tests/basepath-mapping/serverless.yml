@@ -1,8 +1,8 @@
 # Enabled and testing basepath mapping
-service: basepath-mapping
+service: basepath-mapping-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
   stage: test
 functions:
@@ -19,3 +19,7 @@ custom:
   customDomain:
     domainName: basepath-mapping-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
+
+package:
+  exclude:
+    - node_modules/**

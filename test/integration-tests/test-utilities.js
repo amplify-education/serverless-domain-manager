@@ -4,6 +4,7 @@ const request = require("request-promise-native");
 const aws = require("aws-sdk");
 const dns = require("dns");
 const shell = require("shelljs");
+const spawn = require("child_process");
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
@@ -32,7 +33,7 @@ function sleep(seconds) {
  */
 async function exec(cmd) {
   return new Promise((resolve) => {
-    shell.exec(`${cmd}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`${cmd}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -49,8 +50,8 @@ async function exec(cmd) {
 async function createTempDir(tempDir, folderName) {
   await exec(`rm -rf ${tempDir}`);
   await exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${folderName}/. ${tempDir}`);
-  await exec(`mkdir -p ${tempDir}/node_modules/serverless-domain-manager`);
-  await exec(`cp -R . ${tempDir}/node_modules/serverless-domain-manager`);
+  await exec(`mkdir -p ${tempDir}/node_modules`);
+  await exec(`ln -s $(pwd) ${tempDir}/node_modules/`);
 }
 
 /**
@@ -59,7 +60,7 @@ async function createTempDir(tempDir, folderName) {
  */
 async function linkPackages() {
   return new Promise((resolve) => {
-    shell.exec("npm link serverless-domain-manager", { silent: true }, (err, stdout, stderr) => {
+    shell.exec("npm link serverless-domain-manager", { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -211,7 +212,7 @@ async function deleteApiGatewayResources(restApiId) {
  */
 function slsCreateDomain(tempDir, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && sls create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd ${tempDir} && serverless create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -228,7 +229,7 @@ function slsCreateDomain(tempDir, domainIdentifier) {
  */
 function slsDeploy(tempDir, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && sls deploy --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd ${tempDir} && serverless deploy --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -245,7 +246,7 @@ function slsDeploy(tempDir, domainIdentifier) {
  */
 function slsDeleteDomain(tempDir, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && sls delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd ${tempDir} && serverless delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -262,7 +263,7 @@ function slsDeleteDomain(tempDir, domainIdentifier) {
  */
 function slsRemove(tempDir, domainIdentifier) {
   return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && sls remove --RANDOM_STRING ${domainIdentifier}`, { silent: true }, (err, stdout, stderr) => {
+    shell.exec(`cd ${tempDir} && serverless remove --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         return resolve(false);
       }
@@ -306,18 +307,15 @@ async function removeLambdas(tempDir, domainIdentifier) {
 async function createResources(folderName, url, domainIdentifier, enabled) {
   console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
+  console.debug(`\tUsing tmp directory ${tempDir}`);
   await createTempDir(tempDir, folderName);
   const created = await deployLambdas(tempDir, domainIdentifier);
-  let dnsVerified = false;
   if (created) {
-    dnsVerified = await verifyDnsPropogation(url, enabled);
-  }
-  if (created && dnsVerified) {
     console.debug("\tResources Created"); // eslint-disable-line no-console
   } else {
     console.debug("\tResources Failed to Create"); // eslint-disable-line no-console
   }
-  return created && dnsVerified;
+  return created;
 }
 
 /**

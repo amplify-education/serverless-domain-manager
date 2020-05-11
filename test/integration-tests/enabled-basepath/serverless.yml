@@ -1,8 +1,8 @@
 # Enabled with custom basepath
-service: enabled-basepath
+service: enabled-basepath-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
 functions:
   helloWorld:
@@ -18,3 +18,7 @@ custom:
   customDomain:
     domainName: enabled-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
+
+package:
+  exclude:
+    - node_modules/**

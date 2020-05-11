@@ -4,7 +4,7 @@ const request = require("request-promise-native");
 const aws = require("aws-sdk");
 const dns = require("dns");
 const shell = require("shelljs");
-const spawn = require("child_process");
+const util = require('util');
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
@@ -70,26 +70,6 @@ async function linkPackages() {
 }
 
 /**
- * Curls the given URL to see if it exists
- * @param url
- * @returns {Promise<Number|null>} Resolves to status code if exists, else null.
- */
-async function curlUrl(url) {
-  let response = null;
-  response = await request.get({
-    url,
-    resolveWithFullResponse: true,
-  })
-  .catch((err) => { // eslint-disable-line no-unused-vars
-    response = null;
-  });
-  if (response === undefined || response === null) {
-    return null;
-  }
-  return response.statusCode;
-}
-
-/**
  * Gets endpoint type of given URL from AWS
  * @param url
  * @returns {Promise<String|null>} Resolves to String if endpoint exists, else null.
@@ -138,46 +118,6 @@ async function getBasePath(url) {
   } catch (err) {
     return null;
   }
-}
-
-/**
- * Looks up DNS records for the given url
- * @param url
- * @returns {Promise<boolean>} Resolves true if DNS records exist, else false.
- */
-function dnsLookup(url) {
-  return new Promise((resolve) => {
-    dns.resolveAny(url, (err) => {
-      if (err) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
-}
-
-/**
- * Periodically calls dnsLookup until records found or 40 minutes elapse.
- * @param url
- * @param enabled
- * @returns {Promise<boolean>} Resolves true if records found, else false.
- */
-async function verifyDnsPropogation(url, enabled) {
-  console.debug("\tWaiting for DNS to Propogate..."); // eslint-disable-line no-console
-  if (!enabled) {
-    return true;
-  }
-  let numRetries = 0;
-  let dnsPropogated = false;
-  while (numRetries < 40 && !dnsPropogated && enabled) {
-    dnsPropogated = await dnsLookup(url); // eslint-disable-line no-await-in-loop
-    if (dnsPropogated) {
-      break;
-    }
-    numRetries += 1;
-    await sleep(60); // eslint-disable-line no-await-in-loop
-  }
-  return dnsPropogated;
 }
 
 /**
@@ -308,7 +248,7 @@ async function createResources(folderName, url, domainIdentifier, enabled) {
   console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   console.debug(`\tUsing tmp directory ${tempDir}`);
-  await createTempDir(tempDir, folderName);
+  await createTempDir(tempDir, folderName); // eslint-disable-line no-console
   const created = await deployLambdas(tempDir, domainIdentifier);
   if (created) {
     console.debug("\tResources Created"); // eslint-disable-line no-console
@@ -338,13 +278,10 @@ async function destroyResources(url, domainIdentifier) {
 }
 
 module.exports = {
-  curlUrl,
   createResources,
   createTempDir,
   destroyResources,
   exec,
-  verifyDnsPropogation,
-  dnsLookup,
   slsCreateDomain,
   slsDeploy,
   slsDeleteDomain,

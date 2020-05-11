@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN;
 if(!TEST_DOMAIN) {
-  throw new Error('TEST_DOMAIN environment variable not set')
+  throw new Error("TEST_DOMAIN environment variable not set")
 }
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds

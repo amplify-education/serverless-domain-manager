@@ -623,7 +623,7 @@ class ServerlessCustomDomain {
         // Use APIGateway (v1) for EDGE domains
         if (domain.endpointType === Globals.endpointTypes.edge) {
             const params = {
-                basePath: domain.apiMapping.ApiMappingKey,
+                basePath: domain.apiMapping.ApiMappingKey || "(none)",
                 domainName: domain.givenDomainName,
                 patchOperations: [
                     {

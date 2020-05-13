@@ -87,47 +87,38 @@ const testCases = [
   },
 ];
 
-
 describe("Integration Tests", function () { // eslint-disable-line func-names
   this.timeout(FIFTEEN_MINUTES);
 
-  describe("Domain Manager Is Enabled", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  itParam("${value.testDescription}", testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
+    let restApiInfo;
+    if (value.createApiGateway) {
+      restApiInfo = await utilities.setupApiGatewayResources(RANDOM_STRING);
+    }
+    try {
+      await utilities.createResources(value.testFolder, value.testDomain, RANDOM_STRING, true);
+      const stage = await utilities.getStage(value.testDomain);
+      expect(stage).to.equal(value.testStage);
 
-    itParam("${value.testDescription}", testCases, async (value) => { // eslint-disable-line no-template-curly-in-string
-      let restApiInfo;
-      if (value.createApiGateway) {
-        restApiInfo = await utilities.setupApiGatewayResources(RANDOM_STRING);
-      }
-      const created = await utilities.createResources(value.testFolder,
-          value.testDomain, RANDOM_STRING, true);
-      if (!created) {
-        throw new utilities.CreationError("Resources failed to create.");
-      } else {
-        const stage = await utilities.getStage(value.testDomain);
-        expect(stage).to.equal(value.testStage);
+      const basePath = await utilities.getBasePath(value.testDomain);
+      expect(basePath).to.equal(value.testBasePath);
 
-        const basePath = await utilities.getBasePath(value.testDomain);
-        expect(basePath).to.equal(value.testBasePath);
-
-        const endpoint = await utilities.getEndpointType(value.testDomain);
-        expect(endpoint).to.equal(value.testEndpoint);
-      }
+      const endpoint = await utilities.getEndpointType(value.testDomain);
+      expect(endpoint).to.equal(value.testEndpoint);
+    } finally {
       await utilities.destroyResources(value.testDomain, RANDOM_STRING);
       if (value.createApiGateway) {
         await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
       }
-    });
+    }
   });
 
-  describe("Basepath Mapping Is Empty", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  it("Creates a empty basepath mapping", async () => {
     const testName = "null-basepath-mapping";
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-    it("Creates a basepath mapping", async () => {
-      // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
+    // Perform sequence of commands to replicate basepath mapping issue
+    // Sleep for half a min between commands in order to avoid rate limiting.
+    try {
       await utilities.createTempDir(TEMP_DIR, testName);
       await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
@@ -141,19 +132,17 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
 
       const basePath = await utilities.getBasePath(testURL);
       expect(basePath).to.equal("(none)");
-
+    } finally {
       await utilities.destroyResources(testURL, RANDOM_STRING);
-    });
+    }
   });
 
-  describe("Basepath Mapping Is Set", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  it("Creates a basepath mapping", async () => {
     const testName = "basepath-mapping";
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-    it("Creates a basepath mapping", async () => {
-      // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
+    // Perform sequence of commands to replicate basepath mapping issue
+    // Sleep for half a min between commands in order to avoid rate limiting.
+    try {
       await utilities.createTempDir(TEMP_DIR, testName);
       await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
@@ -167,20 +156,17 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
 
       const basePath = await utilities.getBasePath(testURL);
       expect(basePath).to.equal("api");
-
+    } finally {
       await utilities.destroyResources(testURL, RANDOM_STRING);
-    });
+    }
   });
 
-
-  describe("Basepath Mapping Is Empty And Fix Works", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  it("Creates a basepath mapping", async () => {
     const testName = "null-basepath-mapping";
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-    it("Creates a basepath mapping", async () => {
-      // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
+    // Perform sequence of commands to replicate basepath mapping issue
+    // Sleep for half a min between commands in order to avoid rate limiting.
+    try {
       await utilities.createTempDir(TEMP_DIR, testName);
       await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
@@ -196,54 +182,42 @@ describe("Integration Tests", function () { // eslint-disable-line func-names
 
       const basePath = await utilities.getBasePath(testURL);
       expect(basePath).to.equal("(none)");
-
+    } finally {
       await utilities.destroyResources(testURL, RANDOM_STRING);
-    });
+    }
   });
 
-  describe("Create domain is idempotent", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  it("Creates a domain multiple times without failure", async () => {
     const testName = "create-domain-idempotent";
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-    it("Creates a domain multiple times without failure", async () => {
-      let createDomainSuccess = true;
-      let deploySuccess;
+    try {
       await utilities.createTempDir(TEMP_DIR, testName);
-      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      createDomainSuccess = createDomainSuccess && await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      deploySuccess = await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-      expect(createDomainSuccess).to.equal(true);
-      expect(deploySuccess).to.equal(true);
-
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+    } finally {
       await utilities.destroyResources(testURL, RANDOM_STRING);
-    });
+    }
   });
 
-  describe("Deploy is idempotent", function () { // eslint-disable-line func-names
-    this.timeout(FIFTEEN_MINUTES);
+  it("Deploys multiple times without failure", async () => {
     const testName = "deploy-idempotent";
     const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-    it("Deploys multiple times without failure", async () => {
-      let createDomainSuccess;
-      let deploySuccess = true;
+    try {
       await utilities.createTempDir(TEMP_DIR, testName);
-      createDomainSuccess = await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       await utilities.sleep(30);
-      deploySuccess = deploySuccess && await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-      expect(createDomainSuccess).to.equal(true);
-      expect(deploySuccess).to.equal(true);
-
+      await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+    } finally {
       await utilities.destroyResources(testURL, RANDOM_STRING);
-    });
+    }
   });
 });

@@ -1,10 +1,7 @@
 "use strict";
 
-const request = require("request-promise-native");
 const aws = require("aws-sdk");
-const dns = require("dns");
 const shell = require("shelljs");
-const util = require('util');
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
@@ -29,15 +26,16 @@ function sleep(seconds) {
 /**
  * Executes given shell command.
  * @param cmd shell command to execute
- * @returns {Promise<boolean>} Resolves true if successfully executed, else false
+ * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
 async function exec(cmd) {
-  return new Promise((resolve) => {
-    shell.exec(`${cmd}`, { silent: false }, (err, stdout, stderr) => {
+  console.debug(`\tRunning command: ${cmd}`);
+  return new Promise((resolve, reject) => {
+    shell.exec(cmd, {silent: false}, (err, stdout, stderr) => {
       if (err || stderr) {
-        return resolve(false);
+        return reject();
       }
-      return resolve(true);
+      return resolve();
     });
   });
 }
@@ -50,23 +48,12 @@ async function exec(cmd) {
 async function createTempDir(tempDir, folderName) {
   await exec(`rm -rf ${tempDir}`);
   await exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${folderName}/. ${tempDir}`);
-  await exec(`mkdir -p ${tempDir}/node_modules`);
+  await exec(`mkdir -p ${tempDir}/node_modules/.bin`);
   await exec(`ln -s $(pwd) ${tempDir}/node_modules/`);
-}
 
-/**
- * Links current serverless-domain-manager to global node_modules in order to run tests.
- * @returns {Promise<boolean>} Resolves true if successfully linked, else false.
- */
-async function linkPackages() {
-  return new Promise((resolve) => {
-    shell.exec("npm link serverless-domain-manager", { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  await exec(`ln -s $(pwd)/node_modules/serverless ${tempDir}/node_modules/`);
+  // link serverless to the bin directory so we can use $(npm bin) to get the path to serverless
+  await exec(`ln -s $(pwd)/node_modules/serverless/bin/serverless.js ${tempDir}/node_modules/.bin/serverless`);
 }
 
 /**
@@ -148,92 +135,62 @@ async function deleteApiGatewayResources(restApiId) {
  * Runs `sls create_domain` for the given folder
  * @param tempDir
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<any>}
+ * @returns {Promise<void>}
  */
 function slsCreateDomain(tempDir, domainIdentifier) {
-  return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && serverless create_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  return exec(`cd ${tempDir} && $(npm bin)/serverless create_domain --RANDOM_STRING ${domainIdentifier}`);
 }
 
 /**
  * Runs `sls deploy` for the given folder
  * @param tempDir
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<any>}
+ * @returns {Promise<void>}
  */
 function slsDeploy(tempDir, domainIdentifier) {
-  return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && serverless deploy --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --RANDOM_STRING ${domainIdentifier}`);
 }
 
 /**
  * Runs `sls delete_domain` for the given folder
  * @param tempDir
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<any>}
+ * @returns {Promise<void>}
  */
 function slsDeleteDomain(tempDir, domainIdentifier) {
-  return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && serverless delete_domain --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  return exec(`cd ${tempDir} && $(npm bin)/serverless delete_domain --RANDOM_STRING ${domainIdentifier}`);
 }
 
 /**
  * Runs `sls remove` for the given folder
  * @param tempDir
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<any>}
+ * @returns {Promise<void>}
  */
 function slsRemove(tempDir, domainIdentifier) {
-  return new Promise((resolve) => {
-    shell.exec(`cd ${tempDir} && serverless remove --RANDOM_STRING ${domainIdentifier}`, { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  return exec(`cd ${tempDir} && $(npm bin)/serverless remove --RANDOM_STRING ${domainIdentifier}`);
 }
 
 /**
  * Runs both `sls create_domain` and `sls deploy`
  * @param tempDir
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<*>}
+ * @returns {Promise<void>}
  */
 async function deployLambdas(tempDir, domainIdentifier) {
-  const created = await slsCreateDomain(tempDir, domainIdentifier);
-  const deployed = await slsDeploy(tempDir, domainIdentifier);
-  return created && deployed;
+  await slsCreateDomain(tempDir, domainIdentifier);
+  await slsDeploy(tempDir, domainIdentifier);
 }
 
 /**
  * Runs both `sls delete_domain` and `sls remove`
  * @param tempDir temp directory where code is being run from
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<*>}
+ * @returns {Promise<void>}
  */
 async function removeLambdas(tempDir, domainIdentifier) {
-  const removed = await slsRemove(tempDir, domainIdentifier);
-  const deleted = await slsDeleteDomain(tempDir, domainIdentifier);
-  return deleted && removed;
+  await slsRemove(tempDir, domainIdentifier);
+  await slsDeleteDomain(tempDir, domainIdentifier);
 }
 
 /**
@@ -242,39 +199,38 @@ async function removeLambdas(tempDir, domainIdentifier) {
  * @param url
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @param enabled
- * @returns {Promise<boolean>} Resolves true if resources created, else false.
+ * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
 async function createResources(folderName, url, domainIdentifier, enabled) {
   console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   console.debug(`\tUsing tmp directory ${tempDir}`);
-  await createTempDir(tempDir, folderName); // eslint-disable-line no-console
-  const created = await deployLambdas(tempDir, domainIdentifier);
-  if (created) {
+  try {
+    await createTempDir(tempDir, folderName); // eslint-disable-line no-console
+    await deployLambdas(tempDir, domainIdentifier);
     console.debug("\tResources Created"); // eslint-disable-line no-console
-  } else {
+  } catch(e) {
     console.debug("\tResources Failed to Create"); // eslint-disable-line no-console
   }
-  return created;
 }
 
 /**
  * Wraps deletion of testing resources.
  * @param url
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<boolean>} Resolves true if resources destroyed, else false.
+ * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
 async function destroyResources(url, domainIdentifier) {
-  console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
-  const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
-  const removed = await removeLambdas(tempDir, domainIdentifier);
-  await exec(`rm -rf ${tempDir}`);
-  if (removed) {
+  try {
+    console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
+    const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
+    await removeLambdas(tempDir, domainIdentifier);
+    await exec(`rm -rf ${tempDir}`);
+
     console.debug("\tResources Cleaned Up"); // eslint-disable-line no-console
-  } else {
+  } catch (e) {
     console.debug("\tFailed to Clean Up Resources"); // eslint-disable-line no-console
   }
-  return removed;
 }
 
 module.exports = {
@@ -286,12 +242,9 @@ module.exports = {
   slsDeploy,
   slsDeleteDomain,
   slsRemove,
-  deployLambdas,
-  removeLambdas,
   getEndpointType,
   getBasePath,
   getStage,
-  linkPackages,
   sleep,
   CreationError,
   setupApiGatewayResources,

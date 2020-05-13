@@ -58,6 +58,7 @@
     "randomstring": "^1.1.5",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
+    "serverless": "^1.70.1",
     "shelljs": "^0.8.3",
     "ts-node": "^8.0.1",
     "tslint": "^5.20.1",

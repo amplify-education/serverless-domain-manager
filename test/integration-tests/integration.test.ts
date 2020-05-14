@@ -28,7 +28,6 @@ const testCases = [
     testEndpoint: "EDGE",
     testFolder: "enabled-default",
     testStage: "dev",
-    testURL: `https://enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     createApiGateway: true,
@@ -38,7 +37,6 @@ const testCases = [
     testEndpoint: "EDGE",
     testFolder: "enabled-custom-apigateway",
     testStage: "dev",
-    testURL: `https://enabled-custom-apigateway-${RANDOM_STRING}.${TEST_DOMAIN}`,
   },
   {
     testBasePath: "api",
@@ -47,7 +45,6 @@ const testCases = [
     testEndpoint: "EDGE",
     testFolder: "enabled-basepath",
     testStage: "dev",
-    testURL: `https://enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testBasePath: "(none)",
@@ -56,7 +53,6 @@ const testCases = [
     testEndpoint: "EDGE",
     testFolder: "enabled-stage-basepath",
     testStage: "test",
-    testURL: `https://enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testBasePath: "api",
@@ -65,7 +61,6 @@ const testCases = [
     testEndpoint: "REGIONAL",
     testFolder: "enabled-regional-basepath",
     testStage: "dev",
-    testURL: `https://enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/api/hello-world`,
   },
   {
     testBasePath: "(none)",
@@ -74,17 +69,23 @@ const testCases = [
     testEndpoint: "REGIONAL",
     testFolder: "enabled-regional-stage-basepath",
     testStage: "test",
-    testURL: `https://enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
   {
     testBasePath: "(none)",
-    testDescription: "Enabled with regional endpoint and empty basepath",
-    testDomain: `enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testDescription: "Create Web socket API and domain name",
+    testDomain: `web-socket-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
-    testFolder: "enabled-regional-empty-basepath",
+    testFolder: "web-socket",
     testStage: "dev",
-    testURL: `https://enabled-regional-empty-basepath-${RANDOM_STRING}.${TEST_DOMAIN}/hello-world`,
   },
+  {
+    testBasePath: "(none)",
+    testDescription: "Create HTTP API and domain name",
+    testDomain: `http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testEndpoint: "REGIONAL",
+    testFolder: "http-api",
+    testStage: "$default",
+  }
 ];
 
 describe("Integration Tests", function() {

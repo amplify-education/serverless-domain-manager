@@ -11,14 +11,12 @@ const apiGateway = new aws.APIGateway({
   region: "us-west-2",
 });
 
-class CreationError extends Error {}
-
 /**
  * Stops event thread execution for given number of seconds.
  * @param seconds
- * @returns {Promise<any>} Resolves after given number of seconds.
+ * @returns {Promise<void>} Resolves after given number of seconds.
  */
-function sleep(seconds) {
+async function sleep(seconds) {
   return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
@@ -245,7 +243,6 @@ export {
   getBasePath,
   getStage,
   sleep,
-  CreationError,
   setupApiGatewayResources,
   deleteApiGatewayResources,
 };

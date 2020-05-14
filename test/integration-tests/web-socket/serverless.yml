@@ -1,0 +1,24 @@
+service: web-socket-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: dev
+functions:
+  connect:
+    handler: handler.connect
+    events:
+      - websocket:
+          route: $connect
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    websocket:
+      domainName: web-socket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      basePath: ''
+      endpointType: 'regional'
+
+package:
+  exclude:
+    - node_modules/**

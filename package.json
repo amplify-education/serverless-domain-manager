@@ -27,9 +27,9 @@
   "main": "dist/index.js",
   "bin": {},
   "scripts": {
-    "test": "tsc --project . && nyc mocha -r ts-node/register test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
-    "integration-test": "node ./node_modules/istanbul/lib/cli.js test _mocha test/integration-tests -- -R spec",
-    "lint": "tslint --project .",
+    "test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/integration-tests/integration.test.ts && nyc report --reporter=text-summary",
+    "lint": "tslint --project . && tslint --project tsconfig.tests.json",
     "build": "tsc --project ."
   },
   "files": [

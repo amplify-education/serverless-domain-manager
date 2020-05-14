@@ -3,11 +3,10 @@ import * as AWS from "aws-sdk-mock";
 import chai = require("chai");
 import spies = require("chai-spies");
 import "mocha";
-import DomainInfo = require("../../DomainInfo");
 import DomainConfig = require("../../DomainConfig");
+import DomainInfo = require("../../DomainInfo");
 import Globals from "../../Globals";
 import ServerlessCustomDomain = require("../../index");
-import { ServerlessInstance, ServerlessOptions } from "../../types";
 
 const expect = chai.expect;
 chai.use(spies);

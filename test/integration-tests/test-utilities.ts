@@ -1,18 +1,17 @@
 "use strict";
 
-const aws = require("aws-sdk");
-const shell = require("shelljs");
+import aws = require("aws-sdk");
+import shell = require("shelljs");
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
-  region: "us-west-2",
   credentials: new aws.SharedIniFileCredentials(
     { profile: AWS_PROFILE },
   ),
+  region: "us-west-2",
 });
 
 class CreationError extends Error {}
-
 
 /**
  * Stops event thread execution for given number of seconds.
@@ -202,15 +201,15 @@ async function removeLambdas(tempDir, domainIdentifier) {
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
 async function createResources(folderName, url, domainIdentifier, enabled) {
-  console.debug(`\tCreating Resources for ${url}`); // eslint-disable-line no-console
+  console.debug(`\tCreating Resources for ${url}`);
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   console.debug(`\tUsing tmp directory ${tempDir}`);
   try {
-    await createTempDir(tempDir, folderName); // eslint-disable-line no-console
+    await createTempDir(tempDir, folderName);
     await deployLambdas(tempDir, domainIdentifier);
-    console.debug("\tResources Created"); // eslint-disable-line no-console
-  } catch(e) {
-    console.debug("\tResources Failed to Create"); // eslint-disable-line no-console
+    console.debug("\tResources Created");
+  } catch (e) {
+    console.debug("\tResources Failed to Create");
   }
 }
 
@@ -222,18 +221,18 @@ async function createResources(folderName, url, domainIdentifier, enabled) {
  */
 async function destroyResources(url, domainIdentifier) {
   try {
-    console.debug(`\tCleaning Up Resources for ${url}`); // eslint-disable-line no-console
+    console.debug(`\tCleaning Up Resources for ${url}`);
     const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
     await removeLambdas(tempDir, domainIdentifier);
     await exec(`rm -rf ${tempDir}`);
 
-    console.debug("\tResources Cleaned Up"); // eslint-disable-line no-console
+    console.debug("\tResources Cleaned Up");
   } catch (e) {
-    console.debug("\tFailed to Clean Up Resources"); // eslint-disable-line no-console
+    console.debug("\tFailed to Clean Up Resources");
   }
 }
 
-module.exports = {
+export {
   createResources,
   createTempDir,
   destroyResources,

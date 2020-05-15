@@ -56,52 +56,40 @@ async function createTempDir(tempDir, folderName) {
 /**
  * Gets endpoint type of given URL from AWS
  * @param url
- * @returns {Promise<String|null>} Resolves to String if endpoint exists, else null.
+ * @returns {Promise<String>}
  */
 async function getEndpointType(url) {
-  const params = {
+  const result = await apiGateway.getDomainName({
     domainName: url,
-  };
-  try {
-    const result = await apiGateway.getDomainName(params).promise();
-    return result.endpointConfiguration.types[0];
-  } catch (err) {
-    return null;
-  }
+  }).promise();
+
+  return result.endpointConfiguration.types[0];
 }
 
 /**
  * Gets stage of given URL from AWS
  * @param url
- * @returns {Promise<String|null>} Resolves to String if stage exists, else null.
+ * @returns {Promise<String>}
  */
 async function getStage(url) {
-  const params = {
+  const result = await apiGateway.getBasePathMappings({
     domainName: url,
-  };
-  try {
-    const result = await apiGateway.getBasePathMappings(params).promise();
-    return result.items[0].stage;
-  } catch (err) {
-    return null;
-  }
+  }).promise();
+
+  return result.items[0].stage;
 }
 
 /**
  * Gets basePath of given URL from AWS
  * @param url
- * @returns {Promise<String|null>} Resolves to String if basePath exists, else null.
+ * @returns {Promise<String>}
  */
 async function getBasePath(url) {
-  const params = {
+  const result = await apiGateway.getBasePathMappings({
     domainName: url,
-  };
-  try {
-    const result = await apiGateway.getBasePathMappings(params).promise();
-    return result.items[0].basePath;
-  } catch (err) {
-    return null;
-  }
+  }).promise();
+
+  return result.items[0].basePath;
 }
 
 /**

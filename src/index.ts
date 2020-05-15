@@ -1,5 +1,6 @@
 "use strict";
 
+import {Service} from "aws-sdk";
 import chalk from "chalk";
 import DomainConfig = require("./DomainConfig");
 import DomainInfo = require("./DomainInfo");
@@ -315,14 +316,14 @@ class ServerlessCustomDomain {
         let certificateName = domain.certificateName; // The certificate name
 
         try {
-            let certificates = [];
-            let nextToken;
-            do {
-                const certData = await this.acm.listCertificates(
-                    { CertificateStatuses: certStatuses, NextToken: nextToken }).promise();
-                certificates = certificates.concat(certData.CertificateSummaryList);
-                nextToken = certData.NextToken;
-            } while (nextToken);
+            const certificates = await this.getAWSPagedResults(
+                this.acm,
+                "listCertificates",
+                "CertificateSummaryList",
+                "NextToken",
+                "NextToken",
+                { CertificateStatuses: certStatuses },
+            );
 
             // The more specific name will be the longest
             let nameLength = 0;
@@ -555,20 +556,19 @@ class ServerlessCustomDomain {
     }
 
     public async getBasePathMapping(domain: DomainConfig): Promise<AWS.ApiGatewayV2.GetApiMappingResponse> {
-        const params = {
-            DomainName: domain.givenDomainName,
-        };
         try {
-            const mappings = await this.apigatewayV2.getApiMappings(params).promise();
-
-            if (mappings.Items.length === 0) {
-                return;
-            } else {
-                for (const mapping of mappings.Items) {
-                    if (mapping.ApiId === domain.apiId
-                        || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
-                        return mapping;
-                    }
+            const mappings = await this.getAWSPagedResults(
+                this.apigatewayV2,
+                "getApiMappings",
+                "Items",
+                "NextToken",
+                "NextToken",
+                { DomainName: domain.givenDomainName },
+            );
+            for (const mapping of mappings) {
+                if (mapping.ApiId === domain.apiId
+                    || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
+                    return mapping;
                 }
             }
         } catch (err) {
@@ -785,6 +785,35 @@ class ServerlessCustomDomain {
         this.serverless.cli.consoleLog(`  Domain Name: ${domain.givenDomainName}`);
         this.serverless.cli.consoleLog(`  Target Domain: ${domain.domainInfo.domainName}`);
         this.serverless.cli.consoleLog(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+    }
+
+    /**
+     * Iterate through the pages of a AWS SDK response and collect them into a single array
+     *
+     * @param service - The AWS service instance to use to make the calls
+     * @param funcName - The function name in the service to call
+     * @param resultsKey - The key name in the response that contains the items to return
+     * @param nextTokenKey - The request key name to append to the request that has the paging token value
+     * @param nextRequestTokenKey - The response key name that has the next paging token value
+     * @param params - Parameters to send in the request
+     */
+    private async getAWSPagedResults(
+        service: Service,
+        funcName: string,
+        resultsKey: string,
+        nextTokenKey: string,
+        nextRequestTokenKey: string,
+        params: object,
+    ): Promise<any[]> {
+        let results = [];
+        let response = await service[funcName](params).promise();
+        results = results.concat(response[resultsKey]);
+        while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
+            params[nextTokenKey] = response[nextRequestTokenKey];
+            response = await service[funcName](params).promise();
+            results = results.concat(response[resultsKey]);
+        }
+        return results;
     }
 }
 

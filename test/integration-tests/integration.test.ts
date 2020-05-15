@@ -85,7 +85,7 @@ const testCases = [
     testEndpoint: "REGIONAL",
     testFolder: "http-api",
     testStage: "$default",
-  }
+  },
 ];
 
 describe("Integration Tests", function() {

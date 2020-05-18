@@ -775,19 +775,6 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Prints out a summary of all domain manager related info
-     */
-
-    private printDomainSummary(domain: DomainConfig): void {
-        this.serverless.cli.consoleLog(chalk.yellow.underline("\nServerless Domain Manager Summary"));
-
-        this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
-        this.serverless.cli.consoleLog(`  Domain Name: ${domain.givenDomainName}`);
-        this.serverless.cli.consoleLog(`  Target Domain: ${domain.domainInfo.domainName}`);
-        this.serverless.cli.consoleLog(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
-    }
-
-    /**
      * Iterate through the pages of a AWS SDK response and collect them into a single array
      *
      * @param service - The AWS service instance to use to make the calls
@@ -797,7 +784,7 @@ class ServerlessCustomDomain {
      * @param nextRequestTokenKey - The response key name that has the next paging token value
      * @param params - Parameters to send in the request
      */
-    private async getAWSPagedResults(
+    public async getAWSPagedResults(
         service: Service,
         funcName: string,
         resultsKey: string,
@@ -814,6 +801,19 @@ class ServerlessCustomDomain {
             results = results.concat(response[resultsKey]);
         }
         return results;
+    }
+
+    /**
+     * Prints out a summary of all domain manager related info
+     */
+
+    private printDomainSummary(domain: DomainConfig): void {
+        this.serverless.cli.consoleLog(chalk.yellow.underline("\nServerless Domain Manager Summary"));
+
+        this.serverless.cli.consoleLog(chalk.yellow("Distribution Domain Name"));
+        this.serverless.cli.consoleLog(`  Domain Name: ${domain.givenDomainName}`);
+        this.serverless.cli.consoleLog(`  Target Domain: ${domain.domainInfo.domainName}`);
+        this.serverless.cli.consoleLog(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
     }
 }
 

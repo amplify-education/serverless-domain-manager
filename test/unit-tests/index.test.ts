@@ -1522,7 +1522,7 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(undefined);
     });
 
-    it("updateCloudFormationOutputs should call createDomain when autoDomain is true", async () => {
+    it("createOrGetDomainForCfOutputs should call createDomain when autoDomain is true", async () => {
       AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
         callback(null, params);
       });
@@ -1543,13 +1543,13 @@ describe("Custom Domain Plugin", () => {
 
       const spy = chai.spy.on(plugin.apigatewayV2, "getDomainName");
 
-      await plugin.updateCloudFormationOutputs();
+      await plugin.createOrGetDomainForCfOutputs();
 
       expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
       expect(spy).to.have.been.called();
     });
 
-    it("updateCloudFormationOutputs should not call createDomain when autoDomain is not true", async () => {
+    it("createOrGetDomainForCfOutputs should not call createDomain when autoDomain is not true", async () => {
       AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
         callback(null, params);
       });
@@ -1572,7 +1572,7 @@ describe("Custom Domain Plugin", () => {
       const spy1 = chai.spy.on(plugin.apigateway, "createDomainName");
       const spy2 = chai.spy.on(plugin.apigatewayV2, "createDomainName");
 
-      await plugin.updateCloudFormationOutputs();
+      await plugin.createOrGetDomainForCfOutputs();
 
       expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
       expect(spy1).to.have.not.been.called();

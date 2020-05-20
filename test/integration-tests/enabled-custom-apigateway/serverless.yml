@@ -1,8 +1,8 @@
 # Enabled with default values
-service: enabled-custom-apigateway
+service: enabled-custom-apigateway-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
   apiGateway:
     restApiId: ${env:REST_API_ID}
@@ -21,3 +21,7 @@ plugins:
 custom:
   customDomain:
     domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+
+package:
+  exclude:
+    - node_modules/**

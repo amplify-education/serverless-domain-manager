@@ -1,8 +1,8 @@
 # Creating a domain should be idempotent
-service: create-domain-idempotent
+service: create-domain-idempotent-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
   stage: test
 functions:
@@ -19,3 +19,7 @@ custom:
   customDomain:
     domainName: create-domain-idempotent-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: ''
+
+package:
+  exclude:
+    - node_modules/**

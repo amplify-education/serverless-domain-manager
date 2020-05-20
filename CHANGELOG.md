@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2020-05-18
+
+### Changed
+- Fixed issue when there are multiple pages of base path mappings. Also refactored how paging is handled throughout the code. Thanks @kzhou57 for discovering this ([#345](https://github.com/amplify-education/serverless-domain-manager/pull/345))
+
+## [4.0.1] - 2020-05-12
+
+### Changed
+- Fix issue updating domains that use a blank base path. Thanks @fabiancook ([#337](https://github.com/amplify-education/serverless-domain-manager/pull/337))
+
 ## [4.0.0] - 2020-05-06
 
 ### Added

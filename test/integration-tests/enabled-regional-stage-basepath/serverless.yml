@@ -1,10 +1,11 @@
 # Enabled with regional endpoint, custom stage, empty basepath
-service: enabled-regional-stage-basepath
+service: enabled-regional-stage-basepath-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
   stage: test
+  endpointType: regional
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -21,3 +22,7 @@ custom:
     stage: test
     basePath: ''
     endpointType: regional
+
+package:
+  exclude:
+    - node_modules/**

@@ -3,10 +3,10 @@ import * as AWS from "aws-sdk-mock";
 import chai = require("chai");
 import spies = require("chai-spies");
 import "mocha";
-import DomainInfo = require("../../DomainInfo");
-import DomainConfig = require("../../DomainConfig");
-import Globals from "../../Globals";
-import ServerlessCustomDomain = require("../../index");
+import DomainConfig = require("../../src/DomainConfig");
+import DomainInfo = require("../../src/DomainInfo");
+import Globals from "../../src/Globals";
+import ServerlessCustomDomain = require("../../src/index");
 
 const expect = chai.expect;
 chai.use(spies);
@@ -1477,6 +1477,41 @@ describe("Custom Domain Plugin", () => {
 
     afterEach(() => {
       consoleOutput = [];
+    });
+  });
+
+  describe("AWS paged results", () => {
+    it("Should combine paged results into a list", async () => {
+      let callCount = 0;
+      const responses = [{
+        Items: ["a", "b"],
+        NextToken: "1",
+      },
+      {
+        Items: ["c", "d"],
+        NextToken: "2",
+      },
+      {
+        Items: ["e"],
+      },
+      {
+        Items: ["f"], // this call should never happen since its after the last request that included a token
+      }];
+      AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+        callback(null, responses[callCount++]);
+      });
+
+      const plugin = constructPlugin({});
+      const results = await plugin.getAWSPagedResults(
+          new aws.ApiGatewayV2(),
+          "getApiMappings",
+          "Items",
+          "NextToken",
+          "NextToken",
+          { DomainName: "example.com"},
+      );
+      expect(results).to.deep.equal([ "a", "b", "c", "d", "e" ]);
+      AWS.restore();
     });
   });
 

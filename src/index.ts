@@ -152,13 +152,13 @@ class ServerlessCustomDomain {
 
                 domain.apiMapping = await this.getBasePathMapping(domain);
 
+                await this.getDomainInfo();
+
                 if (!domain.apiMapping) {
                     await this.createBasePathMapping(domain);
                 } else {
                     await this.updateBasePathMapping(domain);
                 }
-
-                await this.getDomainInfo();
 
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -628,7 +628,10 @@ class ServerlessCustomDomain {
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
         // Use APIGateway (v1) for EDGE or TLS 1.0 domains
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
+        // check here if the EXISTING domain is using TLS 1.0 regardless of what is configured
+        // We don't support updating custom domains so switching from TLS 1.0 to 1.2 will require recreating
+        // the domain
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
             const params = {
                 basePath: domain.apiMapping.ApiMappingKey || "(none)",
                 domainName: domain.givenDomainName,

@@ -321,6 +321,13 @@ describe("Custom Domain Plugin", () => {
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
       dc.apiId = "test_api_id";
       dc.apiMapping = {ApiMappingId: "test_mapping_id"};
+      dc.domainInfo = new DomainInfo({
+        DomainNameConfigurations: [{
+          ApiGatewayDomainName: 'fake_dist_name',
+          HostedZoneId: 'fake_zone_id',
+          SecurityPolicy: 'TLS_1_2',
+        }]
+      });
 
       const spy = chai.spy.on(plugin.apigatewayV2, "updateApiMapping");
 

@@ -401,11 +401,13 @@ class ServerlessCustomDomain {
                 securityPolicy: domain.securityPolicy,
             };
 
-            if(domain.endpointType === Globals.endpointTypes.edge) {
-                params['certificateArn'] = domain.certificateArn
+            /* tslint:disable:no-string-literal */
+            if (domain.endpointType === Globals.endpointTypes.edge) {
+                params["certificateArn"] = domain.certificateArn;
             } else {
-                params['regionalCertificateArn'] = domain.certificateArn
+                params["regionalCertificateArn"] = domain.certificateArn;
             }
+            /* tslint:enable:no-string-literal */
 
             // Make API call to create domain
             try {

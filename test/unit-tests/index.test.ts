@@ -323,10 +323,10 @@ describe("Custom Domain Plugin", () => {
       dc.apiMapping = {ApiMappingId: "test_mapping_id"};
       dc.domainInfo = new DomainInfo({
         DomainNameConfigurations: [{
-          ApiGatewayDomainName: 'fake_dist_name',
-          HostedZoneId: 'fake_zone_id',
-          SecurityPolicy: 'TLS_1_2',
-        }]
+          ApiGatewayDomainName: "fake_dist_name",
+          HostedZoneId: "fake_zone_id",
+          SecurityPolicy: "TLS_1_2",
+        }],
       });
 
       const spy = chai.spy.on(plugin.apigatewayV2, "updateApiMapping");

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [4.1.1] - 2020-05-21
 
 ### Changed
-- Fix support for TLS 1.0 regional domains which were broken in the 4.0.0 release. Discovered by @jufemaiz
+- Fix support for TLS 1.0 regional domains which were broken in the 4.0.0 release. Discovered by @jufemaiz ([#348](https://github.com/amplify-education/serverless-domain-manager/pull/348))
 
 ## [4.1.0] - 2020-05-18
 

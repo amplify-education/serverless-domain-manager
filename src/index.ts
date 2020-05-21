@@ -390,17 +390,22 @@ class ServerlessCustomDomain {
 
         let createdDomain = {};
 
-        // For EDGE domain name, create with APIGateway (v1)
-        if (domain.endpointType === Globals.endpointTypes.edge) {
+        // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
             // Set up parameters
             const params = {
-                certificateArn: domain.certificateArn,
                 domainName: domain.givenDomainName,
                 endpointConfiguration: {
                     types: [domain.endpointType],
                 },
                 securityPolicy: domain.securityPolicy,
             };
+
+            if(domain.endpointType === Globals.endpointTypes.edge) {
+                params['certificateArn'] = domain.certificateArn
+            } else {
+                params['regionalCertificateArn'] = domain.certificateArn
+            }
 
             // Make API call to create domain
             try {
@@ -581,8 +586,8 @@ class ServerlessCustomDomain {
      * Creates basepath mapping
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        // Use APIGateway (v1) for EDGE domains
-        if (domain.endpointType === Globals.endpointTypes.edge) {
+        // Use APIGateway (v1) for EDGE or TLS 1.0 domains
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
             const params = {
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
@@ -620,8 +625,8 @@ class ServerlessCustomDomain {
      * Updates basepath mapping
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
-        // Use APIGateway (v1) for EDGE domains
-        if (domain.endpointType === Globals.endpointTypes.edge) {
+        // Use APIGateway (v1) for EDGE or TLS 1.0 domains
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
             const params = {
                 basePath: domain.apiMapping.ApiMappingKey || "(none)",
                 domainName: domain.givenDomainName,

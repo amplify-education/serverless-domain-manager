@@ -264,7 +264,7 @@ describe("Custom Domain Plugin", () => {
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-      dc.apiId = "test_api_id",
+      dc.apiId = "test_api_id";
       dc.apiMapping = {ApiMappingId: "test_mapping_id"};
 
       const spy = chai.spy.on(plugin.apigatewayV2, "updateApiMapping");

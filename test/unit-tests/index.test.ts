@@ -189,6 +189,61 @@ describe("Custom Domain Plugin", () => {
       });
     });
 
+    it("Creates basepath mapping for regional tls 1.0 REST api", async () => {
+      AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+        endpointType: "regional",
+        securityPolicy: "tls_1_0",
+      });
+      plugin.initializeVariables();
+      plugin.apigateway = new aws.APIGateway();
+
+      const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+      dc.apiId = "test_rest_api_id";
+
+      const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+
+      await plugin.createBasePathMapping(dc);
+
+      expect(spy).to.have.been.called.with({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+        stage: "test",
+      });
+    });
+
+    it("Creates basepath mapping for regional tls 1.2 REST api", async () => {
+      AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        basePath: "test_basepath",
+        domainName: "test_domain",
+        endpointType: "regional",
+      });
+      plugin.initializeVariables();
+      plugin.apigatewayV2 = new aws.ApiGatewayV2();
+
+      const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+      dc.apiId = "test_rest_api_id";
+
+      const spy = chai.spy.on(plugin.apigatewayV2, "createApiMapping");
+
+      await plugin.createBasePathMapping(dc);
+
+      expect(spy).to.have.been.called.with({
+        ApiId: "test_rest_api_id",
+        ApiMappingKey: "test_basepath",
+        DomainName: "test_domain",
+        Stage: "test",
+      });
+    });
+
     it("Creates basepath mapping for regional HTTP/Websocket api", async () => {
       AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
         callback(null, params);
@@ -264,8 +319,15 @@ describe("Custom Domain Plugin", () => {
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-      dc.apiId = "test_api_id",
+      dc.apiId = "test_api_id";
       dc.apiMapping = {ApiMappingId: "test_mapping_id"};
+      dc.domainInfo = new DomainInfo({
+        DomainNameConfigurations: [{
+          ApiGatewayDomainName: "fake_dist_name",
+          HostedZoneId: "fake_zone_id",
+          SecurityPolicy: "TLS_1_2",
+        }],
+      });
 
       const spy = chai.spy.on(plugin.apigatewayV2, "updateApiMapping");
 

@@ -86,6 +86,14 @@ const testCases = [
     testFolder: "http-api",
     testStage: "$default",
   },
+  {
+    testBasePath: "(none)",
+    testDescription: "Deploy regional domain with TLS 1.0",
+    testDomain: `regional-tls-1-0-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testEndpoint: "REGIONAL",
+    testFolder: "regional-tls-1-0",
+    testStage: "dev",
+  },
 ];
 
 describe("Integration Tests", function() {

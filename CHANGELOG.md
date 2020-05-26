@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2020-05-25
+
+### Changed
+- Fix support for TLS 1.0 regional domains which were broken in the 4.0.0 release. Discovered by @jufemaiz ([#348](https://github.com/amplify-education/serverless-domain-manager/pull/348))
+
 ## [4.1.0] - 2020-05-18
 
 ### Changed
@@ -15,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue updating domains that use a blank base path. Thanks @fabiancook ([#337](https://github.com/amplify-education/serverless-domain-manager/pull/337))
 
 ## [4.0.0] - 2020-05-06
+
+### Breaking Changes
+- Regional domains with TLS 1.0 no longer work. Fixed in 4.1.1
 
 ### Added
 - Add support for WebSocket and HTTP APIs. A domain name can be created for each API type (Rest, WebSocket, HTTP) 

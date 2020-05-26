@@ -12,15 +12,6 @@ const apiGateway = new aws.APIGateway({
 });
 
 /**
- * Stops event thread execution for given number of seconds.
- * @param seconds
- * @returns {Promise<void>} Resolves after given number of seconds.
- */
-async function sleep(seconds) {
-  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
-}
-
-/**
  * Executes given shell command.
  * @param cmd shell command to execute
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
@@ -230,7 +221,6 @@ export {
   getEndpointType,
   getBasePath,
   getStage,
-  sleep,
   setupApiGatewayResources,
   deleteApiGatewayResources,
 };

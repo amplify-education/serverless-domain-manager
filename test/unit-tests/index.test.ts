@@ -7,6 +7,7 @@ import DomainConfig = require("../../src/DomainConfig");
 import DomainInfo = require("../../src/DomainInfo");
 import Globals from "../../src/Globals";
 import ServerlessCustomDomain = require("../../src/index");
+import {getAWSPagedResults} from "../../src/utils";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -1564,7 +1565,7 @@ describe("Custom Domain Plugin", () => {
       });
 
       const plugin = constructPlugin({});
-      const results = await plugin.getAWSPagedResults(
+      const results = await getAWSPagedResults(
           new aws.ApiGatewayV2(),
           "getApiMappings",
           "Items",

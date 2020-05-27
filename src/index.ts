@@ -1,11 +1,11 @@
 "use strict";
 
-import {Service} from "aws-sdk";
 import chalk from "chalk";
 import DomainConfig = require("./DomainConfig");
 import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
 import { ServerlessInstance, ServerlessOptions } from "./types";
+import {getAWSPagedResults, throttledCall} from "./utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
@@ -243,7 +243,6 @@ class ServerlessCustomDomain {
         const credentials = this.serverless.providers.aws.getCredentials();
         credentials.region = this.serverless.providers.aws.getRegion();
 
-        this.serverless.providers.aws.sdk.config.update({ maxRetries: 20 });
         this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
         this.apigatewayV2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);
         this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
@@ -325,7 +324,7 @@ class ServerlessCustomDomain {
         let certificateName = domain.certificateName; // The certificate name
 
         try {
-            const certificates = await this.getAWSPagedResults(
+            const certificates = await getAWSPagedResults(
                 this.acm,
                 "listCertificates",
                 "CertificateSummaryList",
@@ -377,9 +376,9 @@ class ServerlessCustomDomain {
     public async getDomainInfo(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
             try {
-                const domainInfo = await this.apigatewayV2.getDomainName({
+                const domainInfo = await throttledCall(this.apigatewayV2, "getDomainName", {
                     DomainName: domain.givenDomainName,
-                }).promise();
+                });
 
                 domain.domainInfo = new DomainInfo(domainInfo);
             } catch (err) {
@@ -421,7 +420,7 @@ class ServerlessCustomDomain {
             // Make API call to create domain
             try {
                 // Creating EDGE domain so use APIGateway (v1) service
-                createdDomain = await this.apigateway.createDomainName(params).promise();
+                createdDomain = await throttledCall(this.apigateway, "createDomainName", params);
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -441,7 +440,7 @@ class ServerlessCustomDomain {
             // Make API call to create domain
             try {
                 // Creating Regional domain so use ApiGatewayV2
-                createdDomain = await this.apigatewayV2.createDomainName(params).promise();
+                createdDomain = await throttledCall(this.apigatewayV2, "createDomainName", params);
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -456,7 +455,9 @@ class ServerlessCustomDomain {
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-            await this.apigatewayV2.deleteDomainName({DomainName: domain.givenDomainName}).promise();
+            await throttledCall(this.apigatewayV2, "deleteDomainName", {
+                DomainName: domain.givenDomainName,
+            });
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
             throw new Error(`Error: Failed to delete custom domain ${domain.givenDomainName}\n`);
@@ -502,7 +503,7 @@ class ServerlessCustomDomain {
         };
         // Make API call
         try {
-            await this.route53.changeResourceRecordSets(params).promise();
+            await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
             throw new Error(`Error: Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
@@ -530,7 +531,7 @@ class ServerlessCustomDomain {
         const givenDomainNameReverse = domain.givenDomainName.split(".").reverse();
 
         try {
-            hostedZoneData = await this.route53.listHostedZones({}).promise();
+            hostedZoneData = await throttledCall(this.route53, "listHostedZones", {});
             const targetHostedZone = hostedZoneData.HostedZones
                 .filter((hostedZone) => {
                     let hostedZoneName;
@@ -573,7 +574,7 @@ class ServerlessCustomDomain {
 
     public async getBasePathMapping(domain: DomainConfig): Promise<AWS.ApiGatewayV2.GetApiMappingResponse> {
         try {
-            const mappings = await this.getAWSPagedResults(
+            const mappings = await getAWSPagedResults(
                 this.apigatewayV2,
                 "getApiMappings",
                 "Items",
@@ -607,7 +608,7 @@ class ServerlessCustomDomain {
             };
             // Make API call
             try {
-                await this.apigateway.createBasePathMapping(params).promise();
+                await throttledCall(this.apigateway, "createBasePathMapping", params);
                 this.serverless.cli.log(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -623,7 +624,7 @@ class ServerlessCustomDomain {
             };
             // Make API call
             try {
-                await this.apigatewayV2.createApiMapping(params).promise();
+                await throttledCall(this.apigatewayV2, "createApiMapping", params);
                 this.serverless.cli.log(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -655,7 +656,7 @@ class ServerlessCustomDomain {
 
             // Make API call
             try {
-                await this.apigateway.updateBasePathMapping(params).promise();
+                await throttledCall(this.apigateway, "updateBasePathMapping", params);
                 this.serverless.cli.log(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
                      to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
@@ -675,7 +676,7 @@ class ServerlessCustomDomain {
 
             // Make API call
             try {
-                await this.apigatewayV2.updateApiMapping(params).promise();
+                await throttledCall(this.apigatewayV2, "updateApiMapping", params);
                 this.serverless.cli.log(`Updated API mapping to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 this.logIfDebug(err, domain.givenDomainName);
@@ -711,7 +712,7 @@ class ServerlessCustomDomain {
 
         let response;
         try {
-            response = await this.cloudformation.describeStackResource(params).promise();
+            response = await throttledCall(this.cloudformation, "describeStackResource", params);
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
             throw new Error(`Error: Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
@@ -735,7 +736,7 @@ class ServerlessCustomDomain {
 
         // Make API call
         try {
-            await this.apigatewayV2.deleteApiMapping(params).promise();
+            await throttledCall(this.apigatewayV2, "deleteApiMapping", params);
             this.serverless.cli.log("Removed basepath mapping.");
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
@@ -791,35 +792,6 @@ class ServerlessCustomDomain {
         if (process.env.SLS_DEBUG) {
             this.serverless.cli.log(`Error: ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager");
         }
-    }
-
-    /**
-     * Iterate through the pages of a AWS SDK response and collect them into a single array
-     *
-     * @param service - The AWS service instance to use to make the calls
-     * @param funcName - The function name in the service to call
-     * @param resultsKey - The key name in the response that contains the items to return
-     * @param nextTokenKey - The request key name to append to the request that has the paging token value
-     * @param nextRequestTokenKey - The response key name that has the next paging token value
-     * @param params - Parameters to send in the request
-     */
-    public async getAWSPagedResults(
-        service: Service,
-        funcName: string,
-        resultsKey: string,
-        nextTokenKey: string,
-        nextRequestTokenKey: string,
-        params: object,
-    ): Promise<any[]> {
-        let results = [];
-        let response = await service[funcName](params).promise();
-        results = results.concat(response[resultsKey]);
-        while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
-            params[nextTokenKey] = response[nextRequestTokenKey];
-            response = await service[funcName](params).promise();
-            results = results.concat(response[resultsKey]);
-        }
-        return results;
     }
 
     /**

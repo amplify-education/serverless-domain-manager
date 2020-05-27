@@ -129,17 +129,12 @@ describe("Integration Tests", function() {
       const testName = "null-basepath-mapping";
       const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
       // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
       try {
         await utilities.createTempDir(TEMP_DIR, testName);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
 
         const basePath = await utilities.getBasePath(testURL);
@@ -153,17 +148,12 @@ describe("Integration Tests", function() {
       const testName = "basepath-mapping";
       const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
       // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
       try {
         await utilities.createTempDir(TEMP_DIR, testName);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
 
         const basePath = await utilities.getBasePath(testURL);
@@ -177,19 +167,13 @@ describe("Integration Tests", function() {
       const testName = "null-basepath-mapping";
       const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
       // Perform sequence of commands to replicate basepath mapping issue
-      // Sleep for half a min between commands in order to avoid rate limiting.
       try {
         await utilities.createTempDir(TEMP_DIR, testName);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeleteDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
 
         const basePath = await utilities.getBasePath(testURL);
@@ -207,11 +191,8 @@ describe("Integration Tests", function() {
       try {
         await utilities.createTempDir(TEMP_DIR, testName);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       } finally {
         await utilities.destroyResources(testURL, RANDOM_STRING);
@@ -224,11 +205,8 @@ describe("Integration Tests", function() {
       try {
         await utilities.createTempDir(TEMP_DIR, testName);
         await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        await utilities.sleep(30);
         await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
       } finally {
         await utilities.destroyResources(testURL, RANDOM_STRING);

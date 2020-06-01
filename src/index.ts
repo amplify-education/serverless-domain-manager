@@ -54,7 +54,7 @@ class ServerlessCustomDomain {
         this.hooks = {
             "after:deploy:deploy": this.hookWrapper.bind(this, this.setupBasePathMappings),
             "after:info:info": this.hookWrapper.bind(this, this.domainSummaries),
-            "before:deploy:deploy": this.hookWrapper.bind(this, this.updateCloudFormationOutputs),
+            "before:deploy:deploy": this.hookWrapper.bind(this, this.createOrGetDomainForCfOutputs),
             "before:remove:remove": this.hookWrapper.bind(this, this.removeBasePathMappings),
             "create_domain:create": this.hookWrapper.bind(this, this.createDomains),
             "delete_domain:delete": this.hookWrapper.bind(this, this.deleteDomains),
@@ -83,7 +83,6 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             try {
                 if (!domain.domainInfo) {
-
                     domain.certificateArn = await this.getCertArn(domain);
 
                     await this.createCustomDomain(domain);
@@ -130,9 +129,14 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Lifecycle function to add domain info to the CloudFormation stack's Outputs
+     * Lifecycle function to createDomain before deploy and add domain info to the CloudFormation stack's Outputs
      */
-    public async updateCloudFormationOutputs(): Promise<void> {
+    public async createOrGetDomainForCfOutputs(): Promise<void> {
+        const autoDomain = this.serverless.service.custom.customDomain.autoDomain;
+        if (autoDomain === true) {
+            this.serverless.cli.log("Creating domain name before deploy.");
+            await this.createDomains();
+        }
 
         await this.getDomainInfo();
 
@@ -200,6 +204,11 @@ class ServerlessCustomDomain {
                 }
             }
         }));
+        const autoDomain = this.serverless.service.custom.customDomain.autoDomain;
+        if (autoDomain === true) {
+            this.serverless.cli.log("Deleting domain name after removing base path mapping.");
+            await this.deleteDomains();
+        }
     }
 
     /**

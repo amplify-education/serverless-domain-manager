@@ -25,6 +25,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 hostedZonePrivate: boolean | undefined,
                 enabled: boolean | string | undefined,
                 securityPolicy: string | undefined,
+                autoDomain: boolean | undefined,
             },
         },
     };

@@ -71,6 +71,7 @@ custom:
     endpointType: 'regional'
     securityPolicy: tls_1_2
     apiType: rest
+    autoDomain: false
 ```
 
 Multiple API types mapped to different domains can also be supported with the following structure. The key is the API Gateway API type.
@@ -119,6 +120,7 @@ custom:
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
 allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
+| autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
 
 
 ## Running

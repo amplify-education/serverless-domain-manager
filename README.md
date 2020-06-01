@@ -74,7 +74,7 @@ custom:
     autoDomain: false
 ```
 
-Multiple API types mapped to different domains can also be supported with the follow structure. The key is the API Gateway API type.
+Multiple API types mapped to different domains can also be supported with the following structure. The key is the API Gateway API type.
 
 ```yaml
 custom:

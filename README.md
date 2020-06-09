@@ -87,7 +87,6 @@ custom:
       createRoute53Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
-      autoDomain: false
     http:
       domainName: http.serverless.foo.com
       stage: ci
@@ -96,7 +95,6 @@ custom:
       createRoute53Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
-      autoDomain: false
     websocket:
       domainName: ws.serverless.foo.com
       stage: ci
@@ -105,7 +103,6 @@ custom:
       createRoute53Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
-      autoDomain: false
 ```
 
 | Parameter Name | Default Value | Description |

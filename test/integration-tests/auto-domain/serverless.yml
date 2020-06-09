@@ -1,4 +1,4 @@
-# Deploying should be idempotent
+# create_domain should be run as part of deployment
 service: auto-domain-${opt:RANDOM_STRING}
 provider:
   name: aws

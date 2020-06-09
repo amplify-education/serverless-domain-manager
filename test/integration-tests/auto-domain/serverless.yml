@@ -1,0 +1,27 @@
+# Deploying should be idempotent
+service: auto-domain-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: auto-domain-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: ''
+    autoDomain: true
+    autoDomainWaitFor: 120
+
+package:
+  exclude:
+    - node_modules/**

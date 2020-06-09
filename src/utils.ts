@@ -76,6 +76,7 @@ async function sleep(seconds) {
 }
 
 export {
+    sleep,
     getAWSPagedResults,
     throttledCall,
 };

@@ -64,6 +64,8 @@ const constructPlugin = (customDomainOptions) => {
       custom: {
         customDomain: {
           apiType: customDomainOptions.apiType,
+          autoDomain: customDomainOptions.autoDomain,
+          autoDomainWaitFor: customDomainOptions.autoDomainWaitFor,
           basePath: customDomainOptions.basePath,
           certificateArn: customDomainOptions.certificateArn,
           certificateName: customDomainOptions.certificateName,
@@ -1574,6 +1576,173 @@ describe("Custom Domain Plugin", () => {
       );
       expect(results).to.deep.equal([ "a", "b", "c", "d", "e" ]);
       AWS.restore();
+    });
+  });
+
+  describe("autoDomain deploy", () => {
+    it("Should be disabled by default", () => {
+      const plugin = constructPlugin({ domainName: "test_domain" });
+      plugin.initializeVariables();
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(undefined);
+    });
+
+    it("createOrGetDomainForCfOutputs should call createDomain when autoDomain is true", async () => {
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, params);
+      });
+      const plugin = constructPlugin({
+        autoDomain: true,
+        basePath: "test_basepath",
+        createRoute53Record: false,
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+      });
+      plugin.initializeVariables();
+
+      plugin.apigateway = new aws.APIGateway();
+      plugin.apigatewayV2 = new aws.ApiGatewayV2();
+      plugin.cloudformation = new aws.CloudFormation();
+
+      plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+      const spy = chai.spy.on(plugin.apigatewayV2, "getDomainName");
+
+      await plugin.createOrGetDomainForCfOutputs();
+
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
+      expect(spy).to.have.been.called();
+    });
+
+    it("createOrGetDomainForCfOutputs should not call createDomain when autoDomain is not true", async () => {
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        autoDomain: false,
+        basePath: "test_basepath",
+        createRoute53Record: false,
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+      });
+      plugin.initializeVariables();
+
+      plugin.apigateway = new aws.APIGateway();
+      plugin.apigatewayV2 = new aws.ApiGatewayV2();
+      plugin.cloudformation = new aws.CloudFormation();
+
+      plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+      const spy1 = chai.spy.on(plugin.apigateway, "createDomainName");
+      const spy2 = chai.spy.on(plugin.apigatewayV2, "createDomainName");
+
+      await plugin.createOrGetDomainForCfOutputs();
+
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
+      expect(spy1).to.have.not.been.called();
+      expect(spy2).to.have.not.been.called();
+    });
+
+    it("removeBasePathMapping should call deleteDomain when autoDomain is true", async () => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+        callback(null, {
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
+        });
+      });
+      AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+        callback(null, {
+          Items: [
+            { ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test" },
+          ],
+        });
+      });
+      AWS.mock("ApiGatewayV2", "deleteApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        autoDomain: true,
+        basePath: "test_basepath",
+        createRoute53Record: false,
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+      });
+      plugin.initializeVariables();
+
+      plugin.apigatewayV2 = new aws.ApiGatewayV2();
+      plugin.cloudformation = new aws.CloudFormation();
+
+      plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+      const spy = chai.spy.on(plugin.apigatewayV2, "deleteDomainName");
+
+      await plugin.removeBasePathMappings();
+
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
+      expect(spy).to.have.been.called.with({DomainName: "test_domain"});
+    });
+
+    it("removeBasePathMapping should not call deleteDomain when autoDomain is not true", async () => {
+      AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+        callback(null, {
+          StackResourceDetail:
+          {
+            LogicalResourceId: "ApiGatewayRestApi",
+            PhysicalResourceId: "test_rest_api_id",
+          },
+        });
+      });
+      AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+        callback(null, {
+          Items: [
+            { ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test" },
+          ],
+        });
+      });
+      AWS.mock("ApiGatewayV2", "deleteApiMapping", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+        callback(null, params);
+      });
+      AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+        autoDomain: false,
+        basePath: "test_basepath",
+        createRoute53Record: false,
+        domainName: "test_domain",
+        restApiId: "test_rest_api_id",
+      });
+      plugin.initializeVariables();
+
+      plugin.apigatewayV2 = new aws.ApiGatewayV2();
+      plugin.cloudformation = new aws.CloudFormation();
+
+      plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+      const spy = chai.spy.on(plugin.apigatewayV2, "deleteDomainName");
+
+      await plugin.removeBasePathMappings();
+
+      expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
+      expect(spy).to.have.not.been.called();
+    });
+
+    afterEach(() => {
+      consoleOutput = [];
     });
   });
 });

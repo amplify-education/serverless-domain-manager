@@ -8,6 +8,7 @@ import DomainInfo = require("../../src/DomainInfo");
 import Globals from "../../src/Globals";
 import ServerlessCustomDomain = require("../../src/index");
 import {getAWSPagedResults} from "../../src/utils";
+import { Domain } from "domain";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -545,6 +546,22 @@ describe("Custom Domain Plugin", () => {
       const result = await plugin.getCertArn(dc);
 
       expect(result).to.equal("test_given_cert_name");
+    });
+
+    it("Get a given wildcard certificate name", async () => {
+      AWS.mock("ACM", "listCertificates", certTestData);
+
+      const options = {
+        domainName: '*.test_domain'
+      }
+      const plugin = constructPlugin(options);
+      plugin.acm = new aws.ACM();
+
+      const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+      const result = await plugin.getCertArn(dc);
+
+      expect(result).to.equal("test_arn");
     });
 
     it("Create a domain name", async () => {

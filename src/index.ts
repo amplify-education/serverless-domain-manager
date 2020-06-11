@@ -330,7 +330,14 @@ class ServerlessCustomDomain {
             // Checks if a certificate name is given
             if (certificateName != null) {
                 const foundCertificate = certificates
-                    .find((certificate) => (certificate.DomainName === certificateName));
+                  .find((certificate) => {
+                    // Looks for wild card and takes out wildcard and '.' when checking
+                    // '*.example.tld' => 'example.tld'
+                    if (certificateName[0] === "*") {
+                      certificateName = certificateName.substr(2);
+                    }
+                    return certificate.DomainName === certificateName
+                  });
                 if (foundCertificate != null) {
                     certificateArn = foundCertificate.CertificateArn;
                 }

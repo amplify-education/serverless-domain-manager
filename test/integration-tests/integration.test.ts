@@ -23,6 +23,14 @@ const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
 const testCases = [
   {
     testBasePath: "(none)",
+    testDescription: "Creates domain as part of deploy",
+    testDomain: `auto-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testEndpoint: "EDGE",
+    testFolder: "auto-domain",
+    testStage: "dev",
+  },
+  {
+    testBasePath: "(none)",
     testDescription: "Enabled with default values",
     testDomain: `enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",

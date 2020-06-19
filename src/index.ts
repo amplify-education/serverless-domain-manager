@@ -142,15 +142,17 @@ class ServerlessCustomDomain {
         await this.getDomainInfo();
 
         if (autoDomain === true) {
-            const atLeastOneDoesNotExist = this.domains.some((domain) => !domain.domainInfo);
-            if (atLeastOneDoesNotExist === true) {
-                const waitFor =
-                    parseInt(this.serverless.service.custom.customDomain.autoDomainWaitFor, 10)
-                    || 120;
-                this.serverless.cli.log(`Waiting ${waitFor} seconds before starting deployment
-                    because first time creating domain`);
+            const atLeastOneDoesNotExist = () => this.domains.some((domain) => !domain.domainInfo);
+            const maxWaitFor = parseInt(this.serverless.service.custom.customDomain.autoDomainWaitFor, 10) || 120;
+            const pollInterval = 3;
+            for (let i = 0; i * pollInterval < maxWaitFor && atLeastOneDoesNotExist() === true; i++) {
+                this.serverless.cli.log(`
+                    Poll #${i + 1}: polling every ${pollInterval} seconds
+                    for domain to exist or until ${maxWaitFor} seconds
+                    have elapsed before starting deployment
+                `);
 
-                await sleep(waitFor);
+                await sleep(pollInterval);
                 await this.getDomainInfo();
             }
         }

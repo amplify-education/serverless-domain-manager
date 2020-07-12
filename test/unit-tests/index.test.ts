@@ -67,6 +67,7 @@ const constructPlugin = (customDomainOptions) => {
           basePath: customDomainOptions.basePath,
           certificateArn: customDomainOptions.certificateArn,
           certificateName: customDomainOptions.certificateName,
+          createRoute53IPv6Record: customDomainOptions.createRoute53IPv6Record,
           createRoute53Record: customDomainOptions.createRoute53Record,
           domainName: customDomainOptions.domainName,
           enabled: customDomainOptions.enabled,
@@ -604,7 +605,7 @@ describe("Custom Domain Plugin", () => {
       expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
     });
 
-    it("Create a new A Alias Record", async () => {
+    it("Create new A and AAAA Alias Records", async () => {
       AWS.mock("Route53", "listHostedZones", (params, callback) => {
         callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
       });
@@ -654,6 +655,59 @@ describe("Custom Domain Plugin", () => {
                 },
                 Name: "test_domain",
                 Type: "AAAA",
+              },
+            },
+          ],
+          Comment: "Record created by serverless-domain-manager",
+        },
+        HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+      };
+      expect(spy).to.have.been.called.with(expectedParams);
+    });
+
+    it("Create new A Alias Record Only", async () => {
+      AWS.mock("Route53", "listHostedZones", (params, callback) => {
+        callback(null, { HostedZones: [{ Name: "test_domain", Id: "test_host_id", Config: { PrivateZone: false } }] });
+      });
+
+      AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+        callback(null, params);
+      });
+
+      const plugin = constructPlugin({
+          basePath: "test_basepath",
+          createRoute53IPv6Record: false,
+          domainName: "test_domain",
+      });
+
+      plugin.route53 = new aws.Route53();
+
+      const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+      dc.domainInfo = new DomainInfo(
+        {
+          distributionDomainName: "test_distribution_name",
+          distributionHostedZoneId: "test_id",
+        },
+      );
+
+      const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+      await plugin.changeResourceRecordSet("UPSERT", dc);
+
+      const expectedParams = {
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: "UPSERT",
+              ResourceRecordSet: {
+                AliasTarget: {
+                  DNSName: "test_distribution_name",
+                  EvaluateTargetHealth: false,
+                  HostedZoneId: "test_id",
+                },
+                Name: "test_domain",
+                Type: "A",
               },
             },
           ],

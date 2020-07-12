@@ -14,6 +14,7 @@ class DomainConfig {
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
     public createRoute53Record: boolean | undefined;
+    public createRoute53IPv6Record: boolean | undefined;
     public endpointType: string | undefined;
     public apiType: string | undefined;
     public hostedZoneId: string | undefined;
@@ -34,6 +35,7 @@ class DomainConfig {
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
         this.createRoute53Record = config.createRoute53Record;
+        this.createRoute53IPv6Record = config.createRoute53IPv6Record;
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;

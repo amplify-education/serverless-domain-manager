@@ -471,9 +471,17 @@ class ServerlessCustomDomain {
             this.serverless.cli.log(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
+
+        const recordsToCreate = ["A"];
+        const createRoute53IPv6Record = domain.createRoute53IPv6Record;
+
+        if (createRoute53IPv6Record !== false) {
+            recordsToCreate.push("AAAA");
+        }
+
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
-        const Changes = ["A", "AAAA"].map((Type) => ({
+        const Changes = recordsToCreate.map((Type) => ({
                 Action: action,
                 ResourceRecordSet: {
                     AliasTarget: {

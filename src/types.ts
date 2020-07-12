@@ -19,6 +19,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 certificateName: string | undefined,
                 certificateArn: string | undefined,
                 createRoute53Record: boolean | undefined,
+                createRoute53IPv6Record: boolean | undefined,
                 endpointType: string | undefined,
                 apiType: string | undefined,
                 hostedZoneId: string | undefined,

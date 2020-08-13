@@ -1,10 +1,12 @@
-# Enabled with regional endpoint, custom basePath
-service: enabled-regional-basepath-${opt:RANDOM_STRING}
+# Test regional domains with TLS 1.0
+service: regional-tls-1-0-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
+  stage: dev
   endpointType: regional
+
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -17,8 +19,8 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-regional-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    basePath: 'api'
+    domainName: regional-tls-1-0-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    securityPolicy: tls_1_0
     endpointType: regional
 
 package:

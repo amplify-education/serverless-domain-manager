@@ -1,8 +1,8 @@
 # Enabled with custom stage and empty basepath
-service: enabled-stage-basepath
+service: enabled-stage-basepath-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
   stage: test
 functions:
@@ -20,3 +20,7 @@ custom:
     domainName: enabled-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
+
+package:
+  exclude:
+    - node_modules/**

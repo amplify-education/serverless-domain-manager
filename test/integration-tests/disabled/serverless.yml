@@ -1,8 +1,8 @@
 # Disabled
-service: domain-manager-disabled
+service: domain-manager-disabled-${opt:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs12.x
   region: us-west-2
 functions:
   helloWorld:
@@ -18,3 +18,7 @@ custom:
   customDomain:
     domainName: disabled-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     enabled: false
+
+package:
+  exclude:
+    - node_modules/**

@@ -1570,24 +1570,6 @@ describe("Custom Domain Plugin", () => {
       }
       expect(errored).to.equal(true);
     });
-
-    it("Should thrown an Error when Serverless custom configuration object is missing for multiple domains", () => {
-      const plugin = constructPlugin({}, true);
-      delete plugin.serverless.service.custom.customDomains;
-
-      let errored = false;
-      try {
-        plugin.initializeVariables();
-      } catch (err) {
-        errored = true;
-        expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
-      }
-      expect(errored).to.equal(true);
-    });
-
-    afterEach(() => {
-      consoleOutput = [];
-    });
   });
 
   describe("AWS paged results", () => {

@@ -4,7 +4,7 @@ import chalk from "chalk";
 import DomainConfig = require("./DomainConfig");
 import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
-import { ServerlessInstance, ServerlessOptions, CustomDomain } from "./types";
+import { CustomDomain, ServerlessInstance, ServerlessOptions } from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
@@ -141,7 +141,7 @@ class ServerlessCustomDomain {
             await this.getDomainInfo();
 
             if (autoDomain === true) {
-                const atLeastOneDoesNotExist = () => this.domains.some((domain) => !domain.domainInfo);
+                const atLeastOneDoesNotExist = () => this.domains.some((d) => !d.domainInfo);
                 const maxWaitFor = parseInt(domain.autoDomainWaitFor, 10) || 120;
                 const pollInterval = 3;
                 for (let i = 0; i * pollInterval < maxWaitFor && atLeastOneDoesNotExist() === true; i++) {
@@ -156,8 +156,6 @@ class ServerlessCustomDomain {
                 }
             }
         }));
-
-
 
         await Promise.all(this.domains.map(async (domain) => {
             this.addOutputs(domain);
@@ -272,9 +270,8 @@ class ServerlessCustomDomain {
         // Loop over the domain configurations and populate the domains array with DomainConfigs
         this.domains = [];
 
-        var customDomains: CustomDomain[] = this.serverless.service.custom.customDomains ? this.serverless.service.custom.customDomains :
+        const customDomains: CustomDomain[] = this.serverless.service.custom.customDomains ? this.serverless.service.custom.customDomains :
                             [ this.serverless.service.custom.customDomain ];
-
 
         customDomains.forEach((d) => {
              // If the key of the item in config is an api type it is using per api type domain structure
@@ -290,12 +287,10 @@ class ServerlessCustomDomain {
             } else { // Default to single domain config
                 this.domains.push(new DomainConfig(d));
             }
-        })
-
+        });
 
         // Filter inactive domains
         this.domains = this.domains.filter((domain) => domain.enabled);
-
 
         // Validate the domain configurations
         this.validateDomainConfigs();

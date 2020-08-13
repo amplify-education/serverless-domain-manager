@@ -54,6 +54,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
     hostedZonePrivate: customDomainOptions.hostedZonePrivate,
     securityPolicy: customDomainOptions.securityPolicy,
     stage: customDomainOptions.stage,
+    allowPathMatching: customDomainOptions.allowPathMatching
   };
 
   const serverless = {
@@ -1053,7 +1054,9 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
-      plugin.acm = new aws.ACM();
+      plugin.domains.forEach((d) =>{
+        d.acm = new aws.ACM();
+      });
 
       plugin.initializeVariables();
       await plugin.createDomains();
@@ -1081,8 +1084,10 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
-      plugin.acm = new aws.ACM();
       plugin.initializeVariables();
+      plugin.domains.forEach((d) =>{
+        d.acm = new aws.ACM();
+      });
       await plugin.createDomains();
       expect(consoleOutput[0]).to.equal(`Custom domain test_domain already exists.`);
     });
@@ -1298,8 +1303,10 @@ describe("Custom Domain Plugin", () => {
         domainName: "",
       };
       const plugin = constructPlugin(options);
-      plugin.acm = new aws.ACM();
       plugin.initializeVariables();
+      plugin.domains.forEach((d) =>{
+        d.acm = new aws.ACM();
+      });
 
       return plugin.getCertArn(plugin.domains[0]).then(() => {
         throw new Error("Test has failed. getCertArn did not catch errors.");
@@ -1490,7 +1497,7 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.domains.length).to.equal(0);
     });
 
-    it("Should throw an Error when passing a parameter that is not boolean", () => {
+    it("Should throw an Error when passing a parameter that is not boolean", async () => {
       const plugin = constructPlugin({ enabled: 0 });
 
       let errored = false;
@@ -1535,6 +1542,20 @@ describe("Custom Domain Plugin", () => {
       }
       expect(errored).to.equal(true);
     });
+
+    it("Should thrown an Error when Serverless custom configuration object is missing for multiple domains", () => {
+        const plugin = constructPlugin({}, true);
+        delete plugin.serverless.service.custom.customDomains;
+
+        let errored = false;
+        try {
+          plugin.initializeVariables();
+        } catch (err) {
+          errored = true;
+          expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+        }
+        expect(errored).to.equal(true);
+      });
 
     it("Should thrown an Error when Serverless custom configuration object is missing", () => {
       const plugin = constructPlugin({});
@@ -1765,6 +1786,7 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
       expect(spy).to.have.not.been.called();
     });
+
 
     afterEach(() => {
       consoleOutput = [];

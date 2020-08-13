@@ -96,6 +96,14 @@ const testCases = [
   },
   {
     testBasePath: "(none)",
+    testDescription: "Create HTTP API and domain name",
+    testDomain: `http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testEndpoint: "REGIONAL",
+    testFolder: "http-api-multiple",
+    testStage: "$default",
+  },
+  {
+    testBasePath: "(none)",
     testDescription: "Deploy regional domain with TLS 1.0",
     testDomain: `regional-tls-1-0-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",

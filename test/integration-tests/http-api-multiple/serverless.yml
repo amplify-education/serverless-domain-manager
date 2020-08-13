@@ -1,0 +1,29 @@
+service: http-api-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: dev
+functions:
+  helloWorld:
+    handler: handler.connect
+    events:
+      - httpApi:
+          method: GET
+          path: /hello-world
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomains:
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        basePath: ''
+        endpointType: 'regional'
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}.foo
+        basePath: ''
+        endpointType: 'regional'
+
+package:
+  exclude:
+    - node_modules/**

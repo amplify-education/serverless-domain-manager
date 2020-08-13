@@ -40,6 +40,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
   aws.config.region = "eu-west-1";
 
   const custom = {
+    allowPathMatching: customDomainOptions.allowPathMatching,
     apiType: customDomainOptions.apiType,
     autoDomain: customDomainOptions.autoDomain,
     autoDomainWaitFor: customDomainOptions.autoDomainWaitFor,
@@ -54,7 +55,6 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
     hostedZonePrivate: customDomainOptions.hostedZonePrivate,
     securityPolicy: customDomainOptions.securityPolicy,
     stage: customDomainOptions.stage,
-    allowPathMatching: customDomainOptions.allowPathMatching
   };
 
   const serverless = {
@@ -1054,7 +1054,7 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
-      plugin.domains.forEach((d) =>{
+      plugin.domains.forEach((d) => {
         d.acm = new aws.ACM();
       });
 
@@ -1085,7 +1085,7 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.route53 = new aws.Route53();
       plugin.initializeVariables();
-      plugin.domains.forEach((d) =>{
+      plugin.domains.forEach((d) => {
         d.acm = new aws.ACM();
       });
       await plugin.createDomains();
@@ -1304,7 +1304,7 @@ describe("Custom Domain Plugin", () => {
       };
       const plugin = constructPlugin(options);
       plugin.initializeVariables();
-      plugin.domains.forEach((d) =>{
+      plugin.domains.forEach((d) => {
         d.acm = new aws.ACM();
       });
 
@@ -1786,7 +1786,6 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(false);
       expect(spy).to.have.not.been.called();
     });
-
 
     afterEach(() => {
       consoleOutput = [];

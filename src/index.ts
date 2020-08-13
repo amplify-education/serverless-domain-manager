@@ -270,7 +270,8 @@ class ServerlessCustomDomain {
         // Loop over the domain configurations and populate the domains array with DomainConfigs
         this.domains = [];
 
-        const customDomains: CustomDomain[] = this.serverless.service.custom.customDomains ? this.serverless.service.custom.customDomains :
+        const customDomains: CustomDomain[] = this.serverless.service.custom.customDomains ?
+                            this.serverless.service.custom.customDomains :
                             [ this.serverless.service.custom.customDomain ];
 
         customDomains.forEach((d) => {

@@ -110,13 +110,14 @@ Or for multiple domains
 ```yaml
 custom:
   customDomains:
-    - domainName: serverless.foo.com
-      stage: ci
-      basePath: api
-      certificateName: '*.foo.com'
-      createRoute53Record: true
-      endpointType: 'regional'
-      securityPolicy: tls_1_2
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        basePath: ''
+        endpointType: 'regional'
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}.foo
+        basePath: ''
+        endpointType: 'regional'
 ```
 
 | Parameter Name | Default Value | Description |

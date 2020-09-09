@@ -704,10 +704,50 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Gets value by name from cloudformation exports
+     */
+    public async getImportValue(importValueName, nextToken = null): Promise<string> {
+      const params = nextToken ? { NextToken: nextToken } : {};
+      const result = await this.cloudformation.listExports(params).promise();
+      const importValue = result.Exports.find((val: any) => val.Name === importValueName);
+      if (importValue) {
+        return importValue.Value;
+      }
+
+      if (result.NextToken) {
+        return this.getImportValue(importValueName, result.NextToken);
+      }
+
+      return null;
+    }
+
+    /**
      * Gets rest API id from CloudFormation stack
      */
     public async getApiId(domain: DomainConfig): Promise<string> {
         if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
+            if (typeof this.serverless.service.provider.apiGateway.restApiId === "object" &&
+              this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]) {
+              try {
+                const importValueName = this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"];
+                const importValue = await this.getImportValue(importValueName);
+                if (importValue) {
+                  return importValue;
+                }
+
+                throw new Error(`Error: CloudFormation ImportValue not found
+                  by ${this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]}\n`);
+              } catch (err) {
+                this.logIfDebug(err);
+                throw new Error(`Error: Failed to find CloudFormation ImportValue
+                  by ${this.serverless.service.provider.apiGateway.restApiId["Fn::ImportValue"]}\n`);
+              }
+            }
+
+            if (typeof this.serverless.service.provider.apiGateway.restApiId === "object") {
+              throw new Error("Error: Unsupported restApiId object");
+            }
+
             this.serverless.cli.log(`Mapping custom domain to existing API
                 ${this.serverless.service.provider.apiGateway.restApiId}.`);
             return this.serverless.service.provider.apiGateway.restApiId;

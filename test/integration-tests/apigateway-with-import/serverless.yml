@@ -1,0 +1,25 @@
+# APIGateway with import other CloudFormation stack outputs
+service: apigateway-with-import-${opt:RANDOM_STRING}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  apiGateway:
+    restApiId:
+      Fn::ImportValue: api-${opt:stage, self:provider.stage}-restApiId
+    restApiRootResourceId:
+      Fn::ImportValue: api-${opt:stage, self:provider.stage}-RootResourceId
+
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world2
+          method: get
+          cors: true
+
+package:
+  exclude:
+    - node_modules/**

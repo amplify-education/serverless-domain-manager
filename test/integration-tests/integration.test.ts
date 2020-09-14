@@ -27,7 +27,7 @@ const testCases = [
     testDomain: `auto-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: "auto-domain",
-    testStage: "dev",
+    testStage: "test",
   },
   {
     testBasePath: "(none)",
@@ -114,7 +114,7 @@ describe("Integration Tests", function() {
         restApiInfo = await utilities.setupApiGatewayResources(RANDOM_STRING);
       }
       try {
-        await utilities.createResources(value.testFolder, value.testDomain, RANDOM_STRING, true);
+        await utilities.createResources(value.testFolder, value.testDomain, RANDOM_STRING);
         const stage = await utilities.getStage(value.testDomain);
         expect(stage).to.equal(value.testStage);
 
@@ -128,6 +128,24 @@ describe("Integration Tests", function() {
         if (value.createApiGateway) {
           await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
         }
+      }
+    });
+
+    it("APIGateway with export and import resources", async () => {
+      const testExportFolder = "apigateway-with-export";
+      const testImportFolder = "apigateway-with-import";
+      const testURL = `apigateway-with-export-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+      try {
+        await utilities.createTempDir(TEMP_DIR, testExportFolder);
+        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+
+        await utilities.createTempDir(TEMP_DIR, testImportFolder);
+        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+
+      } finally {
+        await utilities.destroyResources(testURL, testImportFolder);
+        await utilities.destroyResources(testURL, testExportFolder);
       }
     });
   });

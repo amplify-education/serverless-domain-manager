@@ -5,7 +5,7 @@ import {FIFTEEN_MINUTES, RANDOM_STRING, TEST_DOMAIN} from "./base";
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;
-const CONFIGS_FOLDER = "single-cases";
+const CONFIGS_FOLDER = "deploy";
 
 const testCases = [
     {

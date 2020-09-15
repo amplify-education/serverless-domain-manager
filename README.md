@@ -173,7 +173,7 @@ npm install
 ```
 
 ## Writing Integration Tests
-Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `single-cases.test.ts` or create a separate one with the `test.ts` ending.
+Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `deploy.test.ts` or create a separate one with the `test.ts` ending.
 
 ## Changing API Types
 AWS API Gateway has three different API types: REST, HTTP, and WebSocket. Special steps need to be taken when migrating from one api type to another. A common migration will be from a REST API to an HTTP API given the potential cost savings. Below are the steps required to change from REST to HTTP. A similar process can be applied for other API type migrations.

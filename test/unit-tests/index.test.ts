@@ -1597,7 +1597,6 @@ describe("Custom Domain Plugin", () => {
       plugin.apigateway = new aws.APIGateway();
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
 
-
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
       const spy = chai.spy.on(plugin.apigatewayV2, "getDomainName");

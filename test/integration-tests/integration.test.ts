@@ -106,7 +106,7 @@ const testCases = [
 
 describe("Integration Tests", function() {
   this.timeout(FIFTEEN_MINUTES);
-  it("APIGateway with export and import resources", async () => {
+/*  it("APIGateway with export and import resources", async () => {
       const testExportFolder = "apigateway-with-export";
       const testImportFolder = "apigateway-with-import";
       const testURL = `apigateway-with-export-${RANDOM_STRING}.${TEST_DOMAIN}`;
@@ -126,7 +126,7 @@ describe("Integration Tests", function() {
         await utilities.createTempDir(TEMP_DIR, testExportFolder);
         await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
       }
-    });
+    });*/
 
   describe("Configuration Tests", () => {
     itParam("${value.testDescription}", testCases, async (value) => {

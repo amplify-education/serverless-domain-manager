@@ -8,7 +8,7 @@ import Globals from "../Globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
 
 class CloudFormationWrapper {
-    private readonly provider: CloudFormation;
+    public provider: CloudFormation;
 
     constructor(credentials: any) {
         this.provider = new CloudFormation(credentials);

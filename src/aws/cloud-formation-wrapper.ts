@@ -58,7 +58,10 @@ class CloudFormationWrapper {
             {},
         );
 
+        // filter Exports by names which we need
         const filteredExports = exports.filter((item) => names.indexOf(item.Name) !== -1);
+        // converting a list of unique values to dict
+        // [{Name: "export-name", Value: "export-value"}, ...] - > {"export-name": "export-value"}
         return filteredExports.reduce((prev, current) => ({...prev, [current.Name]: current.Value}), {});
     }
 }

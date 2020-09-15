@@ -6,7 +6,7 @@ provider:
   runtime: nodejs12.x
   region: us-west-2
   endpointType: regional
-  stage: dev
+  stage: test
 
 functions:
   helloWorld:
@@ -45,7 +45,6 @@ custom:
     basePath: hello-world
     endpointType: regional
     createRoute53Record: false
-
 
 package:
   exclude:

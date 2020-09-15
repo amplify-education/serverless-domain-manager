@@ -18,7 +18,7 @@ class ServerlessCustomDomain {
     public route53: any;
     public acm: any;
     public acmRegion: string;
-    public cloudFormationWrapper: any;
+    public cloudFormationWrapper: CloudFormationWrapper;
 
     // Serverless specific properties
     public serverless: ServerlessInstance;

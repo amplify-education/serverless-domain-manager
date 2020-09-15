@@ -106,6 +106,27 @@ const testCases = [
 
 describe("Integration Tests", function() {
   this.timeout(FIFTEEN_MINUTES);
+  it("APIGateway with export and import resources", async () => {
+      const testExportFolder = "apigateway-with-export";
+      const testImportFolder = "apigateway-with-import";
+      const testURL = `apigateway-with-export-${RANDOM_STRING}.${TEST_DOMAIN}`;
+
+      try {
+        await utilities.createTempDir(TEMP_DIR, testExportFolder);
+        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+
+        await utilities.createTempDir(TEMP_DIR, testImportFolder);
+        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+      } finally {
+        // recreating config for removing last created config ( testImportFolder )
+        await utilities.createTempDir(TEMP_DIR, testImportFolder);
+        await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
+
+        // recreating config for sls removing ( testExportFolder )
+        await utilities.createTempDir(TEMP_DIR, testExportFolder);
+        await utilities.slsRemove(TEMP_DIR, RANDOM_STRING);
+      }
+    });
 
   describe("Configuration Tests", () => {
     itParam("${value.testDescription}", testCases, async (value) => {
@@ -128,24 +149,6 @@ describe("Integration Tests", function() {
         if (value.createApiGateway) {
           await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
         }
-      }
-    });
-
-    it("APIGateway with export and import resources", async () => {
-      const testExportFolder = "apigateway-with-export";
-      const testImportFolder = "apigateway-with-import";
-      const testURL = `apigateway-with-export-${RANDOM_STRING}.${TEST_DOMAIN}`;
-
-      try {
-        await utilities.createTempDir(TEMP_DIR, testExportFolder);
-        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-
-        await utilities.createTempDir(TEMP_DIR, testImportFolder);
-        await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-
-      } finally {
-        await utilities.destroyResources(testURL, testImportFolder);
-        await utilities.destroyResources(testURL, testExportFolder);
       }
     });
   });

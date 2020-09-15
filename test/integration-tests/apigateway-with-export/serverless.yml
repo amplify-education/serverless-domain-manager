@@ -6,6 +6,7 @@ provider:
   runtime: nodejs12.x
   region: us-west-2
   endpointType: regional
+  stage: dev
 
 functions:
   helloWorld:
@@ -23,7 +24,7 @@ resources:
       Value:
         Ref: ApiGatewayRestApi # Logical ID
       Export:
-        Name: api-${opt:stage, self:provider.stage}-restApiId
+        Name: api-${self:provider.stage}-restApiId-${opt:RANDOM_STRING}
     RootResource:
       Description: Main service's API Gateway Root Resource ID
       Value:
@@ -31,14 +32,14 @@ resources:
           - ApiGatewayRestApi # Logical ID
           - RootResourceId # Logical ID
       Export:
-        Name: api-${opt:stage, self:provider.stage}-RootResourceId
+        Name: api-${self:provider.stage}-RootResourceId-${opt:RANDOM_STRING}
 
 plugins:
   - serverless-domain-manager
 
 custom:
   customDomain:
-    stage: ${opt:stage}
+    stage: ${self:provider.stage}
     domainName: apigateway-with-export-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world

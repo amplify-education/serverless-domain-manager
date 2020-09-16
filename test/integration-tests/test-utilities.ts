@@ -174,10 +174,9 @@ async function removeLambdas(tempDir, domainIdentifier) {
  * @param folderName
  * @param url
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @param enabled
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
-async function createResources(folderName, url, domainIdentifier, enabled) {
+async function createResources(folderName, url, domainIdentifier) {
   console.debug(`\tCreating Resources for ${url}`);
   const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
   console.debug(`\tUsing tmp directory ${tempDir}`);

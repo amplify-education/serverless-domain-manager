@@ -373,7 +373,6 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
 
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
@@ -494,7 +493,6 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
       plugin.apigateway = new aws.APIGateway();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
@@ -757,11 +755,10 @@ describe("Custom Domain Plugin", () => {
         domainName: "test_domain",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-      const spy = chai.spy.on(plugin.cloudformation, "describeStackResource");
+      const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
 
       const result = await plugin.getApiId(dc);
 
@@ -789,11 +786,10 @@ describe("Custom Domain Plugin", () => {
         endpointType: "regional",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-      const spy = chai.spy.on(plugin.cloudformation, "describeStackResource");
+      const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
 
       const result = await plugin.getApiId(dc);
       expect(result).to.equal("test_http_api_id");
@@ -820,11 +816,10 @@ describe("Custom Domain Plugin", () => {
         endpointType: "regional",
       });
       plugin.initializeVariables();
-      plugin.cloudformation = new aws.CloudFormation();
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-      const spy = chai.spy.on(plugin.cloudformation, "describeStackResource");
+      const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
 
       const result = await plugin.getApiId(dc);
       expect(result).to.equal("test_ws_api_id");
@@ -849,7 +844,7 @@ describe("Custom Domain Plugin", () => {
         basePath: "test_basepath",
         domainName: "test_domain",
       });
-      plugin.cloudformation = new aws.CloudFormation();
+
       plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_rest_api_id";
 
       const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
@@ -996,7 +991,7 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
       plugin.apigateway = new aws.APIGateway();
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
+
       const spy = chai.spy.on(plugin, "createBasePathMapping");
 
       await plugin.setupBasePathMappings();
@@ -1601,7 +1596,6 @@ describe("Custom Domain Plugin", () => {
 
       plugin.apigateway = new aws.APIGateway();
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
 
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
@@ -1629,7 +1623,6 @@ describe("Custom Domain Plugin", () => {
 
       plugin.apigateway = new aws.APIGateway();
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
 
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
@@ -1680,7 +1673,6 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
 
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
@@ -1729,7 +1721,6 @@ describe("Custom Domain Plugin", () => {
       plugin.initializeVariables();
 
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
-      plugin.cloudformation = new aws.CloudFormation();
 
       plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 

@@ -1,10 +1,10 @@
-# Enabled with regional endpoint and empty basepath
-service: enabled-regional-empty-basepath-${opt:RANDOM_STRING}
+# Enabled with custom basepath
+service: enabled-basepath-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -17,9 +17,8 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-regional-empty-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    basePath: ''
-    endpointType: regional
+    domainName: enabled-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: 'api'
 
 package:
   exclude:

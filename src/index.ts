@@ -1,10 +1,11 @@
 "use strict";
 
 import chalk from "chalk";
+import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import DomainConfig = require("./DomainConfig");
 import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
-import { ServerlessInstance, ServerlessOptions } from "./types";
+import {ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
@@ -17,7 +18,7 @@ class ServerlessCustomDomain {
     public route53: any;
     public acm: any;
     public acmRegion: string;
-    public cloudformation: any;
+    public cloudFormationWrapper: CloudFormationWrapper;
 
     // Serverless specific properties
     public serverless: ServerlessInstance;
@@ -264,7 +265,7 @@ class ServerlessCustomDomain {
         this.apigateway = new this.serverless.providers.aws.sdk.APIGateway(credentials);
         this.apigatewayV2 = new this.serverless.providers.aws.sdk.ApiGatewayV2(credentials);
         this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
-        this.cloudformation = new this.serverless.providers.aws.sdk.CloudFormation(credentials);
+        this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
 
         // Loop over the domain configurations and populate the domains array with DomainConfigs
         this.domains = [];
@@ -290,7 +291,7 @@ class ServerlessCustomDomain {
         for (const dc of this.domains) {
             this.acmRegion = dc.endpointType === Globals.endpointTypes.regional ?
                 this.serverless.providers.aws.getRegion() : "us-east-1";
-            const acmCredentials = Object.assign({}, credentials, { region: this.acmRegion });
+            const acmCredentials = Object.assign({}, credentials, {region: this.acmRegion});
             this.acm = new this.serverless.providers.aws.sdk.ACM(acmCredentials);
         }
 
@@ -348,7 +349,7 @@ class ServerlessCustomDomain {
                 "CertificateSummaryList",
                 "NextToken",
                 "NextToken",
-                { CertificateStatuses: certStatuses },
+                {CertificateStatuses: certStatuses},
             );
 
             // The more specific name will be the longest
@@ -501,16 +502,16 @@ class ServerlessCustomDomain {
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
         const Changes = ["A", "AAAA"].map((Type) => ({
-                Action: action,
-                ResourceRecordSet: {
-                    AliasTarget: {
-                        DNSName: domain.domainInfo.domainName,
-                        EvaluateTargetHealth: false,
-                        HostedZoneId: domain.domainInfo.hostedZoneId,
-                    },
-                    Name: domain.givenDomainName,
-                    Type,
+            Action: action,
+            ResourceRecordSet: {
+                AliasTarget: {
+                    DNSName: domain.domainInfo.domainName,
+                    EvaluateTargetHealth: false,
+                    HostedZoneId: domain.domainInfo.hostedZoneId,
                 },
+                Name: domain.givenDomainName,
+                Type,
+            },
         }));
         const params = {
             ChangeBatch: {
@@ -598,11 +599,11 @@ class ServerlessCustomDomain {
                 "Items",
                 "NextToken",
                 "NextToken",
-                { DomainName: domain.givenDomainName },
+                {DomainName: domain.givenDomainName},
             );
             for (const mapping of mappings) {
                 if (mapping.ApiId === domain.apiId
-                    || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
+                    || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)) {
                     return mapping;
                 }
             }
@@ -704,43 +705,45 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Gets rest API id from CloudFormation stack
+     * Gets rest API id from existing config or CloudFormation stack
      */
     public async getApiId(domain: DomainConfig): Promise<string> {
-        if (this.serverless.service.provider.apiGateway && this.serverless.service.provider.apiGateway.restApiId) {
-            this.serverless.cli.log(`Mapping custom domain to existing API
-                ${this.serverless.service.provider.apiGateway.restApiId}.`);
-            return this.serverless.service.provider.apiGateway.restApiId;
+        const apiGateway = this.serverless.service.provider.apiGateway;
+        if (apiGateway && apiGateway.restApiId) {
+            const restApiId = apiGateway.restApiId;
+            // if string value exists return the value
+            if (typeof restApiId === "string") {
+                this.serverless.cli.log(`Mapping custom domain to existing API  ${restApiId}.`);
+                return restApiId;
+            }
+            // in case object and Fn::ImportValue try to get restApiId from the CloudFormation exports
+            if (typeof restApiId === "object" && restApiId["Fn::ImportValue"]) {
+                const importName = restApiId["Fn::ImportValue"];
+                let importValues;
+                try {
+                    importValues = await this.cloudFormationWrapper.getImportValues([importName]);
+                } catch (err) {
+                    this.logIfDebug(err, domain.givenDomainName);
+                    throw new Error(`Failed to find CloudFormation ImportValue by ${importName}\n`);
+                }
+                if (!importValues[importName]) {
+                    throw new Error(`CloudFormation ImportValue not found by ${importName}\n`);
+                }
+                return importValues[importName];
+            }
+            // throw an exception in case not supported restApiId
+            throw new Error("Unsupported apiGateway.restApiId object");
         }
 
         const stackName = this.serverless.service.provider.stackName ||
             `${this.serverless.service.service}-${domain.stage}`;
 
-        let LogicalResourceId = "ApiGatewayRestApi";
-        if (domain.apiType === Globals.apiTypes.http) {
-            LogicalResourceId = "HttpApi";
-        } else if (domain.apiType === Globals.apiTypes.websocket) {
-            LogicalResourceId = "WebsocketsApi";
-        }
-
-        const params = {
-            LogicalResourceId,
-            StackName: stackName,
-        };
-
-        let response;
         try {
-            response = await throttledCall(this.cloudformation, "describeStackResource", params);
+            return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
-            throw new Error(`Error: Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
+            throw new Error(`Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
         }
-
-        const apiId = response.StackResourceDetail.PhysicalResourceId;
-        if (!apiId) {
-            throw new Error(`Error: No ApiId associated with CloudFormation stack ${stackName}`);
-        }
-        return apiId;
     }
 
     /**

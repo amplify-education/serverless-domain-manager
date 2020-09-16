@@ -26,22 +26,44 @@ class CloudFormationWrapper {
             LogicalResourceId = "WebsocketsApi";
         }
 
-        const params = {
-            LogicalResourceId,
-            StackName: stackName,
-        };
+        // get all stacks from the CloudFormation
+        const stacks = await getAWSPagedResults(
+            this.provider,
+            "describeStacks",
+            "Stacks",
+            "NextToken",
+            "NextToken",
+            {},
+        );
+
+        // filter stacks by given stackName
+        const filteredStackNames = stacks
+            .map((stack) => stack.StackName) // collect list of stack names
+            .filter((name) => name.includes(stackName)); // filter by stackName
 
         let response;
-        try {
-            response = await throttledCall(this.provider, "describeStackResource", params);
-        } catch (err) {
-            throw new Error(`Failed to find CloudFormation resources with an error: ${err}\n`);
+        for (const name of filteredStackNames) {
+            try {
+                response = await throttledCall(this.provider, "describeStackResource", {
+                    LogicalResourceId,
+                    StackName: name,
+                });
+            } catch (err) {
+                Globals.logError(err, domain.givenDomainName);
+            }
+        }
+
+        if (!response) {
+            throw new Error(`Failed to find a stack ${stackName}\n`);
         }
 
         const apiId = response.StackResourceDetail.PhysicalResourceId;
         if (!apiId) {
             throw new Error(`No ApiId associated with CloudFormation stack ${stackName}`);
         }
+
+        Globals.logInfo(`Found apiId: ${apiId}`, domain.givenDomainName, false);
+
         return apiId;
     }
 

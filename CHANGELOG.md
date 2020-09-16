@@ -4,7 +4,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.2.2] - 2020-09-16
+
+### Changed
+- Fix for package build. Thank you @michaelgmcd ([#382](https://github.com/amplify-education/serverless-domain-manager/pull/382))
+
+## [4.2.1] - 2020-09-16
+
+### Changed
+- Added support for using CloudFormation Fn::ImportValue. Thank you @sampsasaarela ([#220](https://github.com/amplify-education/serverless-domain-manager/pull/220)), @rddimon ([#380](https://github.com/amplify-education/serverless-domain-manager/pull/380))
+
+## [4.2.0] - 2020-07-14
+
+### Changed
+- Added support for automatically creating/destroying custom domains on deploy/remove via the autoDomain option. Thank you @bryan-hunter ([#356](https://github.com/amplify-education/serverless-domain-manager/pull/356))
+
+## [4.1.1] - 2020-05-25
+
+### Changed
+- Fix support for TLS 1.0 regional domains which were broken in the 4.0.0 release. Discovered by @jufemaiz ([#348](https://github.com/amplify-education/serverless-domain-manager/pull/348))
+
+## [4.1.0] - 2020-05-18
+
+### Changed
+- Fixed issue when there are multiple pages of base path mappings. Also refactored how paging is handled throughout the code. Thanks @kzhou57 for discovering this ([#345](https://github.com/amplify-education/serverless-domain-manager/pull/345))
+
+## [4.0.1] - 2020-05-12
+
+### Changed
+- Fix issue updating domains that use a blank base path. Thanks @fabiancook ([#337](https://github.com/amplify-education/serverless-domain-manager/pull/337))
+
+## [4.0.0] - 2020-05-06
+
+### Breaking Changes
+- Regional domains with TLS 1.0 no longer work. Fixed in 4.1.1
+
+### Added
+- Add support for WebSocket and HTTP APIs. A domain name can be created for each API type (Rest, WebSocket, HTTP) 
+for up to 3 domain names in a single Serverless config. Thanks @TehNrd ([#319](https://github.com/amplify-education/serverless-domain-manager/pull/319))
+
+## [3.3.2] - 2020-04-21
+
+### Changed
+- Fix CloudFormation stack's Outputs. Thanks @davidrosson ([#320](https://github.com/amplify-education/serverless-domain-manager/pull/320)) 
+- Use pagination when there are too many certificates. Thanks @cbm-gplassard ([#315](https://github.com/amplify-education/serverless-domain-manager/pull/315))
+
+## [3.3.1] - 2020-01-16
+
+### Changed
+- Fix AWS SDK initialization after internal change in serverless. Thanks @medikoo ([#307](https://github.com/amplify-education/serverless-domain-manager/pull/307))
+
+## [3.3.0] - 2019-08-12
+
+### Added
+- Add ability to choose TLS version. Thanks @drexler ([#240](https://github.com/amplify-education/serverless-domain-manager/pull/240))
 
 ## [3.2.7] - 2019-08-02
 

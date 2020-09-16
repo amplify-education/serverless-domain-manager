@@ -58,7 +58,7 @@ plugins:
   - serverless-domain-manager
 ```
 
-Add the plugin configuration (example for `serverless.foo.com/api`).
+Add the plugin configuration (example for `serverless.foo.com/api`). For a single domain and API type the following structure can be used.
 
 ```yaml
 custom:
@@ -70,7 +70,39 @@ custom:
     createRoute53Record: true
     endpointType: 'regional'
     securityPolicy: tls_1_2
-    apiType: http
+    apiType: rest
+    autoDomain: false
+```
+
+Multiple API types mapped to different domains can also be supported with the following structure. The key is the API Gateway API type.
+
+```yaml
+custom:
+  customDomain:
+    rest:
+      domainName: rest.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    http:
+      domainName: http.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    websocket:
+      domainName: ws.serverless.foo.com
+      stage: ci
+      basePath: api
+      certificateName: '*.foo.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
 ```
 
 | Parameter Name | Default Value | Description |
@@ -87,6 +119,10 @@ custom:
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
+allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
+| autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
+| autoDomainWaitFor | `120` | How long to wait for create_domain to finish before starting deployment if domain does not exist immediately. |
+
 
 ## Running
 
@@ -106,8 +142,6 @@ serverless delete_domain
 ```
 # How it works
 Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
-
-Note: In 1.0, we only created CNAME records. In 2.0 we deprecated CNAME creation and started creating A Alias records and migrated CNAME records to A Alias records. Now in 3.0, we only create A Alias records. Starting in version 3.2, we create AAAA Alias records as well.
 
 ### Behavior Change in Version 3
 
@@ -139,7 +173,26 @@ npm install
 ```
 
 ## Writing Integration Tests
-Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.js`.
+Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `deploy.test.ts` or create a separate one with the `test.ts` ending.
+
+## Changing API Types
+AWS API Gateway has three different API types: REST, HTTP, and WebSocket. Special steps need to be taken when migrating from one api type to another. A common migration will be from a REST API to an HTTP API given the potential cost savings. Below are the steps required to change from REST to HTTP. A similar process can be applied for other API type migrations.
+
+**REST to HTTP**
+1) Confirm the Domain name is a Regional domain name. Edge domains are not supported by AWS for HTTP APIs. See this [guide for migrating an edge-optimized custom domain name to regional](
+https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional-api-custom-domain-migrate.html).
+2) Wait for all DNS changes to take effect/propagate and ensure all traffic is being routed to the regional domain name before proceeding.
+3) Make sure you have setup new or modified existing routes to use [httpApi event](https://serverless.com/framework/docs/providers/aws/events/http-api) in your serverless.yml file.
+4) Make the following changes to the `customDomain` properties in the serverless.yml confg:
+    ```yaml
+    endpointType: regional
+    apiType: http
+    allowPathMatching: true # Only for one deploy
+    ```
+5) Run `sls deploy`
+6) Remove the `allowPathMatching` option, it should only be used once when migrating a base path from one API type to another.
+
+NOTE: Always test this process in a lower level staging or development environment before performing it in production.
 
 
 # Known Issues

@@ -1,0 +1,27 @@
+# Enabled with regional endpoint, custom basePath
+service: enabled-regional-basepath-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: enabled-regional-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: 'api'
+    endpointType: regional
+
+package:
+  exclude:
+    - node_modules/**

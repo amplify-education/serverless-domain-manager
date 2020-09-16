@@ -36,7 +36,7 @@
     "*.js",
     "*.ts",
     "*.json",
-    "dist/*.js"
+    "dist"
   ],
   "nyc": {
     "extension": [

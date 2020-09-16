@@ -1,10 +1,14 @@
-# Enabled with regional endpoint, custom basePath
-service: enabled-regional-basepath-${opt:RANDOM_STRING}
+# Enabled with default values
+service: enabled-custom-apigateway-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  stage: test
+  apiGateway:
+    restApiId: ${env:REST_API_ID}
+    restApiResources:
+      'hello-world': ${env:RESOURCE_ID}
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -17,9 +21,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-regional-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    basePath: 'api'
-    endpointType: regional
+    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
 
 package:
   exclude:

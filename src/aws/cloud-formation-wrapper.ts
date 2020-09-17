@@ -48,6 +48,7 @@ class CloudFormationWrapper {
                     LogicalResourceId,
                     StackName: name,
                 });
+                break;
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
             }

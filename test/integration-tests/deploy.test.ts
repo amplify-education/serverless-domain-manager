@@ -1,7 +1,9 @@
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
+// @ts-ignore
 import {FIFTEEN_MINUTES, RANDOM_STRING, TEST_DOMAIN} from "./base";
+// @ts-ignore
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;
@@ -95,6 +97,7 @@ describe("Integration Tests", function() {
     this.timeout(FIFTEEN_MINUTES);
 
     describe("Configuration Tests", () => {
+        // @ts-ignore
         itParam("${value.testDescription}", testCases, async (value) => {
             let restApiInfo;
             if (value.createApiGateway) {

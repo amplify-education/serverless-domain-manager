@@ -4,15 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.2.3] - 2020-09-18
+## [4.3.0] - 2020-09-21
 
 ### Changed
-- Added support for using CloudFormation nested stacks. Thank you @Katafalkas ([#235](https://github.com/amplify-education/serverless-domain-manager/pull/235))
+- Added support for Multiple domains. Thank you @ConradKurth ([#327](https://github.com/amplify-education/serverless-domain-manager/pull/327))
 
 ## [4.2.2] - 2020-09-16
 
 ### Changed
 - Fix for package build. Thank you @michaelgmcd ([#382](https://github.com/amplify-education/serverless-domain-manager/pull/382))
+
+## [4.2.1] - 2020-09-16
+
+### Changed
+- Added support for using CloudFormation Fn::ImportValue. Thank you @sampsasaarela ([#220](https://github.com/amplify-education/serverless-domain-manager/pull/220))
 
 ## [4.2.1] - 2020-09-16
 

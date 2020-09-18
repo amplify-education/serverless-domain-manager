@@ -1,3 +1,4 @@
+import chalk = require("chalk");
 import {ServerlessInstance, ServerlessOptions} from "./types";
 
 export default class Globals {
@@ -32,7 +33,7 @@ export default class Globals {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
             Globals.serverless.cli.log(
-                `Error: ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
+                `${chalk.redBright("Error:")} ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
             );
         }
     }
@@ -48,7 +49,7 @@ export default class Globals {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
             Globals.serverless.cli.log(
-                `Info: ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
+                `${chalk.whiteBright("Info:")} ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
             );
         }
     }

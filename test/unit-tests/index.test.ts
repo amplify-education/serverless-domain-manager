@@ -901,8 +901,6 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-            // TODO: implement it with CustomDomainWrapper
-            // plugin.cloudformation = new aws.CloudFormation();
             plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_rest_api_id";
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);

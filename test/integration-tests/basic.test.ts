@@ -1,8 +1,6 @@
 import chai = require("chai");
 import "mocha";
-// @ts-ignore
 import {FIFTEEN_MINUTES, RANDOM_STRING, TEMP_DIR, TEST_DOMAIN} from "./base";
-// @ts-ignore
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;

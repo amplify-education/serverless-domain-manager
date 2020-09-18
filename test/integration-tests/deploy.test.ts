@@ -89,6 +89,14 @@ const testCases = [
         testFolder: `${CONFIGS_FOLDER}/regional-tls-1-0`,
         testStage: "test",
     },
+    {
+        testBasePath: "api",
+        testDescription: "Deploy with nested CloudFormation stack",
+        testDomain: `basepath-nested-stack-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testEndpoint: "EDGE",
+        testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
+        testStage: "test",
+    },
 ];
 
 describe("Integration Tests", function() {

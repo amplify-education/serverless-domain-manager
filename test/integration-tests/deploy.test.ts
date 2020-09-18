@@ -95,7 +95,6 @@ describe("Integration Tests", function() {
     this.timeout(FIFTEEN_MINUTES);
 
     describe("Configuration Tests", () => {
-        // @ts-ignore
         itParam("${value.testDescription}", testCases, async (value) => {
             let restApiInfo;
             if (value.createApiGateway) {

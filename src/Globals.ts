@@ -1,4 +1,4 @@
-import { ServerlessInstance, ServerlessOptions } from "./types";
+import {ServerlessInstance, ServerlessOptions} from "./types";
 
 export default class Globals {
 
@@ -20,4 +20,36 @@ export default class Globals {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
     };
+
+    /**
+     * Logs error message
+     * @param message: message to be printed
+     * @param domain: domain name
+     * @param debug: if true then show log only if SLS_DEBUG enabled on else anytime
+     */
+    public static logError(message: any, domain?: string, debug?: boolean): void {
+        debug = debug === undefined ? true : debug;
+        const canLog = debug && process.env.SLS_DEBUG || !debug;
+        if (canLog) {
+            Globals.serverless.cli.log(
+                `Error: ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
+            );
+        }
+    }
+
+    /**
+     * Logs info message
+     * @param message: message to be printed
+     * @param domain: domain name
+     * @param debug: if true then show log only if SLS_DEBUG enabled on else anytime
+     */
+    public static logInfo(message: any, domain?: string, debug?: boolean): void {
+        debug = debug === undefined ? true : debug;
+        const canLog = debug && process.env.SLS_DEBUG || !debug;
+        if (canLog) {
+            Globals.serverless.cli.log(
+                `Info: ${domain ? domain + ": " : ""} ${message}`, "Serverless Domain Manager",
+            );
+        }
+    }
 }

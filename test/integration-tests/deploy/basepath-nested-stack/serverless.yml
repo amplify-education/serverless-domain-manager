@@ -1,10 +1,10 @@
-# Enabled with regional endpoint, custom basePath
-service: enabled-regional-basepath-${opt:RANDOM_STRING}
+# Enabled with custom basepath
+service: basepath-nested-stack-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -15,12 +15,15 @@ functions:
           cors: true
 plugins:
   - serverless-domain-manager
+  - serverless-plugin-split-stacks
 custom:
   customDomain:
-    domainName: enabled-regional-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: basepath-nested-stack-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
-    endpointType: regional
-
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+  splitStacks:
+    nestedStackCount: 2
 package:
   exclude:
     - node_modules/**

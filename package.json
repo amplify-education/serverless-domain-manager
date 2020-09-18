@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "4.2.0",
+  "version": "4.2.3",
   "engines": {
     "node": ">=4.0"
   },
@@ -28,7 +28,7 @@
   "bin": {},
   "scripts": {
     "test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
-    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/integration-tests/integration.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/integration-tests/*.test.ts && nyc report --reporter=text-summary",
     "lint": "tslint --project . && tslint --project tsconfig.tests.json",
     "build": "tsc --project ."
   },
@@ -36,7 +36,7 @@
     "*.js",
     "*.ts",
     "*.json",
-    "dist/*.js"
+    "dist/**/*.js"
   ],
   "nyc": {
     "extension": [
@@ -44,30 +44,31 @@
     ]
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/chai-spies": "^1.0.0",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^12.0.0",
+    "@types/chai": "^4.2.12",
+    "@types/chai-spies": "^1.0.2",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.62",
     "aws-sdk-mock": "^1.7.0",
     "chai": "^3.5.0",
     "chai-spies": "^1.0.0",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2",
-    "mocha-param": "^2.0.0",
+    "mocha": "^7.2.0",
+    "mocha-param": "^2.0.1",
     "nyc": "^14.1.1",
     "randomstring": "^1.1.5",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
-    "serverless": "^1.70.1",
-    "shelljs": "^0.8.3",
-    "ts-node": "^8.0.1",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "serverless": "^1.83.0",
+    "serverless-plugin-split-stacks": "^1.9.3",
+    "shelljs": "^0.8.4",
+    "ts-node": "^8.10.2",
     "tslint": "^5.20.1",
-    "tslint-microsoft-contrib": "^6.0.0",
-    "typescript": "^3.2.2",
+    "tslint-microsoft-contrib": "^6.2.0",
+    "typescript": "^3.9.7",
     "wrappy": "^1.0.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.490.0",
-    "chalk": "^2.4.1"
+    "aws-sdk": "^2.755.0",
+    "chalk": "^2.4.2"
   }
 }

@@ -1,13 +1,10 @@
 # Enabled with default values
-service: enabled-custom-apigateway-${opt:RANDOM_STRING}
+service: enabled-default-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  apiGateway:
-    restApiId: ${env:REST_API_ID}
-    restApiResources:
-      'hello-world': ${env:RESOURCE_ID}
+  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -20,7 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: enabled-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
 
 package:
   exclude:

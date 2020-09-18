@@ -4,8 +4,8 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  stage: test
   endpointType: regional
+  stage: test
 functions:
   helloWorld:
     handler: handler.helloWorld

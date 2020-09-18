@@ -1,9 +1,12 @@
-# Disabled
-service: domain-manager-disabled-${opt:RANDOM_STRING}
+# Test regional domains with TLS 1.0
+service: regional-tls-1-0-${opt:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
+  stage: test
+  endpointType: regional
+
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -16,8 +19,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: disabled-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    enabled: false
+    domainName: regional-tls-1-0-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    securityPolicy: tls_1_0
+    endpointType: regional
 
 package:
   exclude:

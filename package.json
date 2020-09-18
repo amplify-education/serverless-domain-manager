@@ -47,7 +47,7 @@
     "@types/chai": "^4.2.12",
     "@types/chai-spies": "^1.0.2",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.61",
+    "@types/node": "^12.12.62",
     "aws-sdk-mock": "^1.7.0",
     "chai": "^3.5.0",
     "chai-spies": "^1.0.0",
@@ -59,6 +59,7 @@
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "serverless": "^1.83.0",
+    "serverless-plugin-split-stacks": "^1.9.3",
     "shelljs": "^0.8.4",
     "ts-node": "^8.10.2",
     "tslint": "^5.20.1",
@@ -67,7 +68,7 @@
     "wrappy": "^1.0.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.754.0",
+    "aws-sdk": "^2.755.0",
     "chalk": "^2.4.2"
   }
 }

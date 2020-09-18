@@ -349,15 +349,6 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Remove basepath mappings", async () => {
-            AWS.mock("CloudFormation", "describeStacks", (params, callback) => {
-                callback(null, {
-                    Stacks: [
-                        {StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK"},
-                        {StackName: "custom-stage-name-NestedStackTwo-U89W84TQIHJK"},
-                        {StackName: "outside-stack-NestedStackZERO-U89W84TQIHJK"},
-                    ],
-                });
-            });
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
                 callback(null, {
                     StackResourceDetail: {
@@ -768,13 +759,16 @@ describe("Custom Domain Plugin", () => {
             AWS.mock("CloudFormation", "describeStacks", (params, callback) => {
                 callback(null, {
                     Stacks: [
-                        {StackName: "test-stage-name"},
-                        {StackName: "custom-stage-name"},
-                        {StackName: "other-stage-name"},
+                        {StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK"},
+                        {StackName: "custom-stage-name-NestedStackTwo-U89W84TQIHJK"},
+                        {StackName: "outside-stack-NestedStackZERO-U89W84TQIHJK"},
                     ],
                 });
             });
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                if (params.StackName === "custom-stage-name") {
+                    throw new Error("error");
+                }
                 callback(null, {
                     StackResourceDetail: {
                         LogicalResourceId: "ApiGatewayRestApi",
@@ -794,12 +788,11 @@ describe("Custom Domain Plugin", () => {
 
             const result = await plugin.getApiId(dc);
 
-            const spy1 = chai.spy.on(plugin, "getApiId");
-
             expect(result).to.equal("test_rest_api_id");
+            expect(spy).to.have.been.called.exactly(2);
             expect(spy).to.have.been.called.with({
                 LogicalResourceId: "ApiGatewayRestApi",
-                StackName: "custom-stage-name",
+                StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK",
             });
         });
 
@@ -814,6 +807,9 @@ describe("Custom Domain Plugin", () => {
                 });
             });
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                if (params.StackName === "custom-stage-name") {
+                    throw new Error("error");
+                }
                 callback(null, {
                     StackResourceDetail:
                         {
@@ -836,7 +832,7 @@ describe("Custom Domain Plugin", () => {
 
             const result = await plugin.getApiId(dc);
             expect(result).to.equal("test_http_api_id");
-            expect(spy).to.have.been.called.exactly(1);
+            expect(spy).to.have.been.called.exactly(2);
             expect(spy).to.have.been.called.with({
                 LogicalResourceId: "HttpApi",
                 StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK",
@@ -854,6 +850,10 @@ describe("Custom Domain Plugin", () => {
                 });
             });
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                const skipNames = ["custom-stage-name", "custom-stage-name-NestedStackOne-U89W84TQIHJK"];
+                if (skipNames.indexOf(params.StackName) !== -1) {
+                    throw new Error("error");
+                }
                 callback(null, {
                     StackResourceDetail:
                         {
@@ -876,9 +876,10 @@ describe("Custom Domain Plugin", () => {
 
             const result = await plugin.getApiId(dc);
             expect(result).to.equal("test_ws_api_id");
+            expect(spy).to.have.been.called.exactly(3);
             expect(spy).to.have.been.called.with({
                 LogicalResourceId: "WebsocketsApi",
-                StackName: "custom-stage-name-NestedStackOne-U89W84TQIHJK",
+                StackName: "custom-stage-name-NestedStackTwo-U89W84TQIHJK",
             });
         });
 

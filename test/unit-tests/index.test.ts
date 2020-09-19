@@ -36,70 +36,78 @@ const testCreds = {
 };
 
 const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
-  aws.config.update(testCreds);
-  aws.config.region = "eu-west-1";
+    aws.config.update(testCreds);
+    aws.config.region = "eu-west-1";
 
-  const custom = {
-    allowPathMatching: customDomainOptions.allowPathMatching,
-    apiType: customDomainOptions.apiType,
-    autoDomain: customDomainOptions.autoDomain,
-    autoDomainWaitFor: customDomainOptions.autoDomainWaitFor,
-    basePath: customDomainOptions.basePath,
-    certificateArn: customDomainOptions.certificateArn,
-    certificateName: customDomainOptions.certificateName,
-    createRoute53Record: customDomainOptions.createRoute53Record,
-    domainName: customDomainOptions.domainName,
-    enabled: customDomainOptions.enabled,
-    endpointType: customDomainOptions.endpointType,
-    hostedZoneId: customDomainOptions.hostedZoneId,
-    hostedZonePrivate: customDomainOptions.hostedZonePrivate,
-    securityPolicy: customDomainOptions.securityPolicy,
-    stage: customDomainOptions.stage,
-  };
+    const custom = {
+        allowPathMatching: customDomainOptions.allowPathMatching,
+        apiType: customDomainOptions.apiType,
+        autoDomain: customDomainOptions.autoDomain,
+        autoDomainWaitFor: customDomainOptions.autoDomainWaitFor,
+        basePath: customDomainOptions.basePath,
+        certificateArn: customDomainOptions.certificateArn,
+        certificateName: customDomainOptions.certificateName,
+        createRoute53Record: customDomainOptions.createRoute53Record,
+        domainName: customDomainOptions.domainName,
+        enabled: customDomainOptions.enabled,
+        endpointType: customDomainOptions.endpointType,
+        hostedZoneId: customDomainOptions.hostedZoneId,
+        hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+        securityPolicy: customDomainOptions.securityPolicy,
+        stage: customDomainOptions.stage,
+    };
 
-  const serverless = {
-    cli: {
-      log(str: string) { consoleOutput.push(str); },
-      consoleLog(str: any) { consoleOutput.push(str); },
-    },
-    providers: {
-      aws: {
-        getCredentials: () => new aws.Credentials(testCreds),
-        getRegion: () => "eu-west-1",
-        sdk: {
-          ACM: aws.ACM,
-          APIGateway: aws.APIGateway,
-          ApiGatewayV2: aws.ApiGatewayV2,
-          CloudFormation: aws.CloudFormation,
-          Route53: aws.Route53,
-          config: {
-            update: (toUpdate: object) => null,
-          },
+    const serverless = {
+        cli: {
+            log(str: string) {
+                consoleOutput.push(str);
+            },
+            consoleLog(str: any) {
+                consoleOutput.push(str);
+            },
         },
-      },
-    },
-    service: {
-      custom: {
-        customDomain: multiple ? undefined : custom,
-        customDomains: multiple ? [custom] : undefined,
-      },
-      provider: {
-        apiGateway: {
-          restApiId: null,
+        providers: {
+            aws: {
+                getCredentials: () => new aws.Credentials(testCreds),
+                getRegion: () => "eu-west-1",
+                sdk: {
+                    ACM: aws.ACM,
+                    APIGateway: aws.APIGateway,
+                    ApiGatewayV2: aws.ApiGatewayV2,
+                    CloudFormation: aws.CloudFormation,
+                    Route53: aws.Route53,
+                    config: {
+                        update: (toUpdate: object) => null,
+                    },
+                },
+            },
         },
-        compiledCloudFormationTemplate: {
-          Outputs: null,
+        service: {
+            custom: {
+                customDomain: multiple ? undefined : custom,
+                customDomains: multiple ? [custom] : undefined,
+            },
+            provider: {
+                apiGateway: {
+                    restApiId: null,
+                },
+                compiledCloudFormationTemplate: {
+                    Outputs: null,
+                },
+                stackName: "custom-stage-name",
+                stage: "test",
+            },
+            service: "test",
         },
-        stackName: "custom-stage-name",
+    };
+    const options = {
         stage: "test",
-      },
-      service: "test",
-    },
-  };
-  const options = {
-    stage: "test",
-  };
-  return new ServerlessCustomDomain(serverless, options);
+    };
+    return new ServerlessCustomDomain(serverless, options);
+};
+
+Globals.cliLog = (prefix: string, message: string) => {
+    consoleOutput.push(message);
 };
 
 describe("Custom Domain Plugin", () => {
@@ -148,7 +156,7 @@ describe("Custom Domain Plugin", () => {
                 plugin.initializeVariables();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("Error: 'edge' endpointType is not compatible with HTTP APIs");
+                expect(err.message).to.equal("'edge' endpointType is not compatible with HTTP APIs");
             }
             expect(errored).to.equal(true);
         });
@@ -161,7 +169,7 @@ describe("Custom Domain Plugin", () => {
                 plugin.initializeVariables();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("Error: 'edge' endpointType is not compatible with WebSocket APIs");
+                expect(err.message).to.equal("'edge' endpointType is not compatible with WebSocket APIs");
             }
             expect(errored).to.equal(true);
         });
@@ -1128,7 +1136,7 @@ describe("Custom Domain Plugin", () => {
             plugin.initializeVariables();
             await plugin.createDomains();
 
-            expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].givenDomainName} was created.
+            expect(consoleOutput[1]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
                         New domains may take up to 40 minutes to be initialized.`);
         });
 
@@ -1378,7 +1386,7 @@ describe("Custom Domain Plugin", () => {
             return plugin.getCertArn(plugin.domains[0]).then(() => {
                 throw new Error("Test has failed. getCertArn did not catch errors.");
             }).catch((err) => {
-                const expectedErrorMessage = "Error: Could not find the certificate does_not_exist.";
+                const expectedErrorMessage = "Could not find the certificate does_not_exist.";
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });
@@ -1396,7 +1404,7 @@ describe("Custom Domain Plugin", () => {
             return plugin.getRoute53HostedZoneId(plugin.domains[0]).then(() => {
                 throw new Error("Test has failed, getHostedZone did not catch errors.");
             }).catch((err) => {
-                const expectedErrorMessage = "Error: Could not find hosted zone \"test_domain\"";
+                const expectedErrorMessage = "Could not find hosted zone \"test_domain\"";
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });
@@ -1413,7 +1421,7 @@ describe("Custom Domain Plugin", () => {
             return plugin.domainSummaries().then(() => {
                 // check if distribution domain name is printed
             }).catch((err) => {
-                const expectedErrorMessage = `Error: Unable to fetch information about test_domain`;
+                const expectedErrorMessage = `Unable to fetch information about test_domain`;
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });

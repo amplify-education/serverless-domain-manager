@@ -44,7 +44,7 @@ class CloudFormationWrapper {
             throw new Error(`No ApiId associated with CloudFormation stack ${stackName}`);
         }
 
-        Globals.logInfo(`Found apiId: ${apiId}`, domain.givenDomainName, false);
+        Globals.logInfo(`Found apiId: ${apiId} for ${domain.givenDomainName}`);
 
         return apiId;
     }

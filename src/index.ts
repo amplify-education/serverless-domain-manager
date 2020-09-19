@@ -79,7 +79,6 @@ class ServerlessCustomDomain {
     public async createDomains(): Promise<void> {
 
         await this.getDomainInfo();
-
         await Promise.all(this.domains.map(async (domain) => {
             try {
                 if (!domain.domainInfo) {
@@ -99,7 +98,7 @@ class ServerlessCustomDomain {
                 }
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: Unable to create domain ${domain.givenDomainName}`);
+                throw new Error(`Unable to create domain ${domain.givenDomainName}`);
             }
         }));
     }
@@ -124,7 +123,7 @@ class ServerlessCustomDomain {
                 }
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: Unable to delete domain ${domain.givenDomainName}`);
+                throw new Error(`Unable to delete domain ${domain.givenDomainName}`);
             }
         }));
     }
@@ -185,7 +184,7 @@ class ServerlessCustomDomain {
 
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: Unable to setup base domain mappings for ${domain.givenDomainName}`);
+                throw new Error(`Unable to setup base domain mappings for ${domain.givenDomainName}`);
             }
         })).then(() => {
             // Print summary upon completion
@@ -207,7 +206,7 @@ class ServerlessCustomDomain {
                 // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
                     Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
-                        API Mappings may need to be manually removed.`, "Serverless Domain Manager");
+                        API Mappings may need to be manually removed.`);
                 } else {
                     domain.apiMapping = await this.getBasePathMapping(domain);
                     await this.deleteBasePathMapping(domain);
@@ -215,11 +214,11 @@ class ServerlessCustomDomain {
             } catch (err) {
                 if (err.message.indexOf("Failed to find CloudFormation") > -1) {
                     Globals.logInfo(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
-                        API Mappings may need to be manually removed.`, "Serverless Domain Manager");
+                        API Mappings may need to be manually removed.`);
                 } else {
                     Globals.logError(err, domain.givenDomainName);
                     Globals.logError(
-                        `Unable to remove base path mappings for domain ${domain.givenDomainName}`
+                        `Unable to remove base path mappings`, domain.givenDomainName, false,
                     );
                 }
             }
@@ -285,7 +284,7 @@ class ServerlessCustomDomain {
                         d[configApiType].apiType = configApiType;
                         this.domains.push(new DomainConfig(d[configApiType]));
                     } else {
-                        throw Error(`Error: Invalid API Type, ${configApiType}`);
+                        throw Error(`Invalid API Type, ${configApiType}`);
                     }
                 }
             } else { // Default to single domain config
@@ -308,7 +307,7 @@ class ServerlessCustomDomain {
 
             // Show warning if allowPathMatching is set to true
             if (domain.allowPathMatching) {
-                this.serverless.cli.log(`WARNING: "allowPathMatching" is set for ${domain.givenDomainName}.
+                Globals.logWarning(`"allowPathMatching" is set for ${domain.givenDomainName}.
                     This should only be used when migrating a path to a different API type. e.g. REST to HTTP.`);
             }
 
@@ -318,13 +317,13 @@ class ServerlessCustomDomain {
             } else if (domain.apiType === Globals.apiTypes.http) { // Validation for http apis
                 // HTTP Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`Error: 'edge' endpointType is not compatible with HTTP APIs`);
+                    throw Error(`'edge' endpointType is not compatible with HTTP APIs`);
                 }
 
             } else if (domain.apiType === Globals.apiTypes.websocket) { // Validation for WebSocket apis
                 // Websocket Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`Error: 'edge' endpointType is not compatible with WebSocket APIs`);
+                    throw Error(`'edge' endpointType is not compatible with WebSocket APIs`);
                 }
             }
         });
@@ -382,10 +381,10 @@ class ServerlessCustomDomain {
             }
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw Error(`Error: Could not list certificates in Certificate Manager.\n${err}`);
+            throw Error(`Could not list certificates in Certificate Manager.\n${err}`);
         }
         if (certificateArn == null) {
-            throw Error(`Error: Could not find the certificate ${certificateName}.`);
+            throw Error(`Could not find the certificate ${certificateName}.`);
         }
         return certificateArn;
     }
@@ -404,7 +403,7 @@ class ServerlessCustomDomain {
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
                 if (err.code !== "NotFoundException") {
-                    throw new Error(`Error: Unable to fetch information about ${domain.givenDomainName}`);
+                    throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
                 }
             }
         }));
@@ -444,7 +443,7 @@ class ServerlessCustomDomain {
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: Failed to create custom domain ${domain.givenDomainName}\n`);
+                throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
 
         } else { // For Regional domain name create with ApiGatewayV2
@@ -464,7 +463,7 @@ class ServerlessCustomDomain {
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: Failed to create custom domain ${domain.givenDomainName}\n`);
+                throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
         }
     }
@@ -480,7 +479,7 @@ class ServerlessCustomDomain {
             });
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Error: Failed to delete custom domain ${domain.givenDomainName}\n`);
+            throw new Error(`Failed to delete custom domain ${domain.givenDomainName}\n`);
         }
     }
 
@@ -491,7 +490,7 @@ class ServerlessCustomDomain {
      */
     public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
         if (action !== "UPSERT" && action !== "DELETE") {
-            throw new Error(`Error: Invalid action "${action}" when changing Route53 Record.
+            throw new Error(`Invalid action "${action}" when changing Route53 Record.
                 Action must be either UPSERT or DELETE.\n`);
         }
 
@@ -526,7 +525,7 @@ class ServerlessCustomDomain {
             await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Error: Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
+            throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
         }
     }
 
@@ -586,9 +585,9 @@ class ServerlessCustomDomain {
             }
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Error: Unable to list hosted zones in Route53.\n${err}`);
+            throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
         }
-        throw new Error(`Error: Could not find hosted zone "${domain.givenDomainName}"`);
+        throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
     }
 
     public async getBasePathMapping(domain: DomainConfig): Promise<AWS.ApiGatewayV2.GetApiMappingResponse> {
@@ -609,7 +608,7 @@ class ServerlessCustomDomain {
             }
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Error: Unable to get API Mappings for ${domain.givenDomainName}`);
+            throw new Error(`Unable to get API Mappings for ${domain.givenDomainName}`);
         }
     }
 
@@ -631,7 +630,7 @@ class ServerlessCustomDomain {
                 Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: ${domain.givenDomainName}: Unable to create basepath mapping.\n`);
+                throw new Error(`${domain.givenDomainName}: Unable to create basepath mapping.\n`);
             }
 
         } else { // Use ApiGatewayV2 for Regional domains
@@ -647,7 +646,7 @@ class ServerlessCustomDomain {
                 Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: ${domain.givenDomainName}: Unable to create basepath mapping.\n`);
+                throw new Error(`${domain.givenDomainName}: Unable to create basepath mapping.\n`);
             }
         }
     }
@@ -680,7 +679,7 @@ class ServerlessCustomDomain {
                      to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: ${domain.givenDomainName}: Unable to update basepath mapping.\n`);
+                throw new Error(`${domain.givenDomainName}: Unable to update basepath mapping.\n`);
             }
 
         } else { // Use ApiGatewayV2 for Regional domains
@@ -699,7 +698,7 @@ class ServerlessCustomDomain {
                 Globals.logInfo(`Updated API mapping to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Error: ${domain.givenDomainName}: Unable to update basepath mapping.\n`);
+                throw new Error(`${domain.givenDomainName}: Unable to update basepath mapping.\n`);
             }
         }
     }

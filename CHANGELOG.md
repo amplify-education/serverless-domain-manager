@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Added support for Multiple domains. Thank you @ConradKurth ([#327](https://github.com/amplify-education/serverless-domain-manager/pull/327))
 
+## [4.2.3] - 2020-09-18
+
+### Changed
+- Added support for using CloudFormation nested stacks. Thank you @Katafalkas ([#235](https://github.com/amplify-education/serverless-domain-manager/pull/235))
+
 ## [4.2.2] - 2020-09-16
 
 ### Changed

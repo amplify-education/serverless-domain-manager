@@ -24,11 +24,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Added support for using CloudFormation Fn::ImportValue. Thank you @sampsasaarela ([#220](https://github.com/amplify-education/serverless-domain-manager/pull/220))
 
-## [4.2.1] - 2020-09-16
-
-### Changed
-- Added support for using CloudFormation Fn::ImportValue. Thank you @sampsasaarela ([#220](https://github.com/amplify-education/serverless-domain-manager/pull/220))
-
 ## [4.2.0] - 2020-07-14
 
 ### Changed

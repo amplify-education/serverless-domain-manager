@@ -105,7 +105,7 @@ class DomainConfig {
         } else if (typeof enabled === "string" && enabled === "false") {
             return false;
         }
-        throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: "${enabled}"`);
+        throw new Error(`${Globals.pluginName}: Ambiguous enablement boolean: "${enabled}"`);
     }
 }
 

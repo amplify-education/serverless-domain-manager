@@ -8,10 +8,10 @@ import Globals from "../Globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
 
 class CloudFormationWrapper {
-    public provider: CloudFormation;
+    public cloudFormation: CloudFormation;
 
     constructor(credentials: any) {
-        this.provider = new CloudFormation(credentials);
+        this.cloudFormation = new CloudFormation(credentials);
     }
 
     /**
@@ -54,7 +54,7 @@ class CloudFormationWrapper {
      */
     public async getImportValues(names: string[]): Promise<any> {
         const exports = await getAWSPagedResults(
-            this.provider,
+            this.cloudFormation,
             "listExports",
             "Exports",
             "NextToken",
@@ -74,7 +74,7 @@ class CloudFormationWrapper {
      */
     public async getStack(logicalResourceId: string, stackName: string) {
         try {
-            return await throttledCall(this.provider, "describeStackResource", {
+            return await throttledCall(this.cloudFormation, "describeStackResource", {
                 LogicalResourceId: logicalResourceId,
                 StackName: stackName,
             });
@@ -89,7 +89,7 @@ class CloudFormationWrapper {
     public async getNestedStack(logicalResourceId: string, stackName?: string) {
         // get all stacks from the CloudFormation
         const stacks = await getAWSPagedResults(
-            this.provider,
+            this.cloudFormation,
             "describeStacks",
             "Stacks",
             "NextToken",

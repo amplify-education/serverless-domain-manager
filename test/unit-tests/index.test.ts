@@ -114,9 +114,9 @@ describe("Custom Domain Plugin", () => {
     it("Checks aws config", () => {
         const plugin = constructPlugin({});
 
-        plugin.initializeVariables();
+        plugin.initAWSResources();
 
-        const returnedCreds = plugin.apigateway.config.credentials;
+        const returnedCreds = plugin.apiGatewayWrapper.apiGateway.config.credentials;
         expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
         expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
     });
@@ -154,6 +154,7 @@ describe("Custom Domain Plugin", () => {
             let errored = false;
             try {
                 plugin.initializeVariables();
+                plugin.validateDomainConfigs();
             } catch (err) {
                 errored = true;
                 expect(err.message).to.equal("'edge' endpointType is not compatible with HTTP APIs");
@@ -167,6 +168,7 @@ describe("Custom Domain Plugin", () => {
             let errored = false;
             try {
                 plugin.initializeVariables();
+                plugin.validateDomainConfigs();
             } catch (err) {
                 errored = true;
                 expect(err.message).to.equal("'edge' endpointType is not compatible with WebSocket APIs");
@@ -187,14 +189,14 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "edge",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
 
             expect(spy).to.have.been.called.with({
                 basePath: "test_basepath",
@@ -215,14 +217,14 @@ describe("Custom Domain Plugin", () => {
                 securityPolicy: "tls_1_0",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
 
             expect(spy).to.have.been.called.with({
                 basePath: "test_basepath",
@@ -242,14 +244,14 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
             });
             plugin.initializeVariables();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "createApiMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "createApiMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
 
             expect(spy).to.have.been.called.with({
                 ApiId: "test_rest_api_id",
@@ -270,15 +272,15 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
             });
             plugin.initializeVariables();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "createApiMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "createApiMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 ApiId: "test_rest_api_id",
                 ApiMappingKey: "test_basepath",
@@ -296,16 +298,15 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiMapping = {ApiMappingKey: "old_basepath"};
 
-            const spy = chai.spy.on(plugin.apigateway, "updateBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "updateBasePathMapping");
 
-            await plugin.updateBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.updateBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 basePath: "old_basepath",
                 domainName: "test_domain",
@@ -330,8 +331,7 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
             });
             plugin.initializeVariables();
-
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.apiId = "test_api_id";
@@ -344,9 +344,9 @@ describe("Custom Domain Plugin", () => {
                 }],
             });
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "updateApiMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "updateApiMapping");
 
-            await plugin.updateBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.updateBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 ApiId: "test_api_id",
                 ApiMappingId: "test_mapping_id",
@@ -382,12 +382,11 @@ describe("Custom Domain Plugin", () => {
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
-
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "deleteApiMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteApiMapping");
 
             await plugin.removeBasePathMappings();
             expect(spy).to.have.been.called.with({
@@ -425,15 +424,15 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 basePath: "(none)",
                 domainName: "test_domain",
@@ -452,15 +451,15 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 basePath: "(none)",
                 domainName: "test_domain",
@@ -478,15 +477,15 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 basePath: "(none)",
                 domainName: "test_domain",
@@ -504,15 +503,15 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.apiId = "test_rest_api_id";
 
-            const spy = chai.spy.on(plugin.apigateway, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createBasePathMapping");
 
-            await plugin.createBasePathMapping(dc);
+            await plugin.apiGatewayWrapper.createBasePathMapping(dc);
             expect(spy).to.have.been.called.with({
                 basePath: "(none)",
                 domainName: "test_domain",
@@ -567,13 +566,13 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.createCustomDomain(dc);
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
             expect(dc.domainInfo.domainName).to.equal("foo");
             expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
@@ -586,13 +585,13 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain", apiType: "http", endpointType: "regional"});
             plugin.initializeVariables();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.createCustomDomain(dc);
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
             expect(dc.domainInfo.domainName).to.equal("foo");
             expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
@@ -605,13 +604,13 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain", securityPolicy: "tls_1_2"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.createCustomDomain(dc);
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
             expect(dc.domainInfo.domainName).to.equal("foo");
             expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
@@ -724,8 +723,9 @@ describe("Custom Domain Plugin", () => {
             dc.apiMapping = {ApiMappingId: "api_id"};
 
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
-            const result = await plugin.getBasePathMapping(dc);
+            const result = await plugin.apiGatewayWrapper.getBasePathMapping(dc);
             expect(result).to.equal(undefined);
         });
 
@@ -748,8 +748,9 @@ describe("Custom Domain Plugin", () => {
             dc.apiId = "test_rest_api_id";
 
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
-            const result = await plugin.getBasePathMapping(dc);
+            const result = await plugin.apiGatewayWrapper.getBasePathMapping(dc);
             expect(result).to.eql({
                 ApiId: "test_rest_api_id",
                 ApiMappingId: "fake_id",
@@ -791,10 +792,11 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
+            const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
             const result = await plugin.getApiId(dc);
 
@@ -835,10 +837,11 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
             });
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
+            const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
             const result = await plugin.getApiId(dc);
             expect(result).to.equal("test_http_api_id");
@@ -879,10 +882,11 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
             });
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const spy = chai.spy.on(plugin.cloudFormationWrapper.provider, "describeStackResource");
+            const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
             const result = await plugin.getApiId(dc);
             expect(result).to.equal("test_ws_api_id");
@@ -909,6 +913,7 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
             plugin.initializeVariables();
+            plugin.initAWSResources();
             plugin.serverless.service.provider.apiGateway.restApiId = "custom_test_rest_api_id";
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
@@ -933,13 +938,11 @@ describe("Custom Domain Plugin", () => {
                 basePath: "test_basepath",
                 domainName: "test_domain",
             });
-            plugin.apigateway = new aws.APIGateway();
 
-            await plugin.getDomainInfo();
-
-            plugin.domains.forEach((domain) => {
+            for (const domain of plugin.domains) {
+                domain.domainInfo = await plugin.apiGatewayWrapper.getCustomDomainInfo(domain);
                 expect(domain.domainInfo.domainName).to.equal("test_domain");
-            });
+            }
         });
 
         it("Delete A Alias Record", async () => {
@@ -1018,13 +1021,13 @@ describe("Custom Domain Plugin", () => {
                 basePath: "test_basepath",
                 domainName: "test_domain",
             });
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "deleteDomainName");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteDomainName");
 
-            await plugin.deleteCustomDomain(dc);
+            await plugin.apiGatewayWrapper.deleteCustomDomain(dc);
             expect(spy).to.be.called.with({
                 DomainName: "test_domain",
             });
@@ -1076,10 +1079,9 @@ describe("Custom Domain Plugin", () => {
             });
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
-            const spy = chai.spy.on(plugin, "createBasePathMapping");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper, "createBasePathMapping");
 
             await plugin.setupBasePathMappings();
 
@@ -1102,9 +1104,8 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
             plugin.route53 = new aws.Route53();
-            plugin.initializeVariables();
 
             await plugin.deleteDomains();
             expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].givenDomainName} was deleted.`);
@@ -1119,7 +1120,9 @@ describe("Custom Domain Plugin", () => {
                 callback(null, {distributionDomainName: "foo", regionalHostedZoneId: "test_id"});
             });
             AWS.mock("Route53", "listHostedZones", (params, callback) => {
-                callback(null, {HostedZones: [{Name: "test_domain", Id: "test_id", Config: {PrivateZone: false}}]});
+                callback(null, {
+                    HostedZones: [{Name: "test_domain", Id: "test_id", Config: {PrivateZone: false}}]
+                });
             });
             AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
                 callback(null, params);
@@ -1127,15 +1130,15 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
             plugin.route53 = new aws.Route53();
             plugin.domains.forEach((d) => {
                 d.acm = new aws.ACM();
             });
 
             plugin.initializeVariables();
-            await plugin.createDomains();
+            plugin.initAWSResources();
 
+            await plugin.createDomains();
             expect(consoleOutput[1]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
                         New domains may take up to 40 minutes to be initialized.`);
         });
@@ -1157,7 +1160,7 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
+            plugin.initAWSResources();
             plugin.route53 = new aws.Route53();
             plugin.initializeVariables();
             plugin.domains.forEach((d) => {
@@ -1415,8 +1418,7 @@ describe("Custom Domain Plugin", () => {
             });
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.apigateway = new aws.APIGateway();
-            plugin.initializeVariables();
+            plugin.initAWSResources();
 
             return plugin.domainSummaries().then(() => {
                 // check if distribution domain name is printed
@@ -1457,8 +1459,8 @@ describe("Custom Domain Plugin", () => {
                 callback(null, {domainName: params, distributionDomainName: "test_distributed_domain_name"});
             });
             const plugin = constructPlugin({domainName: "test_domain"});
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
             await plugin.domainSummaries();
             expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
@@ -1478,8 +1480,9 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({});
 
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
-            const returnedCreds = plugin.apigateway.config.credentials;
+            const returnedCreds = plugin.apiGatewayWrapper.apiGateway.config.credentials;
             expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
             expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
             expect(plugin.domains).length.to.be.greaterThan(0);
@@ -1492,8 +1495,9 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({enabled: true});
 
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
-            const returnedCreds = plugin.apigateway.config.credentials;
+            const returnedCreds = plugin.apiGatewayWrapper.apiGateway.config.credentials;
             expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
             expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
             expect(plugin.domains).length.to.be.greaterThan(0);
@@ -1506,8 +1510,9 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({enabled: "true"});
 
             plugin.initializeVariables();
+            plugin.initAWSResources();
 
-            const returnedCreds = plugin.apigateway.config.credentials;
+            const returnedCreds = plugin.apiGatewayWrapper.apiGateway.config.credentials;
             expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
             expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
             expect(plugin.domains).length.to.be.greaterThan(0);
@@ -1580,7 +1585,7 @@ describe("Custom Domain Plugin", () => {
                 await plugin.hookWrapper(null);
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"0\"");
+                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous enablement boolean: \"0\"`);
             }
             expect(errored).to.equal(true);
         });
@@ -1593,7 +1598,7 @@ describe("Custom Domain Plugin", () => {
                 await plugin.hookWrapper(null);
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("serverless-domain-manager: Ambiguous enablement boolean: \"yes\"");
+                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous enablement boolean: \"yes\"`);
             }
             expect(errored).to.equal(true);
         });
@@ -1610,10 +1615,10 @@ describe("Custom Domain Plugin", () => {
 
             let errored = false;
             try {
-                plugin.initializeVariables();
+                plugin.validateConfigExists();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+                expect(err.message).to.equal(`${Globals.pluginName}: Plugin configuration is missing.`);
             }
             expect(errored).to.equal(true);
         });
@@ -1624,10 +1629,10 @@ describe("Custom Domain Plugin", () => {
 
             let errored = false;
             try {
-                plugin.initializeVariables();
+                plugin.validateConfigExists();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+                expect(err.message).to.equal(`${Globals.pluginName}: Plugin configuration is missing.`);
             }
             expect(errored).to.equal(true);
         });
@@ -1638,10 +1643,10 @@ describe("Custom Domain Plugin", () => {
 
             let errored = false;
             try {
-                plugin.initializeVariables();
+                plugin.validateConfigExists();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("serverless-domain-manager: Plugin configuration is missing.");
+                expect(err.message).to.equal(`${Globals.pluginName}: Plugin configuration is missing.`);
             }
             expect(errored).to.equal(true);
         });
@@ -1702,13 +1707,11 @@ describe("Custom Domain Plugin", () => {
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
-
-            plugin.apigateway = new aws.APIGateway();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "getDomainName");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "getDomainName");
 
             await plugin.createOrGetDomainForCfOutputs();
 
@@ -1729,14 +1732,12 @@ describe("Custom Domain Plugin", () => {
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
-
-            plugin.apigateway = new aws.APIGateway();
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy1 = chai.spy.on(plugin.apigateway, "createDomainName");
-            const spy2 = chai.spy.on(plugin.apigatewayV2, "createDomainName");
+            const spy1 = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createDomainName");
+            const spy2 = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "createDomainName");
 
             await plugin.createOrGetDomainForCfOutputs();
 
@@ -1780,12 +1781,11 @@ describe("Custom Domain Plugin", () => {
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
-
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "deleteDomainName");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteDomainName");
 
             await plugin.removeBasePathMappings();
 
@@ -1828,12 +1828,11 @@ describe("Custom Domain Plugin", () => {
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
-
-            plugin.apigatewayV2 = new aws.ApiGatewayV2();
+            plugin.initAWSResources();
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy = chai.spy.on(plugin.apigatewayV2, "deleteDomainName");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteDomainName");
 
             await plugin.removeBasePathMappings();
 

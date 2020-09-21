@@ -3,7 +3,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  stage: dev
+  stage: test
 functions:
   helloWorld:
     handler: handler.connect
@@ -16,13 +16,15 @@ plugins:
 custom:
   customDomains:
     - http:
-        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        domainName: http-api-multi-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
+        autoDomain: true
     - http:
-        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}.foo
+        domainName: http-api-milti2-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
+        autoDomain: true
 
 package:
   exclude:

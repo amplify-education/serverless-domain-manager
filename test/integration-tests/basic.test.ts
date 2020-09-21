@@ -123,4 +123,15 @@ describe("Integration Tests", function() {
             await utilities.destroyResources(testURL, RANDOM_STRING);
         }
     });
+
+    it("Deploy multi domains", async () => {
+        const testName = "http-api-multiple";
+        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
+        try {
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+        } finally {
+            await utilities.destroyResources(testName, RANDOM_STRING);
+        }
+    });
 });

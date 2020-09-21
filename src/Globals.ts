@@ -1,5 +1,6 @@
 import chalk = require("chalk");
 import {ServerlessInstance, ServerlessOptions} from "./types";
+import DomainConfig = require("./DomainConfig");
 
 export default class Globals {
 
@@ -68,5 +69,18 @@ export default class Globals {
             const warning = chalk.keyword('orange');
             Globals.cliLog(warning("WARNING:"), message);
         }
+    }
+
+    /**
+     * Prints out a summary of all domain manager related info
+     */
+
+    public static printDomainSummary(domain: DomainConfig): void {
+        Globals.logInfo(chalk.yellow.underline(`\n${Globals.pluginName} Summary`));
+
+        Globals.logInfo(chalk.yellow("Distribution Domain Name"));
+        Globals.logInfo(`  Domain Name: ${domain.givenDomainName}`);
+        Globals.logInfo(`  Target Domain: ${domain.domainInfo.domainName}`);
+        Globals.logInfo(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
     }
 }

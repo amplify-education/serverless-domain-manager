@@ -1,4 +1,4 @@
-export interface CustomDomain {
+export interface CustomDomain { // tslint:disable-line
     domainName: string;
     basePath: string | undefined;
     stage: string | undefined;
@@ -16,7 +16,7 @@ export interface CustomDomain {
     allowPathMatching: boolean | undefined;
 }
 
-export interface ServerlessInstance {
+export interface ServerlessInstance { // tslint:disable-line
     service: {
         service: string
         provider: {
@@ -56,6 +56,6 @@ export interface ServerlessInstance {
     };
 }
 
-export interface ServerlessOptions {
+export interface ServerlessOptions { // tslint:disable-line
     stage: string;
 }

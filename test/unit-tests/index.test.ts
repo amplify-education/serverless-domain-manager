@@ -1121,7 +1121,7 @@ describe("Custom Domain Plugin", () => {
             });
             AWS.mock("Route53", "listHostedZones", (params, callback) => {
                 callback(null, {
-                    HostedZones: [{Name: "test_domain", Id: "test_id", Config: {PrivateZone: false}}]
+                    HostedZones: [{Name: "test_domain", Id: "test_id", Config: {PrivateZone: false}}],
                 });
             });
             AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {

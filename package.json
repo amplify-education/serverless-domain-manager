@@ -24,12 +24,12 @@
     "serverless.com",
     "domain manager"
   ],
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "bin": {},
   "scripts": {
-    "test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
-    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.tests.json test/integration-tests/*.test.ts && nyc report --reporter=text-summary",
-    "lint": "tslint --project . && tslint --project tsconfig.tests.json",
+    "test": "nyc mocha -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/*.test.ts && nyc report --reporter=text-summary",
+    "lint": "tslint --project . && tslint --project tsconfig.json",
     "build": "tsc --project ."
   },
   "files": [

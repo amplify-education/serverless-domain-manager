@@ -1,6 +1,6 @@
 import chalk = require("chalk");
-import {ServerlessInstance, ServerlessOptions} from "./types";
 import DomainConfig = require("./DomainConfig");
+import {ServerlessInstance, ServerlessOptions} from "./types";
 
 export default class Globals {
 
@@ -8,6 +8,8 @@ export default class Globals {
 
     public static serverless: ServerlessInstance;
     public static options: ServerlessOptions;
+
+    public static defaultRegion = "us-east-1";
 
     public static endpointTypes = {
         edge: "EDGE",
@@ -66,7 +68,7 @@ export default class Globals {
     public static logWarning(message: any, debug = false): void {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            const warning = chalk.keyword('orange');
+            const warning = chalk.keyword("orange");
             Globals.cliLog(warning("WARNING:"), message);
         }
     }

@@ -5,7 +5,7 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
-import { CustomDomain } from "./types";
+import {CustomDomain} from "./types";
 
 class DomainConfig {
 
@@ -64,7 +64,7 @@ class DomainConfig {
         }
         this.endpointType = endpointTypeToUse;
 
-        const apiTypeWithDefault =  config.apiType || Globals.apiTypes.rest;
+        const apiTypeWithDefault = config.apiType || Globals.apiTypes.rest;
         const apiTypeToUse = Globals.apiTypes[apiTypeWithDefault.toLowerCase()];
         if (!apiTypeToUse) {
             throw new Error(`${apiTypeWithDefault} is not supported api type, use REST, HTTP or WEBSOCKET.`);
@@ -79,8 +79,8 @@ class DomainConfig {
         this.securityPolicy = tlsVersionToUse;
 
         const region = this.endpointType === Globals.endpointTypes.regional ?
-            Globals.serverless.providers.aws.getRegion() : "us-east-1";
-        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), { region });
+            Globals.serverless.providers.aws.getRegion() : Globals.defaultRegion;
+        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
     }
 

@@ -106,11 +106,11 @@ class ServerlessCustomDomain {
 
             const configKeys = Object.keys(domain);
             // If the key of the item in config is an api type it is using per api type domain structure
-            if (apiTypes.some(apiType => configKeys.includes(apiType))) {
+            if (apiTypes.some((apiType) => configKeys.includes(apiType))) {
                 // validate invalid api types
-                const invalidApiTypes = configKeys.filter(configType => !apiTypes.includes(configType));
+                const invalidApiTypes = configKeys.filter((configType) => !apiTypes.includes(configType));
                 if (invalidApiTypes.length) {
-                    throw Error(`Invalid API Type(s): ${invalidApiTypes}-${invalidApiTypes.join('; ')}`);
+                    throw Error(`Invalid API Type(s): ${invalidApiTypes}-${invalidApiTypes.join("; ")}`);
                 }
                 // init config for each type
                 for (const configApiType of configKeys) {
@@ -124,7 +124,7 @@ class ServerlessCustomDomain {
         });
 
         // Filter inactive domains
-        this.domains = this.domains.filter(domain => domain.enabled);
+        this.domains = this.domains.filter((domain) => domain.enabled);
     }
 
     /**

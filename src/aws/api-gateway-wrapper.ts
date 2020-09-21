@@ -4,7 +4,7 @@
 import DomainConfig = require("../DomainConfig");
 import DomainInfo = require("../DomainInfo");
 import Globals from "../Globals";
-import {ApiGatewayV2, APIGateway} from "aws-sdk";
+import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
 import {getAWSPagedResults, throttledCall} from "../utils";
 
 class APIGatewayWrapper {

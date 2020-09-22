@@ -12,10 +12,10 @@ const RANDOM_STRING = randomstring.generate({
     length: 5,
 });
 const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
-const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+const TIMEOUT_MINUTES = 20 * 60 * 1000; // 20 minutes in milliseconds
 
 export {
-    FIFTEEN_MINUTES,
+    TIMEOUT_MINUTES,
     RANDOM_STRING,
     TEMP_DIR,
     TEST_DOMAIN,

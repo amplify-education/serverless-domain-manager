@@ -101,10 +101,10 @@ class APIGatewayWrapper {
             });
             return new DomainInfo(domainInfo);
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
             if (err.code !== "NotFoundException") {
                 throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
             }
+            Globals.logInfo(`${domain.givenDomainName} does not exist`);
         }
     }
 

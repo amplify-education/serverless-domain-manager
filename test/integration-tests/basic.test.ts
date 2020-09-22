@@ -1,13 +1,13 @@
 import chai = require("chai");
 import "mocha";
-import {FIFTEEN_MINUTES, RANDOM_STRING, TEMP_DIR, TEST_DOMAIN} from "./base";
+import {TIMEOUT_MINUTES, RANDOM_STRING, TEMP_DIR, TEST_DOMAIN} from "./base";
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";
 
 describe("Integration Tests", function() {
-    this.timeout(FIFTEEN_MINUTES);
+    this.timeout(TIMEOUT_MINUTES);
 
     it("Creates a empty basepath mapping", async () => {
         const testName = "null-basepath-mapping";

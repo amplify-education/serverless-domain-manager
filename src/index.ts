@@ -414,17 +414,6 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Populates the DomainInfo object on the Domains if custom domain in aws exists
-     */
-    public async updateDomainInfo(domain: DomainConfig): Promise<DomainConfig> {
-        const domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
-        if (domainInfo) {
-            domain.domainInfo = new DomainInfo(domainInfo);
-        }
-        return domain;
-    }
-
-    /**
      * Change A Alias record through Route53 based on given action
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainInfo object containing info about custom domain

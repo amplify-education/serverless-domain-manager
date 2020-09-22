@@ -99,15 +99,7 @@ const testCases = [
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
-    },
-    {
-        testBasePath: "(none)",
-        testDescription: "Create HTTP API and multi domain names",
-        testDomain: `http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,
-        testEndpoint: "REGIONAL",
-        testFolder: "http-api-multiple",
-        testStage: "$default",
-    },
+    }
 ];
 
 describe("Integration Tests", function() {

@@ -1,7 +1,7 @@
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
-import {TIMEOUT_MINUTES, RANDOM_STRING, TEST_DOMAIN} from "./base";
+import {RANDOM_STRING, TEST_DOMAIN, TIMEOUT_MINUTES} from "./base";
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;

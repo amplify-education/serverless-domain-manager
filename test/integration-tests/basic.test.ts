@@ -1,7 +1,7 @@
 import chai = require("chai");
 import "mocha";
 import utilities = require("./test-utilities");
-import {getRandomString, TEST_DOMAIN} from "./base";
+import {getRandomString, TEST_DOMAIN} from "./base"; // tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";

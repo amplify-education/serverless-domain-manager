@@ -1,18 +1,14 @@
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
-import randomstring = require("randomstring");
+
 import utilities = require("./test-utilities");
-import {TEST_DOMAIN} from "./base";
+import {getRandomString, TEST_DOMAIN} from "./base";
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";
 const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
-const RANDOM_STRING = randomstring.generate({
-    capitalization: "lowercase",
-    charset: "alphanumeric",
-    length: 5,
-});
+const RANDOM_STRING = getRandomString();
 
 const testCases = [
     {

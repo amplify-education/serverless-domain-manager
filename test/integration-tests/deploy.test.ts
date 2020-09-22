@@ -1,11 +1,18 @@
+import randomstring = require("randomstring");
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
-import {RANDOM_STRING, TEST_DOMAIN, TIMEOUT_MINUTES} from "./base";
+import {TEST_DOMAIN} from "./base";
 import utilities = require("./test-utilities");
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";
+const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
+const RANDOM_STRING = randomstring.generate({
+    capitalization: "lowercase",
+    charset: "alphanumeric",
+    length: 5,
+});
 
 const testCases = [
     {
@@ -96,7 +103,8 @@ const testCases = [
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
-    }, {
+    },
+    {
         testBasePath: "(none)",
         testDescription: "Create HTTP API and multi domain names",
         testDomain: `http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,

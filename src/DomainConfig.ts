@@ -78,8 +78,10 @@ class DomainConfig {
         }
         this.securityPolicy = tlsVersionToUse;
 
-        const region = this.endpointType === Globals.endpointTypes.regional ?
-            Globals.serverless.providers.aws.getRegion() : Globals.defaultRegion;
+        let region = Globals.defaultRegion;
+        if (this.endpointType === Globals.endpointTypes.regional) {
+            region = Globals.serverless.providers.aws.getRegion();
+        }
         const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
     }

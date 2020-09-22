@@ -1,10 +1,18 @@
-import chai = require("chai");
 import "mocha";
-import {RANDOM_STRING, TEMP_DIR, TEST_DOMAIN, TIMEOUT_MINUTES} from "./base";
+import chai = require("chai");
+import randomstring = require("randomstring");
 import utilities = require("./test-utilities");
+import {TEST_DOMAIN} from "./base";
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";
+const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+const RANDOM_STRING = randomstring.generate({
+    capitalization: "lowercase",
+    charset: "alphanumeric",
+    length: 5,
+});
+const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
 
 describe("Integration Tests", function() {
     this.timeout(TIMEOUT_MINUTES);

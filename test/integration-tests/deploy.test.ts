@@ -99,7 +99,7 @@ const testCases = [
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
-    }
+    },
 ];
 
 describe("Integration Tests", function() {

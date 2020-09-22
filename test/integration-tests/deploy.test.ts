@@ -1,9 +1,9 @@
-import randomstring = require("randomstring");
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
-import {TEST_DOMAIN} from "./base";
+import randomstring = require("randomstring");
 import utilities = require("./test-utilities");
+import {TEST_DOMAIN} from "./base";
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";

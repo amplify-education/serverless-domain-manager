@@ -1,5 +1,5 @@
-import "mocha";
 import chai = require("chai");
+import "mocha";
 import randomstring = require("randomstring");
 import utilities = require("./test-utilities");
 import {TEST_DOMAIN} from "./base";

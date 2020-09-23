@@ -39,6 +39,9 @@ export default class Globals {
      * @param domain: domain name
      */
     public static logError(message: any, domain?: string, debug?: boolean): void {
+        if (debug === undefined) {
+            debug = true;
+        }
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
             const error = chalk.bold.red;

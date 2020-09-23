@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2020-09-23
+Fix for error logging. Show not necessary error logs only for SLS_DEBUG on.
+
+
 ## [5.0.0] - 2020-09-23
 Added support for multiple domains which led to lots of refactoring. Releasing a new major version in case there are any issues that weren't caught in our testing.
 

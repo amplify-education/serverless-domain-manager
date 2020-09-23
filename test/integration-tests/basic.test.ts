@@ -1,13 +1,16 @@
 import chai = require("chai");
 import "mocha";
-import {FIFTEEN_MINUTES, RANDOM_STRING, TEMP_DIR, TEST_DOMAIN} from "./base";
 import utilities = require("./test-utilities");
+import {getRandomString, TEST_DOMAIN} from "./base"; // tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";
+const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+const RANDOM_STRING = getRandomString();
+const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
 
 describe("Integration Tests", function() {
-    this.timeout(FIFTEEN_MINUTES);
+    this.timeout(TIMEOUT_MINUTES);
 
     it("Creates a empty basepath mapping", async () => {
         const testName = "null-basepath-mapping";
@@ -121,6 +124,17 @@ describe("Integration Tests", function() {
             await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
         } finally {
             await utilities.destroyResources(testURL, RANDOM_STRING);
+        }
+    });
+
+    it("Deploy multi domains", async () => {
+        const testName = "http-api-multiple";
+        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
+        try {
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
+        } finally {
+            await utilities.destroyResources(testName, RANDOM_STRING);
         }
     });
 });

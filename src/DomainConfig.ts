@@ -5,8 +5,11 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
+import {CustomDomain} from "./types";
 
 class DomainConfig {
+
+    public acm: any;
 
     public givenDomainName: string;
     public basePath: string | undefined;
@@ -20,13 +23,15 @@ class DomainConfig {
     public hostedZonePrivate: boolean | undefined;
     public enabled: boolean | string | undefined;
     public securityPolicy: string | undefined;
+    public autoDomain: boolean | undefined;
+    public autoDomainWaitFor: string | undefined;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
 
-    constructor(config: any) {
+    constructor(config: CustomDomain) {
 
         this.enabled = this.evaluateEnabled(config.enabled);
         this.givenDomainName = config.domainName;
@@ -37,6 +42,8 @@ class DomainConfig {
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;
+        this.autoDomain = config.autoDomain;
+        this.autoDomainWaitFor = config.autoDomainWaitFor;
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {
@@ -57,7 +64,7 @@ class DomainConfig {
         }
         this.endpointType = endpointTypeToUse;
 
-        const apiTypeWithDefault =  config.apiType || Globals.apiTypes.rest;
+        const apiTypeWithDefault = config.apiType || Globals.apiTypes.rest;
         const apiTypeToUse = Globals.apiTypes[apiTypeWithDefault.toLowerCase()];
         if (!apiTypeToUse) {
             throw new Error(`${apiTypeWithDefault} is not supported api type, use REST, HTTP or WEBSOCKET.`);
@@ -70,6 +77,13 @@ class DomainConfig {
             throw new Error(`${securityPolicyDefault} is not a supported securityPolicy, use tls_1_0 or tls_1_2.`);
         }
         this.securityPolicy = tlsVersionToUse;
+
+        let region = Globals.defaultRegion;
+        if (this.endpointType === Globals.endpointTypes.regional) {
+            region = Globals.serverless.providers.aws.getRegion();
+        }
+        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
+        this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
     }
 
     /**
@@ -93,7 +107,7 @@ class DomainConfig {
         } else if (typeof enabled === "string" && enabled === "false") {
             return false;
         }
-        throw new Error(`serverless-domain-manager: Ambiguous enablement boolean: "${enabled}"`);
+        throw new Error(`${Globals.pluginName}: Ambiguous enablement boolean: "${enabled}"`);
     }
 }
 

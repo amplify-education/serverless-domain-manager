@@ -1,11 +1,14 @@
 import chai = require("chai");
 import "mocha";
 import itParam = require("mocha-param");
-import {FIFTEEN_MINUTES, RANDOM_STRING, TEST_DOMAIN} from "./base";
+
 import utilities = require("./test-utilities");
+import {getRandomString, TEST_DOMAIN} from "./base";// tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";
+const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
+const RANDOM_STRING = getRandomString();
 
 const testCases = [
     {
@@ -100,9 +103,10 @@ const testCases = [
 ];
 
 describe("Integration Tests", function() {
-    this.timeout(FIFTEEN_MINUTES);
+    this.timeout(TIMEOUT_MINUTES);
 
     describe("Configuration Tests", () => {
+        // @ts-ignore
         itParam("${value.testDescription}", testCases, async (value) => {
             let restApiInfo;
             if (value.createApiGateway) {

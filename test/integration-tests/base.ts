@@ -6,17 +6,15 @@ if (!TEST_DOMAIN) {
     throw new Error("TEST_DOMAIN environment variable not set");
 }
 
-const RANDOM_STRING = randomstring.generate({
-    capitalization: "lowercase",
-    charset: "alphanumeric",
-    length: 5,
-});
-const TEMP_DIR = `~/tmp/domain-manager-test-${RANDOM_STRING}`;
-const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+function getRandomString(): string {
+    return randomstring.generate({
+        capitalization: "lowercase",
+        charset: "alphanumeric",
+        length: 5,
+    });
+}
 
 export {
-    FIFTEEN_MINUTES,
-    RANDOM_STRING,
-    TEMP_DIR,
+    getRandomString,
     TEST_DOMAIN,
 };

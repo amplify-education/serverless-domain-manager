@@ -256,8 +256,10 @@ class APIGatewayWrapper {
           "NextToken",
           {DomainName: domain.givenDomainName},
         );
-        return mappings.filter(mapping =>
-          !(mapping.ApiId === domain.apiId || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching))
+        return mappings.filter((mapping) =>
+          !(mapping.ApiId === domain.apiId ||
+            (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)
+          ),
         ).length > 0;
     }
 }

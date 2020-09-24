@@ -53,9 +53,9 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         endpointType: customDomainOptions.endpointType,
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+        preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
-		    preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
     };
 
     const serverless = {
@@ -1841,7 +1841,8 @@ describe("Custom Domain Plugin", () => {
             expect(spy).to.have.not.been.called();
         });
 
-        it("removeBasePathMapping should not call deleteDomain when preserveExternalPathMappings is true and external mappings exist", async () => {
+        it("removeBasePathMapping should not call deleteDomain when preserveExternalPathMappings is true and " +
+          "external mappings exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
                 callback(null, {
                     StackResourceDetail:
@@ -1855,7 +1856,12 @@ describe("Custom Domain Plugin", () => {
                 callback(null, {
                     Items: [
                         {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
-                        {ApiId: "test_rest_api_id_2", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
+                        {
+                            ApiId: "test_rest_api_id_2",
+                            MappingKey: "test",
+                            ApiMappingId: "test_mapping_id",
+                            Stage: "test"
+                        },
                     ],
                 });
             });
@@ -1870,11 +1876,11 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                preserveExternalPathMappings: true,
                 autoDomain: true,
                 basePath: "test_basepath",
                 createRoute53Record: false,
                 domainName: "test_domain",
+                preserveExternalPathMappings: true,
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();
@@ -1891,7 +1897,8 @@ describe("Custom Domain Plugin", () => {
             expect(spy).to.have.not.been.called();
         });
 
-        it("removeBasePathMapping should call deleteDomain when preserveExternalPathMappings is true and external mappings don't exist", async () => {
+        it("removeBasePathMapping should call deleteDomain when preserveExternalPathMappings is true and " +
+          "external mappings don't exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
                 callback(null, {
                     StackResourceDetail:
@@ -1919,11 +1926,11 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                preserveExternalPathMappings: true,
                 autoDomain: true,
                 basePath: "test_basepath",
                 createRoute53Record: false,
                 domainName: "test_domain",
+                preserveExternalPathMappings: true,
                 restApiId: "test_rest_api_id",
             });
             plugin.initializeVariables();

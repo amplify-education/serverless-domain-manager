@@ -25,6 +25,7 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
+    public preserveExternalPathMappings: boolean | undefined;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
@@ -44,6 +45,7 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
+        this.preserveExternalPathMappings = config.preserveExternalPathMappings;
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {

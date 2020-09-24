@@ -55,6 +55,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
+		    preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
     };
 
     const serverless = {
@@ -1840,7 +1841,107 @@ describe("Custom Domain Plugin", () => {
             expect(spy).to.have.not.been.called();
         });
 
+        it("removeBasePathMapping should not call deleteDomain when preserveExternalPathMappings is true and external mappings exist", async () => {
+            AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                callback(null, {
+                    StackResourceDetail:
+                      {
+                          LogicalResourceId: "ApiGatewayRestApi",
+                          PhysicalResourceId: "test_rest_api_id",
+                      },
+                });
+            });
+            AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                callback(null, {
+                    Items: [
+                        {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
+                        {ApiId: "test_rest_api_id_2", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
+                    ],
+                });
+            });
+            AWS.mock("ApiGatewayV2", "deleteApiMapping", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                preserveExternalPathMappings: true,
+                autoDomain: true,
+                basePath: "test_basepath",
+                createRoute53Record: false,
+                domainName: "test_domain",
+                restApiId: "test_rest_api_id",
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteDomainName");
+
+            await plugin.removeBasePathMappings();
+
+            expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
+            expect(plugin.serverless.service.custom.customDomain.preserveExternalPathMappings).to.equal(true);
+            expect(spy).to.have.not.been.called();
+        });
+
+        it("removeBasePathMapping should call deleteDomain when preserveExternalPathMappings is true and external mappings don't exist", async () => {
+            AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                callback(null, {
+                    StackResourceDetail:
+                      {
+                          LogicalResourceId: "ApiGatewayRestApi",
+                          PhysicalResourceId: "test_rest_api_id",
+                      },
+                });
+            });
+            AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                callback(null, {
+                    Items: [
+                        {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
+                    ],
+                });
+            });
+            AWS.mock("ApiGatewayV2", "deleteApiMapping", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                preserveExternalPathMappings: true,
+                autoDomain: true,
+                basePath: "test_basepath",
+                createRoute53Record: false,
+                domainName: "test_domain",
+                restApiId: "test_rest_api_id",
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
+
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "deleteDomainName");
+
+            await plugin.removeBasePathMappings();
+
+            expect(plugin.serverless.service.custom.customDomain.autoDomain).to.equal(true);
+            expect(plugin.serverless.service.custom.customDomain.preserveExternalPathMappings).to.equal(true);
+            expect(spy).to.have.been.called();
+        });
+
         afterEach(() => {
+            AWS.restore();
             consoleOutput = [];
         });
     });

@@ -242,6 +242,24 @@ class APIGatewayWrapper {
             Globals.logInfo(`Unable to remove basepath mapping for ${domain.givenDomainName}`);
         }
     }
+
+    /**
+     * Checks for presence of external basepath mappings
+     */
+    public async checkExternalPathMappings(domain: DomainConfig): Promise<boolean> {
+        Globals.logInfo(`Checking for additional base path mappings on ${domain.givenDomainName}...`);
+        const mappings: Array<any> = await getAWSPagedResults(
+          this.apiGatewayV2,
+          "getApiMappings",
+          "Items",
+          "NextToken",
+          "NextToken",
+          {DomainName: domain.givenDomainName},
+        );
+        return mappings.filter(mapping =>
+          !(mapping.ApiId === domain.apiId || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching))
+        ).length > 0;
+    }
 }
 
 export = APIGatewayWrapper;

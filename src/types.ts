@@ -14,6 +14,7 @@ export interface CustomDomain { // tslint:disable-line
     autoDomain: boolean | undefined;
     autoDomainWaitFor: string | undefined;
     allowPathMatching: boolean | undefined;
+    preserveExternalPathMappings: boolean | undefined;
 }
 
 export interface ServerlessInstance { // tslint:disable-line

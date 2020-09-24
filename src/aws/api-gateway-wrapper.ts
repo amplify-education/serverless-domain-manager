@@ -248,7 +248,7 @@ class APIGatewayWrapper {
      */
     public async checkExternalPathMappings(domain: DomainConfig): Promise<boolean> {
         Globals.logInfo(`Checking for additional base path mappings on ${domain.givenDomainName}...`);
-        const mappings: Array<any> = await getAWSPagedResults(
+        const mappings = await getAWSPagedResults(
           this.apiGatewayV2,
           "getApiMappings",
           "Items",

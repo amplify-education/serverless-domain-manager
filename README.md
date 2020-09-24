@@ -137,6 +137,7 @@ securityPolicy | tls_1_2 | The security policy to apply to the custom domain nam
 allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
 | autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
 | autoDomainWaitFor | `120` | How long to wait for create_domain to finish before starting deployment if domain does not exist immediately. |
+| preserveExternalPathMappings | `false` | When `autoDomain` is set to true, and a deployment is removed, setting this wto `true` checks for additional API Gateway base path mappings before automatically deleting the domain, and avoids doing so if they exist. |
 
 
 

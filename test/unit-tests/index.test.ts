@@ -1858,9 +1858,9 @@ describe("Custom Domain Plugin", () => {
                         {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
                         {
                             ApiId: "test_rest_api_id_2",
-                            MappingKey: "test",
                             ApiMappingId: "test_mapping_id",
-                            Stage: "test"
+                            MappingKey: "test",
+                            Stage: "test",
                         },
                     ],
                 });

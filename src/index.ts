@@ -318,7 +318,9 @@ class ServerlessCustomDomain {
                     domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
                     await this.apiGatewayWrapper.deleteBasePathMapping(domain);
                     if (preserveExternalPathMappings) {
-                        noExternalPathMappingsOnDomain = (await this.apiGatewayWrapper.checkExternalPathMappings(domain) === false);
+                        noExternalPathMappingsOnDomain = (
+                          await this.apiGatewayWrapper.checkExternalPathMappings(domain) === false
+                        );
                     }
                 }
 

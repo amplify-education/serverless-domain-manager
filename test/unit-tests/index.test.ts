@@ -53,6 +53,8 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         endpointType: customDomainOptions.endpointType,
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+        route53Profile: customDomainOptions.route53Profile,
+        route53Region: customDomainOptions.route53Region,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
     };
@@ -76,6 +78,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     ApiGatewayV2: aws.ApiGatewayV2,
                     CloudFormation: aws.CloudFormation,
                     Route53: aws.Route53,
+                    SharedIniFileCredentials: aws.SharedIniFileCredentials,
                     config: {
                         update: (toUpdate: object) => null,
                     },
@@ -120,6 +123,23 @@ describe("Custom Domain Plugin", () => {
         const returnedCreds = plugin.apiGatewayWrapper.apiGateway.config.credentials;
         expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
         expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+    });
+
+    describe("custom route53 profile", () => {
+      it("uses the provided profile for route53", () => {
+        const route53ProfileConfig = {
+          route53Profile: "testroute53profile",
+          route53Region: "area-53-zone",
+        };
+        const plugin = constructPlugin(route53ProfileConfig);
+
+        plugin.initAWSResources();
+        const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+        const route53 = plugin.createRoute53Resource(dc);
+
+        expect(route53.config.credentials.profile).to.equal(route53ProfileConfig.route53Profile);
+        expect(route53.config.region).to.equal(route53ProfileConfig.route53Region);
+      });
     });
 
     describe("Domain Endpoint types", () => {
@@ -633,7 +653,8 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({basePath: "test_basepath", domainName: "test_domain"});
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
@@ -644,7 +665,7 @@ describe("Custom Domain Plugin", () => {
                 },
             );
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             await plugin.changeResourceRecordSet("UPSERT", dc);
 
@@ -965,11 +986,12 @@ describe("Custom Domain Plugin", () => {
                 basePath: "test_basepath",
                 domainName: "test_domain",
             });
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             dc.domainInfo = new DomainInfo({
                 distributionDomainName: "test_distribution_name",
@@ -1106,7 +1128,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
             plugin.initAWSResources();
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
 
             await plugin.deleteDomains();
             expect(consoleOutput[0]).to.equal(`Custom domain ${plugin.domains[0].givenDomainName} was deleted.`);
@@ -1131,7 +1153,7 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.domains.forEach((d) => {
                 d.acm = new aws.ACM();
             });
@@ -1162,7 +1184,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
             plugin.initAWSResources();
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
             plugin.domains.forEach((d) => {
                 d.acm = new aws.ACM();
@@ -1191,7 +1213,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "ccc.bbb.aaa.com"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
             expect(result).to.equal("test_id_2");
@@ -1210,7 +1232,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "test.ccc.bbb.aaa.com"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1230,7 +1252,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "test.ccc.bbb.aaa.com"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1249,7 +1271,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "bar.foo.bbb.fr"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1267,7 +1289,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "test.a.aaa.com"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1287,7 +1309,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "bar.foo.bbb.fr"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1307,7 +1329,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "bar.foo.bbb.fr"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1326,7 +1348,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "bar.foo.bbb.fr"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1343,7 +1365,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "aaa.com", hostedZonePrivate: true});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1360,7 +1382,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({domainName: "aaa.com"});
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             const result = await plugin.getRoute53HostedZoneId(plugin.domains[0]);
@@ -1402,7 +1424,7 @@ describe("Custom Domain Plugin", () => {
 
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
-            plugin.route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => new aws.Route53();
             plugin.initializeVariables();
 
             return plugin.getRoute53HostedZoneId(plugin.domains[0]).then(() => {

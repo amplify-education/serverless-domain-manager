@@ -1,0 +1,26 @@
+# Creating a domain should be idempotent
+service: route53-profile-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: route53-profile-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    route53Profile: default
+
+package:
+  exclude:
+    - node_modules/**

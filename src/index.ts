@@ -3,7 +3,6 @@
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import DomainConfig = require("./DomainConfig");
-import DomainInfo = require("./DomainInfo");
 import Globals from "./Globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";

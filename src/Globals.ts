@@ -86,8 +86,7 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.cliLog("", chalk.yellow.underline("Summary"));
-        Globals.cliLog("", chalk.yellow("Distribution Domain Name"));
+        Globals.cliLog( chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
         Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
         Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
         Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);

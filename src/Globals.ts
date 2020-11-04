@@ -22,6 +22,11 @@ export default class Globals {
         websocket: "WEBSOCKET",
     };
 
+    public static gatewayAPIIdKeys = {
+        [Globals.apiTypes.rest]: 'restApiId',
+        [Globals.apiTypes.websocket]: 'websocketApiId',
+    };
+
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",

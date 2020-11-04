@@ -90,6 +90,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
             provider: {
                 apiGateway: {
                     restApiId: null,
+                    websocketApiId: null,
                 },
                 compiledCloudFormationTemplate: {
                     Outputs: null,

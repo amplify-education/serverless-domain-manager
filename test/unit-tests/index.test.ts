@@ -1464,10 +1464,9 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             await plugin.domainSummaries();
-            expect(consoleOutput[0]).to.contain("Summary");
-            expect(consoleOutput[1]).to.contain("Distribution Domain Name");
-            expect(consoleOutput[2]).to.contain("test_domain");
-            expect(consoleOutput[3]).to.contain("test_distributed_domain_name");
+            expect(consoleOutput[0]).to.contain("Distribution Domain Name");
+            expect(consoleOutput[1]).to.contain("test_domain");
+            expect(consoleOutput[2]).to.contain("test_distributed_domain_name");
         });
 
         afterEach(() => {

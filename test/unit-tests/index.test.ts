@@ -1139,7 +1139,7 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             await plugin.createDomains();
-            expect(consoleOutput[1]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
+            expect(consoleOutput[0]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
                         New domains may take up to 40 minutes to be initialized.`);
         });
 
@@ -1463,7 +1463,7 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             await plugin.domainSummaries();
-            expect(consoleOutput[0]).to.contain("Serverless Domain Manager Summary");
+            expect(consoleOutput[0]).to.contain("Summary");
             expect(consoleOutput[1]).to.contain("Distribution Domain Name");
             expect(consoleOutput[2]).to.contain("test_domain");
             expect(consoleOutput[3]).to.contain("test_distributed_domain_name");

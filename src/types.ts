@@ -27,6 +27,7 @@ export interface ServerlessInstance { // tslint:disable-line
             },
             apiGateway: {
                 restApiId: string,
+                websocketApiId: string,
             },
         }
         custom: {

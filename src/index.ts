@@ -523,17 +523,18 @@ class ServerlessCustomDomain {
      * Gets rest API id from existing config or CloudFormation stack
      */
     public async getApiId(domain: DomainConfig): Promise<string> {
-        const apiGateway = this.serverless.service.provider.apiGateway;
-        if (apiGateway && apiGateway.restApiId) {
-            const restApiId = apiGateway.restApiId;
+        const apiGateway = this.serverless.service.provider.apiGateway || {};
+        const apiIdKey = Globals.gatewayAPIIdKeys[domain.apiType];
+        const apiId = apiGateway[apiIdKey];
+        if (apiId) {
             // if string value exists return the value
-            if (typeof restApiId === "string") {
-                Globals.logInfo(`Mapping custom domain to existing API  ${restApiId}.`);
-                return restApiId;
+            if (typeof apiId === "string") {
+                Globals.logInfo(`Mapping custom domain to existing API  ${apiId}.`);
+                return apiId;
             }
             // in case object and Fn::ImportValue try to get restApiId from the CloudFormation exports
-            if (typeof restApiId === "object" && restApiId["Fn::ImportValue"]) {
-                const importName = restApiId["Fn::ImportValue"];
+            if (typeof apiId === "object" && apiId["Fn::ImportValue"]) {
+                const importName = apiId["Fn::ImportValue"];
                 let importValues;
                 try {
                     importValues = await this.cloudFormationWrapper.getImportValues([importName]);

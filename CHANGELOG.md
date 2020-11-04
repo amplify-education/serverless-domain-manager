@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.0] - 2020-11-04
 - Disabled insensitive error logging for SLS_DEBUG off
-- Fix getting an api id for different types of the API gateway 
+- Fix getting an api id for different types of the API gateway ([#366](https://github.com/amplify-education/serverless-domain-manager/issues/366))
 
 ## [5.0.0] - 2020-09-23
 - Added support for multiple domains which led to lots of refactoring. Releasing a new major version in case there are any issues that weren't caught in our testing.

@@ -44,6 +44,9 @@ export default class Globals {
      * @param domain: domain name
      */
     public static logError(message: any, domain?: string, debug?: boolean): void {
+        if (debug === undefined) {
+            debug = true;
+        }
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
             const error = chalk.bold.red;
@@ -83,11 +86,10 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.logInfo(chalk.yellow.underline(`\n${Globals.pluginName} Summary`));
-
-        Globals.logInfo(chalk.yellow("Distribution Domain Name"));
-        Globals.logInfo(`  Domain Name: ${domain.givenDomainName}`);
-        Globals.logInfo(`  Target Domain: ${domain.domainInfo.domainName}`);
-        Globals.logInfo(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        Globals.cliLog("", chalk.yellow.underline("Summary"));
+        Globals.cliLog("", chalk.yellow("Distribution Domain Name"));
+        Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
+        Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
+        Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
     }
 }

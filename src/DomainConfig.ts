@@ -33,12 +33,12 @@ class DomainConfig {
 
     constructor(config: CustomDomain) {
 
-        this.enabled = this.evaluateEnabled(config.enabled);
+        this.enabled = this.evaluateBoolean(config.enabled, true);
         this.givenDomainName = config.domainName;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
-        this.createRoute53Record = config.createRoute53Record;
+        this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;
@@ -87,27 +87,29 @@ class DomainConfig {
     }
 
     /**
-     * Determines whether this plug-in is enabled.
+     * Determines whether this boolean config is configured to true or false.
      *
-     * This method reads the customDomain property "enabled" to see if this plug-in should be enabled.
-     * If the property's value is undefined, a default value of true is assumed (for backwards
-     * compatibility).
-     * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
-     * If no customDomain object exists, an exception is thrown.
+     * This method evaluates a customDomain property to see if it's true or false.
+     * If the property's value is undefined, the default value is returned.
+     * If the property's value is provided, this should be boolean, or a string parseable as boolean,
+     * otherwise an exception is thrown.
+     * @param {boolean|string} booleanConfig the config value provided
+     * @param {boolean} defaultValue the default value to return, if config value is undefined
+     * @returns {boolean} the parsed boolean from the config value, or the default value
      */
-    private evaluateEnabled(enabled: any): boolean {
-        // const enabled = this.serverless.service.custom.customDomain.enabled;
-        if (enabled === undefined) {
-            return true;
+    private evaluateBoolean(booleanConfig: any, defaultValue: boolean): boolean {
+        if (booleanConfig === undefined) {
+            return defaultValue;
         }
-        if (typeof enabled === "boolean") {
-            return enabled;
-        } else if (typeof enabled === "string" && enabled === "true") {
+        if (typeof booleanConfig === "boolean") {
+            return booleanConfig;
+        }
+        else if (typeof booleanConfig === "string" && booleanConfig === "true") {
             return true;
-        } else if (typeof enabled === "string" && enabled === "false") {
+        } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
             return false;
         }
-        throw new Error(`${Globals.pluginName}: Ambiguous enablement boolean: "${enabled}"`);
+        throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${booleanConfig}"`);
     }
 }
 

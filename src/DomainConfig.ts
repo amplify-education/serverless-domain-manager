@@ -103,8 +103,7 @@ class DomainConfig {
         }
         if (typeof booleanConfig === "boolean") {
             return booleanConfig;
-        }
-        else if (typeof booleanConfig === "string" && booleanConfig === "true") {
+        } else if (typeof booleanConfig === "string" && booleanConfig === "true") {
             return true;
         } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
             return false;

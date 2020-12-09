@@ -2,7 +2,7 @@
  * Wrapper class for AWS CloudFormation provider
  */
 
-import {CloudFormation, HTTPOptions} from "aws-sdk";
+import {CloudFormation} from "aws-sdk";
 import DomainConfig = require("../DomainConfig");
 import Globals from "../Globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
@@ -10,8 +10,8 @@ import {getAWSPagedResults, throttledCall} from "../utils";
 class CloudFormationWrapper {
     public cloudFormation: CloudFormation;
 
-    constructor(credentials: any, httpOptions: HTTPOptions) {
-        this.cloudFormation = new CloudFormation({credentials, httpOptions});
+    constructor(credentials: any) {
+        this.cloudFormation = new CloudFormation(credentials);
     }
 
     /**

@@ -163,11 +163,11 @@ class ServerlessCustomDomain {
     public initAWSResources(): void {
         const credentials = this.serverless.providers.aws.getCredentials();
         credentials.region = this.serverless.providers.aws.getRegion();
-        const httpOptions: HTTPOptions = this.serverless.providers.aws.sdk.config.httpOptions;
+        credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
 
-        this.apiGatewayWrapper = new APIGatewayWrapper(credentials, httpOptions);
-        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials, httpOptions);
-        this.cloudFormationWrapper = new CloudFormationWrapper(credentials, httpOptions);
+        this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
+        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
+        this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
     }
 
     /**

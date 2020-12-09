@@ -4,16 +4,17 @@
 import DomainConfig = require("../DomainConfig");
 import DomainInfo = require("../DomainInfo");
 import Globals from "../Globals";
-import {APIGateway, ApiGatewayV2, HTTPOptions} from "aws-sdk"; // tslint:disable-line
+import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
 import {getAWSPagedResults, throttledCall} from "../utils";
 
 class APIGatewayWrapper {
     public apiGateway: APIGateway;
     public apiGatewayV2: ApiGatewayV2;
 
-    constructor(credentials: any, httpOptions: HTTPOptions) {
-        this.apiGateway = new APIGateway({credentials, httpOptions});
-        this.apiGatewayV2 = new ApiGatewayV2({credentials, httpOptions});
+    constructor(credentials: any) {
+
+        this.apiGateway = new APIGateway(credentials);
+        this.apiGatewayV2 = new ApiGatewayV2(credentials);
     }
 
     /**

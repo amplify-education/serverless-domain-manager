@@ -77,10 +77,10 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     CloudFormation: aws.CloudFormation,
                     Route53: aws.Route53,
                     config: {
-                        update: (toUpdate: object) => null,
                         httpOptions: {
                             timeout: 5000,
                         },
+                        update: (toUpdate: object) => null,
                     },
                 },
             },

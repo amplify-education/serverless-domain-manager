@@ -3,10 +3,10 @@
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import DomainConfig = require("./DomainConfig");
+import {HTTPOptions} from "aws-sdk";
 import Globals from "./Globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
-import {HTTPOptions} from "aws-sdk";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 

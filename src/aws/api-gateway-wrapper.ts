@@ -12,7 +12,6 @@ class APIGatewayWrapper {
     public apiGatewayV2: ApiGatewayV2;
 
     constructor(credentials: any) {
-
         this.apiGateway = new APIGateway(credentials);
         this.apiGatewayV2 = new ApiGatewayV2(credentials);
     }

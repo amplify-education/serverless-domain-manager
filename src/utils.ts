@@ -44,7 +44,6 @@ async function throttledCall(service: Service, funcName: string, params: object)
         try {
             return await service[funcName](params).promise();
         } catch (ex) {
-
             // rethrow the exception if it is not a type of retryable exception
             if (RETRYABLE_ERRORS.indexOf(ex.code) === -1) {
                 throw ex;

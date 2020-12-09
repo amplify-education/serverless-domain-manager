@@ -6,7 +6,7 @@ import DomainConfig = require("./DomainConfig");
 import Globals from "./Globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
-import {HTTPOptions} from 'aws-sdk';
+import {HTTPOptions} from "aws-sdk";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 

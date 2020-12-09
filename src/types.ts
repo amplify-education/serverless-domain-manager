@@ -47,7 +47,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 ACM: any,
                 config: {
                     update(toUpdate: object): void,
-                    httpOptions: HTTPOptions
+                    httpOptions: HTTPOptions,
                 },
             }
             getCredentials(),

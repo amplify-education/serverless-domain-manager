@@ -79,7 +79,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     config: {
                         update: (toUpdate: object) => null,
                         httpOptions: {
-                            timeout: 5000
+                            timeout: 5000,
                         },
                     },
                 },

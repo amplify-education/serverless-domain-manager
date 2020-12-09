@@ -1,4 +1,4 @@
-import {HTTPOptions} from 'aws-sdk';
+import {HTTPOptions} from "aws-sdk";
 
 export interface CustomDomain { // tslint:disable-line
     domainName: string;

@@ -1,3 +1,5 @@
+import {HTTPOptions} from 'aws-sdk';
+
 export interface CustomDomain { // tslint:disable-line
     domainName: string;
     basePath: string | undefined;
@@ -45,6 +47,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 ACM: any,
                 config: {
                     update(toUpdate: object): void,
+                    httpOptions: HTTPOptions
                 },
             }
             getCredentials(),

@@ -6,6 +6,7 @@ import DomainConfig = require("./DomainConfig");
 import Globals from "./Globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
+import {HTTPOptions} from 'aws-sdk';
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
@@ -162,10 +163,11 @@ class ServerlessCustomDomain {
     public initAWSResources(): void {
         const credentials = this.serverless.providers.aws.getCredentials();
         credentials.region = this.serverless.providers.aws.getRegion();
+        const httpOptions: HTTPOptions = this.serverless.providers.aws.sdk.config.httpOptions;
 
-        this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
-        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
-        this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
+        this.apiGatewayWrapper = new APIGatewayWrapper(credentials, httpOptions);
+        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials, httpOptions);
+        this.cloudFormationWrapper = new CloudFormationWrapper(credentials, httpOptions);
     }
 
     /**

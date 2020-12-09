@@ -78,6 +78,9 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     Route53: aws.Route53,
                     config: {
                         update: (toUpdate: object) => null,
+                        httpOptions: {
+                            timeout: 5000
+                        },
                     },
                 },
             },
@@ -1414,7 +1417,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Domain summary failed", async () => {
-            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, null);
             });
             const plugin = constructPlugin({domainName: "test_domain"});

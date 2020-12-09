@@ -1,8 +1,8 @@
 "use strict";
 
+import {HTTPOptions} from "aws-sdk";
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
-import {HTTPOptions} from "aws-sdk";
 import DomainConfig = require("./DomainConfig");
 import Globals from "./Globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";

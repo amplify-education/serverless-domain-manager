@@ -65,5 +65,8 @@
   "dependencies": {
     "aws-sdk": "^2.756.0",
     "chalk": "^4.1.0"
+  },
+  "peerDependencies": {
+    "serverless": "1 || 2"
   }
 }

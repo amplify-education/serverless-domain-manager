@@ -33,9 +33,8 @@ jobs:
     steps:
       - name: skip publishing in case no version change
       - run: |
-        if !(git diff --unified=0 $GITHUB_SHA package.json | grep version) ; then
-          echo "Skipping publishing as version was not changed"
-          exit 0
+        if git diff --unified=0 $TRAVIS_COMMIT_RANGE package.json | grep version ; then
+          export VERSION_CHANGED="yes"
         fi
       - uses: actions/checkout@master
       - name: Set up Node 14
@@ -43,8 +42,13 @@ jobs:
         with:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: npm run build
-      #- run: npm publish # for debugging
+      - run: |
+        echo 1
+        if $VERSION_CHANGED == 'yes'; then
+          npm install
+          npm run build
+          # npm publish
+          echo 2
+        fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

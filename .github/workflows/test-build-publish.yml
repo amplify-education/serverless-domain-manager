@@ -29,7 +29,7 @@ jobs:
     name: Build and publish Node package
     runs-on: ubuntu-latest
     needs: [test]
-    #if: github.ref == 'refs/heads/master' # for debugging
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout repository
       - uses: actions/checkout@master
@@ -41,10 +41,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Publish new version
+        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+        #       as it appears actions/setup-node sets own value
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: |
-          if [ git diff --unified=0 $GITHUB_SHA package.json | grep version ]; then
-            npm install
-            npm run build
-          fi
+        run: npm publish

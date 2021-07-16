@@ -31,16 +31,20 @@ jobs:
     needs: [test]
     #if: github.ref == 'refs/heads/master' # for debugging
     steps:
+      - name: Checkout repository
       - uses: actions/checkout@master
-      - name: Set up Node 14
+
+      - name: Install Node.js and npm
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
-      - run: |
-        if [ git diff --unified=0 $GITHUB_SHA package.json | grep version ]; then
-          npm install
-          npm run build
-        fi
+
+      - name: Publish new version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: |
+          if [ git diff --unified=0 $GITHUB_SHA package.json | grep version ]; then
+            npm install
+            npm run build
+          fi

@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "engines": {
     "node": ">=12"
   },

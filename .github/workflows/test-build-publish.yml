@@ -29,8 +29,14 @@ jobs:
     name: Build and publish Node package
     runs-on: ubuntu-latest
     needs: [test]
-    if: github.ref == 'refs/heads/master' && $(git diff --unified=0 $GITHUB_SHA package.json | grep version)
+    #if: github.ref == 'refs/heads/master' # for debugging
     steps:
+      - name: skip publishing in case no version change
+      - run: |
+        if !(git diff --unified=0 GITHUB_SHA package.json | grep version) ; then
+          echo "Skipping publishing as version was not changed"
+          exit 0
+        fi
       - uses: actions/checkout@master
       - name: Set up Node 14
         uses: actions/setup-node@v2
@@ -39,6 +45,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
       - run: npm run build
-      - run: npm run publish
+      #- run: npm publish # for debugging
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

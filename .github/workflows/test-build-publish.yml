@@ -31,7 +31,6 @@ jobs:
     needs: [test]
     #if: github.ref == 'refs/heads/master' # for debugging
     steps:
-      - name: skip publishing in case no version change
       - uses: actions/checkout@master
       - name: Set up Node 14
         uses: actions/setup-node@v2

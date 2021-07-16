@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: skip publishing in case no version change
       - run: |
-        if !(git diff --unified=0 GITHUB_SHA package.json | grep version) ; then
+        if !(git diff --unified=0 $GITHUB_SHA package.json | grep version) ; then
           echo "Skipping publishing as version was not changed"
           exit 0
         fi

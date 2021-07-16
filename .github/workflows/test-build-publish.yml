@@ -40,7 +40,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: |
         echo 1
-        if git diff --unified=0 $GITHUB_SHA package.json | grep version; then
+        if [ git diff --unified=0 $GITHUB_SHA package.json | grep version ]; then
           npm install
           npm run build
           # npm publish

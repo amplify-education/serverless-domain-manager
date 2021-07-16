@@ -41,7 +41,6 @@ jobs:
         if [ git diff --unified=0 $GITHUB_SHA package.json | grep version ]; then
           npm install
           npm run build
-          echo 2
         fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

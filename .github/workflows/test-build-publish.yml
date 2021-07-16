@@ -32,10 +32,6 @@ jobs:
     #if: github.ref == 'refs/heads/master' # for debugging
     steps:
       - name: skip publishing in case no version change
-      - run: |
-        if git diff --unified=0 $TRAVIS_COMMIT_RANGE package.json | grep version ; then
-          export VERSION_CHANGED="yes"
-        fi
       - uses: actions/checkout@master
       - name: Set up Node 14
         uses: actions/setup-node@v2
@@ -44,7 +40,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: |
         echo 1
-        if $VERSION_CHANGED == 'yes'; then
+        if git diff --unified=0 $TRAVIS_COMMIT_RANGE package.json | grep version; then
           npm install
           npm run build
           # npm publish

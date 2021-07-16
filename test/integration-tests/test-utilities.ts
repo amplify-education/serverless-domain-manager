@@ -23,7 +23,7 @@ async function exec(cmd) {
       if (err || stderr) {
         return reject();
       }
-      return resolve();
+      return resolve(stdout);
     });
   });
 }

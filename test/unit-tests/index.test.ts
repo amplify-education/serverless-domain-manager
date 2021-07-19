@@ -3,9 +3,9 @@ import * as AWS from "aws-sdk-mock";
 import chai = require("chai");
 import spies = require("chai-spies");
 import "mocha";
-import DomainConfig = require("../../src/DomainConfig");
-import DomainInfo = require("../../src/DomainInfo");
-import Globals from "../../src/Globals";
+import DomainConfig = require("../../src/domain-config");
+import DomainInfo = require("../../src/domain-info");
+import Globals from "../../src/globals";
 import ServerlessCustomDomain = require("../../src/index");
 import {getAWSPagedResults} from "../../src/utils";
 

@@ -1,9 +1,9 @@
 /**
  * Wrapper class for AWS APIGateway provider
  */
-import DomainConfig = require("../DomainConfig");
-import DomainInfo = require("../DomainInfo");
-import Globals from "../Globals";
+import DomainConfig = require("../domain-config");
+import DomainInfo = require("../domain-info");
+import Globals from "../globals";
 import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
 import {getAWSPagedResults, throttledCall} from "../utils";
 

@@ -3,8 +3,8 @@
  */
 
 import * as AWS from "aws-sdk"; // imported for Types
-import DomainInfo = require("./DomainInfo");
-import Globals from "./Globals";
+import DomainInfo = require("./domain-info");
+import Globals from "./globals";
 import {CustomDomain} from "./types";
 
 class DomainConfig {
@@ -96,7 +96,6 @@ class DomainConfig {
      * If no customDomain object exists, an exception is thrown.
      */
     private evaluateEnabled(enabled: any): boolean {
-        // const enabled = this.serverless.service.custom.customDomain.enabled;
         if (enabled === undefined) {
             return true;
         }

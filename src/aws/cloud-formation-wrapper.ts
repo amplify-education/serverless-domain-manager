@@ -97,10 +97,19 @@ class CloudFormationWrapper {
             {},
         );
 
-        // filter stacks by given stackName
+        // filter stacks by given stackName and check by nested stack RootId
         const filteredStackNames = stacks
-            .map((stack) => stack.StackName) // collect list of stack names
-            .filter((name) => name.includes(stackName)); // filter by stackName
+          .reduce((acc, stack) => {
+              if (!stack.RootId) {
+                  return acc;
+              }
+              const regex = new RegExp(`\/${stackName}\/`);
+              const match = stack.RootId.match(regex);
+              if (match) {
+                  acc.push(stack.StackName);
+              }
+              return acc;
+          }, []);
 
         let response;
         for (const name of filteredStackNames) {

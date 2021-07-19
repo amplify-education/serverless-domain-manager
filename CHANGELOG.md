@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.1.3] - 2021-07-19
-- Fix filtering of stacks by given stackName and check by nested stack RootId. Thank you @matteobattista ([#427](https://github.com/amplify-education/serverless-domain-manager/pull/427))
-- Refactoring. Update packages 
+- Fix filtering of stacks by the given stackName and check by the nested stack RootId. Thank you @matteobattista ([#427](https://github.com/amplify-education/serverless-domain-manager/pull/427))
+- Refactoring. Update packages
 
 ## [5.1.2] - 2021-07-16
 - Fix package publishing

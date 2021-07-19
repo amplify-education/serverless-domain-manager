@@ -1,5 +1,5 @@
 import chalk = require("chalk");
-import DomainConfig = require("./DomainConfig");
+import DomainConfig = require("./domain-config");
 import {ServerlessInstance, ServerlessOptions} from "./types";
 
 export default class Globals {

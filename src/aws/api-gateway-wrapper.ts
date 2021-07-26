@@ -91,7 +91,7 @@ class APIGatewayWrapper {
     }
 
     /**
-     * Delete Custom Domain Name through API Gateway
+     * Get Custom Domain Info through API Gateway
      */
     public async getCustomDomainInfo(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
@@ -102,6 +102,7 @@ class APIGatewayWrapper {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code !== "NotFoundException") {
+                Globals.logError(err, domain.givenDomainName);
                 throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
             }
             Globals.logError(`${domain.givenDomainName} does not exist`);

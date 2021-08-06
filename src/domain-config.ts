@@ -25,11 +25,13 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
+    public route53RoutingPolicy: string | undefined;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
+    public region: string;
 
     constructor(config: CustomDomain) {
 
@@ -44,6 +46,7 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
+        this.route53RoutingPolicy = config.route53RoutingPolicy;
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {
@@ -78,11 +81,11 @@ class DomainConfig {
         }
         this.securityPolicy = tlsVersionToUse;
 
-        let region = Globals.defaultRegion;
+        this.region = Globals.defaultRegion;
         if (this.endpointType === Globals.endpointTypes.regional) {
-            region = Globals.serverless.providers.aws.getRegion();
+            this.region = Globals.serverless.providers.aws.getRegion();
         }
-        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
+        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), { region: this.region });
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
     }
 

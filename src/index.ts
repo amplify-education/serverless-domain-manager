@@ -430,6 +430,11 @@ class ServerlessCustomDomain {
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
+
+        const latencyRecordConfig = domain.route53RoutingPolicy === "latency"
+            ? { Region: domain.region, SetIdentifier: domain.region }
+            : {};
+
         const Changes = ["A", "AAAA"].map((Type) => ({
             Action: action,
             ResourceRecordSet: {
@@ -440,8 +445,10 @@ class ServerlessCustomDomain {
                 },
                 Name: domain.givenDomainName,
                 Type,
+                ...latencyRecordConfig
             },
         }));
+
         const params = {
             ChangeBatch: {
                 Changes,

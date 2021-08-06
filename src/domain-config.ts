@@ -5,7 +5,7 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
 import Globals from "./globals";
-import {CustomDomain, Route53Options} from "./types";
+import {CustomDomain, Route53Params} from "./types";
 
 
 class DomainConfig {
@@ -26,7 +26,7 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
-    public route53Options: Route53Options;
+    public route53Params: Route53Params;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
@@ -47,7 +47,6 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
-        this.route53Options = config.route53Options;
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {
@@ -88,6 +87,25 @@ class DomainConfig {
         }
         const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), { region: this.region });
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
+
+        const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? 'simple';
+        const routingPolicyToUse = Globals.routingPolicies[routingPolicy];
+        if (!routingPolicyToUse) {
+            throw new Error(`${routingPolicy} is not a supported routing policy, use simple, latency, or weighted.`);
+        }
+
+        if (routingPolicyToUse !== Globals.routingPolicies.simple
+            && endpointTypeToUse === Globals.endpointTypes.edge)
+        {
+            throw new Error(`${routingPolicy} routing is not intended to be used with edge endpoints. Use a regional endpoint instead.`);
+        }
+
+        this.route53Params = {
+            routingPolicy: routingPolicyToUse,
+            setIdentifier: config.route53Params?.setIdentifier,
+            weight: config.route53Params?.weight ?? 200,
+            evaluateTargetHealth: config.route53Params?.evaluateTargetHealth ?? false
+        }
     }
 
     /**

@@ -5,7 +5,8 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
 import Globals from "./globals";
-import {CustomDomain} from "./types";
+import {CustomDomain, Route53Options} from "./types";
+
 
 class DomainConfig {
 
@@ -25,7 +26,7 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
-    public route53RoutingPolicy: string | undefined;
+    public route53Options: Route53Options;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
@@ -46,7 +47,7 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
-        this.route53RoutingPolicy = config.route53RoutingPolicy;
+        this.route53Options = config.route53Options;
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {

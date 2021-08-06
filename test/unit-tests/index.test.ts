@@ -55,7 +55,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
-        route53RoutingPolicy: customDomainOptions.route53RoutingPolicy
+        route53Options: customDomainOptions.route53Options
     };
 
     const serverless = {

@@ -137,7 +137,11 @@ securityPolicy | tls_1_2 | The security policy to apply to the custom domain nam
 allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an update. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
 | autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
 | autoDomainWaitFor | `120` | How long to wait for create_domain to finish before starting deployment if domain does not exist immediately. |
-
+| route53Params |  | A set of options to customize Route 53 record creation. If left empty, A and AAAA records with simple routing will be created. If `createRoute53Record` is `false`, anything passed here will be ignored.  |
+| route53Params.routingPolicy | simple | Defines the Route 53 routing policy, accepts `simple`, `latency` or `weighted`. |
+| route53Params.weight | `200` | Sets the weight for weighted routing. Ignored for `simple` and `latency` routing. |
+| route53Params.setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and weighted `routing`. Defaults to the regional endpoint if not provided. |
+| route53Params.evaluateTargetHealth | `false` | If `true`, Route 53 will check the connectivity to the endpoint. If it is unavailable, it will stop routing to it. |
 
 
 ## Running

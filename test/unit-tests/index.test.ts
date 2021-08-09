@@ -55,6 +55,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
+        route53Params: customDomainOptions.route53Params
     };
 
     const serverless = {
@@ -1871,6 +1872,343 @@ describe("Custom Domain Plugin", () => {
 
         afterEach(() => {
             consoleOutput = [];
+        });
+    });
+
+    describe("Route53 Routing Policies", () => {
+        it("Should create a new Alias Record with latency routing", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+                callback(null, {
+                    HostedZones: [{
+                        Config: {PrivateZone: false},
+                        Id: "test_host_id",
+                        Name: "test_domain",
+                    }],
+                });
+            });
+
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                basePath: "test_basepath", 
+                domainName: "test_domain",
+                endpointType: "regional",
+                route53Params: {
+                    routingPolicy: 'latency'
+                }
+            });
+            plugin.route53 = new aws.Route53();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            dc.domainInfo = new DomainInfo(
+                {
+                    regionalDomainName: "test_regional_name",
+                    regionalHostedZoneId: "test_id",
+                },
+            );
+
+            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+            await plugin.changeResourceRecordSet("UPSERT", dc);
+
+            const expectedParams = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "A",
+                                Region: "eu-west-1",
+                                SetIdentifier: "test_regional_name"
+                            },
+                        },
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "AAAA",
+                                Region: "eu-west-1",
+                                SetIdentifier: "test_regional_name"
+                            },
+                        },
+                    ],
+                    Comment: "Record created by serverless-domain-manager",
+                },
+                HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+            };
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Should create a new Alias Record with weighted routing", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+                callback(null, {
+                    HostedZones: [{
+                        Config: {PrivateZone: false},
+                        Id: "test_host_id",
+                        Name: "test_domain",
+                    }],
+                });
+            });
+
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                basePath: "test_basepath", 
+                domainName: "test_domain",
+                endpointType: "regional",
+                route53Params: {
+                    routingPolicy: 'weighted',
+                    weight: 100
+                }
+            });
+            plugin.route53 = new aws.Route53();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            dc.domainInfo = new DomainInfo(
+                {
+                    regionalDomainName: "test_regional_name",
+                    regionalHostedZoneId: "test_id",
+                },
+            );
+
+            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+            await plugin.changeResourceRecordSet("UPSERT", dc);
+
+            const expectedParams = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "A",
+                                SetIdentifier: "test_regional_name",
+                                Weight: 100
+                            },
+                        },
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "AAAA",
+                                SetIdentifier: "test_regional_name",
+                                Weight: 100
+                            },
+                        },
+                    ],
+                    Comment: "Record created by serverless-domain-manager",
+                },
+                HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+            };
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Should exclude weight input with latency routing", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+                callback(null, {
+                    HostedZones: [{
+                        Config: {PrivateZone: false},
+                        Id: "test_host_id",
+                        Name: "test_domain",
+                    }],
+                });
+            });
+
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                basePath: "test_basepath", 
+                domainName: "test_domain",
+                endpointType: "regional",
+                route53Params: {
+                    routingPolicy: 'latency',
+                    weight: 100
+                }
+            });
+            plugin.route53 = new aws.Route53();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            dc.domainInfo = new DomainInfo(
+                {
+                    regionalDomainName: "test_regional_name",
+                    regionalHostedZoneId: "test_id",
+                },
+            );
+
+            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+            await plugin.changeResourceRecordSet("UPSERT", dc);
+
+            const expectedParams = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "A",
+                                Region: "eu-west-1",
+                                SetIdentifier: "test_regional_name",
+                            },
+                        },
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "AAAA",
+                                Region: "eu-west-1",
+                                SetIdentifier: "test_regional_name",
+                            },
+                        },
+                    ],
+                    Comment: "Record created by serverless-domain-manager",
+                },
+                HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+            };
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Should exclude weight, region, and set identifier input with simple routing", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+                callback(null, {
+                    HostedZones: [{
+                        Config: {PrivateZone: false},
+                        Id: "test_host_id",
+                        Name: "test_domain",
+                    }],
+                });
+            });
+
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                basePath: "test_basepath", 
+                domainName: "test_domain",
+                endpointType: "regional",
+                route53Params: {
+                    setIdentifier: "test_identifier",
+                    weight: 100
+                }
+            });
+            plugin.route53 = new aws.Route53();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            dc.domainInfo = new DomainInfo(
+                {
+                    regionalDomainName: "test_regional_name",
+                    regionalHostedZoneId: "test_id",
+                },
+            );
+
+            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+
+            await plugin.changeResourceRecordSet("UPSERT", dc);
+
+            const expectedParams = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "A",
+                            },
+                        },
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_regional_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "AAAA",
+                            },
+                        },
+                    ],
+                    Comment: "Record created by serverless-domain-manager",
+                },
+                HostedZoneId: "est_host_id", // getRoute53HostedZoneId strips first character
+            };
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Should throw an Error when passing a routing policy that is not supported", async () => {
+            const plugin = constructPlugin({route53Params: { routingPolicy: 'test_policy'} });
+
+            let errored = false;
+            try {
+                await plugin.hookWrapper(null);
+            } catch (err) {
+                errored = true;
+                expect(err.message).to.equal("test_policy is not a supported routing policy, use simple, latency, or weighted.");
+            }
+            expect(errored).to.equal(true);
+        });
+
+        it("Should throw an Error when using latency routing with edge endpoints", async () => {
+            const plugin = constructPlugin({
+                route53Params: { routingPolicy: "latency"}
+            });
+
+            let errored = false;
+            try {
+                await plugin.hookWrapper(null);
+            } catch (err) {
+                errored = true;
+                expect(err.message).to.equal("latency routing is not intended to be used with edge endpoints. Use a regional endpoint instead.");
+            }
+            expect(errored).to.equal(true);
         });
     });
 });

@@ -430,18 +430,36 @@ class ServerlessCustomDomain {
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
+
+        const latencyRecordConfig = domain.route53Params.routingPolicy === "latency"
+            ? {
+                Region: domain.region,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName
+            }
+            : {};
+
+        const weightedRecordConfig = domain.route53Params.routingPolicy === "weighted"
+            ? {
+                Weight: domain.route53Params.weight,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName
+            }
+            : {};
+
         const Changes = ["A", "AAAA"].map((Type) => ({
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
                     DNSName: domain.domainInfo.domainName,
-                    EvaluateTargetHealth: false,
+                    EvaluateTargetHealth: domain.route53Params.evaluateTargetHealth,
                     HostedZoneId: domain.domainInfo.hostedZoneId,
                 },
                 Name: domain.givenDomainName,
                 Type,
+                ...latencyRecordConfig,
+                ...weightedRecordConfig
             },
         }));
+
         const params = {
             ChangeBatch: {
                 Changes,

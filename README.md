@@ -140,7 +140,7 @@ allowPathMatching | false | When updating an existing api mapping this will matc
 | route53Params |  | A set of options to customize Route 53 record creation. If left empty, A and AAAA records with simple routing will be created. If `createRoute53Record` is `false`, anything passed here will be ignored.  |
 | route53Params.routingPolicy | simple | Defines the Route 53 routing policy, accepts `simple`, `latency` or `weighted`. |
 | route53Params.weight | `200` | Sets the weight for weighted routing. Ignored for `simple` and `latency` routing. |
-| route53Params.setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and weighted `routing`. Defaults to the regional endpoint if not provided. |
+| route53Params.setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and `weighted` routing. Defaults to the regional endpoint if not provided. |
 | route53Params.evaluateTargetHealth | `false` | If `true`, Route 53 will check the connectivity to the endpoint. If it is unavailable, it will stop routing to it. |
 
 

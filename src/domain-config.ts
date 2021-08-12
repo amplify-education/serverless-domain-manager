@@ -104,7 +104,7 @@ class DomainConfig {
             routingPolicy: routingPolicyToUse,
             setIdentifier: config.route53Params?.setIdentifier,
             weight: config.route53Params?.weight ?? 200,
-            evaluateTargetHealth: config.route53Params?.evaluateTargetHealth ?? false
+            healthCheckId: config.route53Params?.healthCheckId
         }
     }
 

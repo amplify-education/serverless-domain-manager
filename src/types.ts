@@ -66,5 +66,5 @@ export interface Route53Params {
     routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;
     weight: number | undefined;
     setIdentifier: string | undefined;
-    evaluateTargetHealth: boolean | undefined;
+    healthCheckId: string | undefined;
 };

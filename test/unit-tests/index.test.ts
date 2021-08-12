@@ -1928,7 +1928,7 @@ describe("Custom Domain Plugin", () => {
                                 Name: "test_domain",
                                 Type: "A",
                                 Region: "eu-west-1",
-                                SetIdentifier: "test_regional_name"
+                                SetIdentifier: "test_regional_name",
                             },
                         },
                         {
@@ -1942,7 +1942,7 @@ describe("Custom Domain Plugin", () => {
                                 Name: "test_domain",
                                 Type: "AAAA",
                                 Region: "eu-west-1",
-                                SetIdentifier: "test_regional_name"
+                                SetIdentifier: "test_regional_name",
                             },
                         },
                     ],
@@ -1974,7 +1974,8 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
                 route53Params: {
                     routingPolicy: 'weighted',
-                    weight: 100
+                    weight: 100,
+                    healthCheckId: "test_healthcheck",
                 }
             });
             plugin.route53 = new aws.Route53();
@@ -2006,7 +2007,8 @@ describe("Custom Domain Plugin", () => {
                                 Name: "test_domain",
                                 Type: "A",
                                 SetIdentifier: "test_regional_name",
-                                Weight: 100
+                                Weight: 100,
+                                HealthCheckId: "test_healthcheck",
                             },
                         },
                         {
@@ -2020,7 +2022,8 @@ describe("Custom Domain Plugin", () => {
                                 Name: "test_domain",
                                 Type: "AAAA",
                                 SetIdentifier: "test_regional_name",
-                                Weight: 100
+                                Weight: 100,
+                                HealthCheckId: "test_healthcheck",
                             },
                         },
                     ],
@@ -2052,7 +2055,7 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
                 route53Params: {
                     routingPolicy: 'latency',
-                    weight: 100
+                    weight: 100,
                 }
             });
             plugin.route53 = new aws.Route53();
@@ -2109,7 +2112,7 @@ describe("Custom Domain Plugin", () => {
             expect(spy).to.have.been.called.with(expectedParams);
         });
 
-        it("Should exclude weight, region, and set identifier input with simple routing", async () => {
+        it("Should exclude weight, region, set identifier, and health input with simple routing", async () => {
             AWS.mock("Route53", "listHostedZones", (params, callback) => {
                 callback(null, {
                     HostedZones: [{
@@ -2130,7 +2133,7 @@ describe("Custom Domain Plugin", () => {
                 endpointType: "regional",
                 route53Params: {
                     setIdentifier: "test_identifier",
-                    weight: 100
+                    weight: 100,
                 }
             });
             plugin.route53 = new aws.Route53();

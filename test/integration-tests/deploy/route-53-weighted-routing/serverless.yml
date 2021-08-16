@@ -1,0 +1,28 @@
+service: route-53-weighted-routing-${opt:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: route-53-weighted-routing-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    endpointType: regional
+    route53Params:
+      routingPolicy: weighted
+      weight: 100
+
+package:
+  exclude:
+    - node_modules/**

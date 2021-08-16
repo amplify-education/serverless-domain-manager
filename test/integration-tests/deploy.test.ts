@@ -100,6 +100,22 @@ const testCases = [
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
     },
+    {
+        testBasePath: "(none)",
+        testDescription: "Deploy with latency routing",
+        testDomain: `route-53-latency-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testEndpoint: "REGIONAL",
+        testFolder: `${CONFIGS_FOLDER}/route-53-latency-routing`,
+        testStage: "test",
+    },
+    {
+        testBasePath: "(none)",
+        testDescription: "Deploy with weighted routing",
+        testDomain: `route-53-weighted-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testEndpoint: "REGIONAL",
+        testFolder: `${CONFIGS_FOLDER}/route-53-weighted-routing`,
+        testStage: "test",
+    },
 ];
 
 describe("Integration Tests", function() {

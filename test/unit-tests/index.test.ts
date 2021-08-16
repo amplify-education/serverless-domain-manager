@@ -1892,7 +1892,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                basePath: "test_basepath", 
+                basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "regional",
                 route53Params: {
@@ -1969,7 +1969,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                basePath: "test_basepath", 
+                basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "regional",
                 route53Params: {
@@ -2050,7 +2050,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                basePath: "test_basepath", 
+                basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "regional",
                 route53Params: {
@@ -2128,7 +2128,7 @@ describe("Custom Domain Plugin", () => {
             });
 
             const plugin = constructPlugin({
-                basePath: "test_basepath", 
+                basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "regional",
                 route53Params: {

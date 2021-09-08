@@ -589,15 +589,24 @@ class ServerlessCustomDomain {
 
         service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
             Value: domain.domainInfo.domainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
+            },
         };
 
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${domainNameOutputKey}`,
+            },
         };
 
         if (domain.domainInfo.hostedZoneId) {
             service.provider.compiledCloudFormationTemplate.Outputs[hostedZoneIdOutputKey] = {
                 Value: domain.domainInfo.hostedZoneId,
+                Export: {
+                    Name: `sls-${service.service}-${domain.stage}-${hostedZoneIdOutputKey}`,
+                },
             };
         }
     }

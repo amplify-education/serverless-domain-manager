@@ -120,6 +120,22 @@ custom:
         endpointType: 'regional'
 ```
 
+For multi-region deployments, a `route53Params` structure can be used to support latency or weighted routing policies
+
+```yaml
+custom:
+  customDomain:
+    domainName: serverless.foo.com
+    stage: ci
+    basePath: api
+    certificateName: '*.foo.com'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    route53Params:
+      routingPolicy: latency
+```
+
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
 | domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |

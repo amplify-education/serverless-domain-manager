@@ -198,6 +198,7 @@ npm test
 To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). Then,
 ```
 export TEST_DOMAIN=example.com
+npm run build
 npm run integration-test
 ```
 

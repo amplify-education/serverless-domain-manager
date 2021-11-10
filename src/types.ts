@@ -67,4 +67,4 @@ export interface Route53Params {
     weight: number | undefined;
     setIdentifier: string | undefined;
     healthCheckId: string | undefined;
-};
+}

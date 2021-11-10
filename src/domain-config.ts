@@ -98,8 +98,8 @@ class DomainConfig {
 
         if (routingPolicyToUse !== defaultRoutingPolicy && endpointTypeToUse === Globals.endpointTypes.edge) {
             throw new Error(
-                `${routingPolicy} routing is not intended to be used with edge endpoints.
-                 Use a regional endpoint instead.`
+                `${routingPolicy} routing is not intended to be used with edge endpoints. ` +
+                "Use a regional endpoint instead."
             );
         }
 

@@ -7,7 +7,6 @@ import DomainInfo = require("./domain-info");
 import Globals from "./globals";
 import {CustomDomain, Route53Params} from "./types";
 
-
 class DomainConfig {
 
     public acm: any;
@@ -85,19 +84,23 @@ class DomainConfig {
         if (this.endpointType === Globals.endpointTypes.regional) {
             this.region = Globals.serverless.providers.aws.getRegion();
         }
-        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), { region: this.region });
+        const acmCredentials = Object.assign(
+            {}, Globals.serverless.providers.aws.getCredentials(), {region: this.region}
+        );
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
 
-        const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? 'simple';
+        const defaultRoutingPolicy = Globals.routingPolicies.simple;
+        const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? defaultRoutingPolicy;
         const routingPolicyToUse = Globals.routingPolicies[routingPolicy];
         if (!routingPolicyToUse) {
             throw new Error(`${routingPolicy} is not a supported routing policy, use simple, latency, or weighted.`);
         }
 
-        if (routingPolicyToUse !== Globals.routingPolicies.simple
-            && endpointTypeToUse === Globals.endpointTypes.edge)
-        {
-            throw new Error(`${routingPolicy} routing is not intended to be used with edge endpoints. Use a regional endpoint instead.`);
+        if (routingPolicyToUse !== defaultRoutingPolicy && endpointTypeToUse === Globals.endpointTypes.edge) {
+            throw new Error(
+                `${routingPolicy} routing is not intended to be used with edge endpoints.
+                 Use a regional endpoint instead.`
+            );
         }
 
         this.route53Params = {

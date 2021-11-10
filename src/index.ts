@@ -430,6 +430,27 @@ class ServerlessCustomDomain {
         }
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
+
+        const healthCheckConfig = domain.route53Params.healthCheckId
+            ? { HealthCheckId: domain.route53Params.healthCheckId }
+            : {};
+
+        const latencyRecordConfig = domain.route53Params.routingPolicy === "latency"
+            ? {
+                Region: domain.region,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                ...healthCheckConfig,
+            }
+            : {};
+
+        const weightedRecordConfig = domain.route53Params.routingPolicy === "weighted"
+            ? {
+                Weight: domain.route53Params.weight,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                ...healthCheckConfig,
+            }
+            : {};
+
         const Changes = ["A", "AAAA"].map((Type) => ({
             Action: action,
             ResourceRecordSet: {
@@ -440,8 +461,11 @@ class ServerlessCustomDomain {
                 },
                 Name: domain.givenDomainName,
                 Type,
+                ...latencyRecordConfig,
+                ...weightedRecordConfig,
             },
         }));
+
         const params = {
             ChangeBatch: {
                 Changes,

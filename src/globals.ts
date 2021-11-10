@@ -32,6 +32,12 @@ export default class Globals {
         tls_1_2: "TLS_1_2",
     };
 
+    public static routingPolicies = {
+        simple: "simple",
+        latency: "latency",
+        weighted: "weighted",
+    };
+
     public static cliLog(prefix: string, message: string): void {
         Globals.serverless.cli.log(`${prefix} ${message}`, Globals.pluginName);
     }

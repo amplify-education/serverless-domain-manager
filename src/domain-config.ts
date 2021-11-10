@@ -5,7 +5,8 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
 import Globals from "./globals";
-import {CustomDomain} from "./types";
+import {CustomDomain, Route53Params} from "./types";
+
 
 class DomainConfig {
 
@@ -25,11 +26,13 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
+    public route53Params: Route53Params;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
+    public region: string;
 
     constructor(config: CustomDomain) {
 
@@ -78,12 +81,31 @@ class DomainConfig {
         }
         this.securityPolicy = tlsVersionToUse;
 
-        let region = Globals.defaultRegion;
+        this.region = Globals.defaultRegion;
         if (this.endpointType === Globals.endpointTypes.regional) {
-            region = Globals.serverless.providers.aws.getRegion();
+            this.region = Globals.serverless.providers.aws.getRegion();
         }
-        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
+        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), { region: this.region });
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
+
+        const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? 'simple';
+        const routingPolicyToUse = Globals.routingPolicies[routingPolicy];
+        if (!routingPolicyToUse) {
+            throw new Error(`${routingPolicy} is not a supported routing policy, use simple, latency, or weighted.`);
+        }
+
+        if (routingPolicyToUse !== Globals.routingPolicies.simple
+            && endpointTypeToUse === Globals.endpointTypes.edge)
+        {
+            throw new Error(`${routingPolicy} routing is not intended to be used with edge endpoints. Use a regional endpoint instead.`);
+        }
+
+        this.route53Params = {
+            routingPolicy: routingPolicyToUse,
+            setIdentifier: config.route53Params?.setIdentifier,
+            weight: config.route53Params?.weight ?? 200,
+            healthCheckId: config.route53Params?.healthCheckId
+        }
     }
 
     /**

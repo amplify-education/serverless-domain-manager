@@ -44,7 +44,11 @@ class CloudFormationWrapper {
             throw new Error(`No ApiId associated with CloudFormation stack ${stackName}`);
         }
 
-        Globals.logInfo(`Found apiId: ${apiId} for ${domain.givenDomainName}`);
+        if (Globals.log) {
+            Globals.log.verbose(`Found apiId: ${apiId} for ${domain.givenDomainName}`);
+        } else {
+            Globals.logInfo(`Found apiId: ${apiId} for ${domain.givenDomainName}`);
+        }
 
         return apiId;
     }
@@ -117,7 +121,11 @@ class CloudFormationWrapper {
                 response = await this.getStack(logicalResourceId, name);
                 break;
             } catch (err) {
-                Globals.logError(err);
+                if (Globals.log) {
+                    Globals.log.verbose(err);
+                } else {
+                    Globals.logError(err);
+                }
             }
         }
         return response;

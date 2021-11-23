@@ -49,7 +49,9 @@ class APIGatewayWrapper {
                 createdDomain = await throttledCall(this.apiGateway, "createDomainName", params);
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
 
@@ -69,7 +71,9 @@ class APIGatewayWrapper {
                 createdDomain = await throttledCall(this.apiGatewayV2, "createDomainName", params);
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
         }
@@ -85,7 +89,9 @@ class APIGatewayWrapper {
                 DomainName: domain.givenDomainName,
             });
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
+            if (!Globals.log) {
+                Globals.logError(err, domain.givenDomainName);
+            }
             throw new Error(`Failed to delete custom domain ${domain.givenDomainName}\n`);
         }
     }
@@ -102,10 +108,16 @@ class APIGatewayWrapper {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code !== "NotFoundException") {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
             }
-            Globals.logError(`${domain.givenDomainName} does not exist`);
+            if (Globals.log) {
+                Globals.log.verbose(`${domain.givenDomainName} does not exist`);
+            } else {
+                Globals.logError(`${domain.givenDomainName} does not exist`);
+            }
         }
     }
 
@@ -124,9 +136,15 @@ class APIGatewayWrapper {
             // Make API call
             try {
                 await throttledCall(this.apiGateway, "createBasePathMapping", params);
-                Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                if (Globals.log) {
+                    Globals.log(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                } else {
+                    Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                }
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`${domain.givenDomainName}: Unable to create basepath mapping.\n`);
             }
 
@@ -140,9 +158,15 @@ class APIGatewayWrapper {
             // Make API call
             try {
                 await throttledCall(this.apiGatewayV2, "createApiMapping", params);
-                Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                if (Globals.log) {
+                    Globals.log(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                } else {
+                    Globals.logInfo(`Created API mapping '${domain.basePath}' for ${domain.givenDomainName}`);
+                }
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`${domain.givenDomainName}: Unable to create basepath mapping.\n`);
             }
         }
@@ -168,7 +192,9 @@ class APIGatewayWrapper {
                 }
             }
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
+            if (!Globals.log) {
+                Globals.logError(err, domain.givenDomainName);
+            }
             throw new Error(`Unable to get API Mappings for ${domain.givenDomainName}`);
         }
     }
@@ -197,10 +223,17 @@ class APIGatewayWrapper {
             // Make API call
             try {
                 await throttledCall(this.apiGateway, "updateBasePathMapping", params);
-                Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
-                     to '${domain.basePath}' for ${domain.givenDomainName}`);
+
+                if (Globals.log) {
+                    Globals.log.verbose(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}' to '${domain.basePath}' for ${domain.givenDomainName}`);
+                } else {
+                    Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
+                    to '${domain.basePath}' for ${domain.givenDomainName}`);
+                }
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`${domain.givenDomainName}: Unable to update basepath mapping.\n`);
             }
 
@@ -217,9 +250,15 @@ class APIGatewayWrapper {
             // Make API call
             try {
                 await throttledCall(this.apiGatewayV2, "updateApiMapping", params);
-                Globals.logInfo(`Updated API mapping to '${domain.basePath}' for ${domain.givenDomainName}`);
+                if (Globals.log) {
+                    Globals.log.verbose(`Updated API mapping to '${domain.basePath}' for ${domain.givenDomainName}`);
+                } else {
+                    Globals.logInfo(`Updated API mapping to '${domain.basePath}' for ${domain.givenDomainName}`);
+                }
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
+                if (!Globals.log) {
+                    Globals.logError(err, domain.givenDomainName);
+                }
                 throw new Error(`${domain.givenDomainName}: Unable to update basepath mapping.\n`);
             }
         }
@@ -237,10 +276,18 @@ class APIGatewayWrapper {
         // Make API call
         try {
             await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
-            Globals.logInfo("Removed basepath mapping.");
+            if (Globals.log) {
+                Globals.log("Removed basepath mapping.");
+            } else {
+                Globals.logInfo("Removed basepath mapping.");
+            }
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            Globals.logInfo(`Unable to remove basepath mapping for ${domain.givenDomainName}`);
+            if (Globals.log) {
+                Globals.log.verbose(`${domain.givenDomainName}: Unable to remove basepath mapping: ${err}`);
+            } else {
+                Globals.logError(err, domain.givenDomainName);
+                Globals.logInfo(`Unable to remove basepath mapping for ${domain.givenDomainName}`);
+            }
         }
     }
 }

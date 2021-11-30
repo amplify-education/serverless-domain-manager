@@ -67,6 +67,6 @@
     "chalk": "^4.1.2"
   },
   "peerDependencies": {
-    "serverless": "1 || 2"
+    "serverless": "1 || 2 || 3"
   }
 }

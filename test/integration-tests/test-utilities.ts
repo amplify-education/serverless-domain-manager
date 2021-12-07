@@ -2,6 +2,7 @@
 
 import aws = require("aws-sdk");
 import shell = require("shelljs");
+import {TEMP_DIR} from "./base"; // tslint:disable-line
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
@@ -113,8 +114,9 @@ async function deleteApiGatewayResources(restApiId) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsCreateDomain(tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless create_domain --RANDOM_STRING ${domainIdentifier}`);
+function slsCreateDomain(tempDir, domainIdentifier?) {
+  const option = domainIdentifier === undefined ? '': `--RANDOM_STRING ${domainIdentifier}`
+  return exec(`cd ${tempDir} && $(npm bin)/serverless create_domain ${option}`);
 }
 
 /**
@@ -123,8 +125,9 @@ function slsCreateDomain(tempDir, domainIdentifier) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsDeploy(tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --RANDOM_STRING ${domainIdentifier}`);
+function slsDeploy(tempDir, domainIdentifier?) {
+  const option = domainIdentifier === undefined ? '': `--RANDOM_STRING ${domainIdentifier}`
+  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy ${option}`);
 }
 
 /**
@@ -133,8 +136,9 @@ function slsDeploy(tempDir, domainIdentifier) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsDeleteDomain(tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless delete_domain --RANDOM_STRING ${domainIdentifier}`);
+function slsDeleteDomain(tempDir, domainIdentifier?) {
+  const option = domainIdentifier === undefined ? '': `--RANDOM_STRING ${domainIdentifier}`
+  return exec(`cd ${tempDir} && $(npm bin)/serverless delete_domain ${option}`);
 }
 
 /**
@@ -143,8 +147,9 @@ function slsDeleteDomain(tempDir, domainIdentifier) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsRemove(tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless remove --RANDOM_STRING ${domainIdentifier}`);
+function slsRemove(tempDir, domainIdentifier?) {
+  const option = domainIdentifier === undefined ? '': `--RANDOM_STRING ${domainIdentifier}`
+  return exec(`cd ${tempDir} && $(npm bin)/serverless remove ${option}`);
 }
 
 /**
@@ -195,10 +200,10 @@ async function createResources(folderName, url, domainIdentifier) {
  * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
-async function destroyResources(url, domainIdentifier) {
+async function destroyResources(url, domainIdentifier?) {
+  const tempDir = domainIdentifier === undefined ? TEMP_DIR :`~/tmp/domain-manager-test-${domainIdentifier}`;
   try {
     console.debug(`\tCleaning Up Resources for ${url}`);
-    const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`;
     await removeLambdas(tempDir, domainIdentifier);
     await exec(`rm -rf ${tempDir}`);
 

@@ -1,16 +1,17 @@
 # APIGateway with import other CloudFormation stack outputs
-service: apigateway-with-import-${opt:RANDOM_STRING}
+service: sls-domain-manager-apigateway-with-import
 
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
   stage: test
   apiGateway:
     restApiId:
-      Fn::ImportValue: api-${self:provider.stage}-restApiId-${opt:RANDOM_STRING}
+      Fn::ImportValue: api-${self:provider.stage}-restApiId
     restApiRootResourceId:
-      Fn::ImportValue: api-${self:provider.stage}-RootResourceId-${opt:RANDOM_STRING}
+      Fn::ImportValue: api-${self:provider.stage}-RootResourceId
 
 functions:
   helloWorld:

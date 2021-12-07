@@ -1,5 +1,6 @@
 import randomstring = require("randomstring");
 
+const TEMP_DIR = `~/tmp/domain-manager-integration-tests`;
 const TEST_DOMAIN = process.env.TEST_DOMAIN;
 
 if (!TEST_DOMAIN) {
@@ -16,5 +17,6 @@ function getRandomString(): string {
 
 export {
     getRandomString,
+    TEMP_DIR,
     TEST_DOMAIN,
 };

@@ -1,5 +1,5 @@
 # Test regional domains with TLS 1.0
-service: regional-tls-1-0-${opt:RANDOM_STRING}
+service: sls-dm-regional-tls-1-0
 provider:
   name: aws
   runtime: nodejs12.x
@@ -19,7 +19,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: regional-tls-1-0-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-regional-tls-1-0.${env:TEST_DOMAIN}
     securityPolicy: tls_1_0
     endpointType: regional
 

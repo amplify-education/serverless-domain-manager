@@ -1,4 +1,4 @@
-service: web-socket-${opt:RANDOM_STRING}
+service: sls-dm-web-socket
 provider:
   name: aws
   runtime: nodejs12.x
@@ -15,7 +15,7 @@ plugins:
 custom:
   customDomain:
     websocket:
-      domainName: web-socket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: sls-dm-web-socket.${env:TEST_DOMAIN}
       basePath: ''
       endpointType: 'regional'
 

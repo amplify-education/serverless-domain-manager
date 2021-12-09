@@ -1,5 +1,5 @@
 # Enabled with default values
-service: enabled-custom-apigateway-${opt:RANDOM_STRING}
+service: sls-dm-enabled-custom-apigateway
 provider:
   name: aws
   runtime: nodejs12.x
@@ -21,7 +21,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-enabled-custom-apigateway.${env:TEST_DOMAIN}
 
 package:
   exclude:

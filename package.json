@@ -28,7 +28,7 @@
   "bin": {},
   "scripts": {
     "test": "nyc mocha -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
-    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/basic.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.json --parallel test/integration-tests/basic.test.ts && nyc report --reporter=text-summary",
     "lint": "tslint --project . && tslint --project tsconfig.json",
     "build": "tsc --project ."
   },
@@ -52,7 +52,6 @@
     "mocha": "^9.1.3",
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
-    "randomstring": "^1.2.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "serverless": "^2.68.0",

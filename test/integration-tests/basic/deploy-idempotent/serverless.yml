@@ -1,5 +1,5 @@
 # Deploying should be idempotent
-service: sls-domain-manager-deploy-idempotent
+service: sls-dm-deploy-idempotent
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-domain-manager-deploy-idempotent.${env:TEST_DOMAIN}
+    domainName: sls-dm-deploy-idempotent.${env:TEST_DOMAIN}
     basePath: ''
 
 package:

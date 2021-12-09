@@ -1,5 +1,5 @@
 # Enabled with custom stage and empty basepath
-service: enabled-stage-basepath-${opt:RANDOM_STRING}
+service: sls-dm-enabled-stage-basepath
 provider:
   name: aws
   runtime: nodejs12.x
@@ -17,7 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-enabled-stage-basepath.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
 

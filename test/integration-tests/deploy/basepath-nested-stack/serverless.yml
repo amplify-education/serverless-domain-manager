@@ -1,5 +1,5 @@
 # Enabled with custom basepath
-service: basepath-nested-stack-${opt:RANDOM_STRING}
+service: sls-dm-basepath-nested-stack
 provider:
   name: aws
   runtime: nodejs12.x
@@ -18,7 +18,7 @@ plugins:
   - serverless-plugin-split-stacks
 custom:
   customDomain:
-    domainName: basepath-nested-stack-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-basepath-nested-stack.${env:TEST_DOMAIN}
     basePath: 'api'
     stage: ${self:provider.stage}
     createRoute53Record: true

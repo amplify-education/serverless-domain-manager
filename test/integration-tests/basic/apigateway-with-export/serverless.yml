@@ -1,5 +1,5 @@
 # APIGateway with export outputs
-service: sls-domain-manager-apigateway-with-export
+service: sls-dm-apigateway-with-export
 
 provider:
   lambdaHashingVersion: 20201221
@@ -41,7 +41,7 @@ plugins:
 custom:
   customDomain:
     stage: ${self:provider.stage}
-    domainName: sls-domain-manager-apigateway-with-export.${env:TEST_DOMAIN}
+    domainName: sls-dm-apigateway-with-export.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world
     endpointType: regional

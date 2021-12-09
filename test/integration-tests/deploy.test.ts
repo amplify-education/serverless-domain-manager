@@ -3,18 +3,17 @@ import "mocha";
 import itParam = require("mocha-param");
 
 import utilities = require("./test-utilities");
-import {getRandomString, TEST_DOMAIN} from "./base";// tslint:disable-line
+import {TestDomain} from "./base";// tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";
 const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
-const RANDOM_STRING = getRandomString();
 
 const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Creates domain as part of deploy",
-        testDomain: `auto-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `auto-domain.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/auto-domain`,
         testStage: "test",
@@ -22,16 +21,17 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with default values",
-        testDomain: `enabled-default-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-default.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-default`,
         testStage: "test",
     },
     {
         createApiGateway: true,
+        restApiName: "rest-api-custom",
         testBasePath: "(none)",
         testDescription: "Enabled with custom api gateway",
-        testDomain: `enabled-custom-apigateway-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-custom-apigateway.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-custom-apigateway`,
         testStage: "test",
@@ -39,7 +39,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Enabled with custom basepath",
-        testDomain: `enabled-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-basepath.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-basepath`,
         testStage: "test",
@@ -47,7 +47,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with custom stage and empty basepath",
-        testDomain: `enabled-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-stage-basepath.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-stage-basepath`,
         testStage: "test",
@@ -55,7 +55,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Enabled with regional endpoint, custom basePath",
-        testDomain: `enabled-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-regional-basepath.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/enabled-regional-basepath`,
         testStage: "test",
@@ -63,7 +63,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with regional endpoint, custom stage, empty basepath",
-        testDomain: `enabled-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `enabled-regional-stage-basepath.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/enabled-regional-stage-basepath`,
         testStage: "test",
@@ -71,7 +71,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Create Web socket API and domain name",
-        testDomain: `web-socket-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `web-socket.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/web-socket`,
         testStage: "test",
@@ -79,7 +79,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Create HTTP API and domain name",
-        testDomain: `http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `http-api.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/http-api`,
         testStage: "$default",
@@ -87,7 +87,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy regional domain with TLS 1.0",
-        testDomain: `regional-tls-1-0-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `regional-tls-1-0.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/regional-tls-1-0`,
         testStage: "test",
@@ -95,7 +95,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Deploy with nested CloudFormation stack",
-        testDomain: `basepath-nested-stack-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `basepath-nested-stack.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
@@ -103,7 +103,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy with latency routing",
-        testDomain: `route-53-latency-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `route-53-latency-routing.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/route-53-latency-routing`,
         testStage: "test",
@@ -111,7 +111,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy with weighted routing",
-        testDomain: `route-53-weighted-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
+        testDomain: `route-53-weighted-routing.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/route-53-weighted-routing`,
         testStage: "test",
@@ -126,10 +126,10 @@ describe("Integration Tests", function() {
         itParam("${value.testDescription}", testCases, async (value) => {
             let restApiInfo;
             if (value.createApiGateway) {
-                restApiInfo = await utilities.setupApiGatewayResources(RANDOM_STRING);
+                restApiInfo = await utilities.setupApiGatewayResources(value.apiGatewayPath);
             }
             try {
-                await utilities.createResources(value.testFolder, value.testDomain, RANDOM_STRING);
+                await utilities.createResources(value.testFolder, value.testDomain);
                 const stage = await utilities.getStage(value.testDomain);
                 expect(stage).to.equal(value.testStage);
 
@@ -139,7 +139,7 @@ describe("Integration Tests", function() {
                 const endpoint = await utilities.getEndpointType(value.testDomain);
                 expect(endpoint).to.equal(value.testEndpoint);
             } finally {
-                await utilities.destroyResources(value.testDomain, RANDOM_STRING);
+                await utilities.destroyResources(value.testDomain);
                 if (value.createApiGateway) {
                     await utilities.deleteApiGatewayResources(restApiInfo.restApiId);
                 }

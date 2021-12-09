@@ -1,4 +1,4 @@
-service: http-api-${opt:RANDOM_STRING}
+service: sls-dm-http-api
 provider:
   name: aws
   runtime: nodejs12.x
@@ -16,7 +16,7 @@ plugins:
 custom:
   customDomain:
     http:
-      domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: sls-dm-http-api.${env:TEST_DOMAIN}
       basePath: ''
       endpointType: 'regional'
 

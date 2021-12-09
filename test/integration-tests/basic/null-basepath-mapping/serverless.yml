@@ -1,5 +1,5 @@
 # Enabled and testing basepath mapping
-service: sls-domain-manager-null-basepath-mapping
+service: sls-dm-null-basepath-mapping
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-domain-manager-null-basepath-mapping.${env:TEST_DOMAIN}
+    domainName: sls-dm-null-basepath-mapping.${env:TEST_DOMAIN}
     basePath: ''
 
 package:

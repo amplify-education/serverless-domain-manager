@@ -1,22 +1,13 @@
-import randomstring = require("randomstring");
+const TempDir = `~/tmp/domain-manager-integration-tests`;
+const TestDomain = process.env.TEST_DOMAIN;
+const UrlPrefix = "sls-dm"; // this is set in the each sls configs
 
-const TEMP_DIR = `~/tmp/domain-manager-integration-tests`;
-const TEST_DOMAIN = process.env.TEST_DOMAIN;
-
-if (!TEST_DOMAIN) {
+if (!TestDomain) {
     throw new Error("TEST_DOMAIN environment variable not set");
 }
 
-function getRandomString(): string {
-    return randomstring.generate({
-        capitalization: "lowercase",
-        charset: "alphanumeric",
-        length: 5,
-    });
-}
-
 export {
-    getRandomString,
-    TEMP_DIR,
-    TEST_DOMAIN,
+    TempDir,
+    TestDomain,
+    UrlPrefix
 };

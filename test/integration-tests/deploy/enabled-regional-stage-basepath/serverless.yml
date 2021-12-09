@@ -1,5 +1,5 @@
 # Enabled with regional endpoint, custom stage, empty basepath
-service: enabled-regional-stage-basepath-${opt:RANDOM_STRING}
+service: sls-dm-enabled-regional-stage-basepath
 provider:
   name: aws
   runtime: nodejs12.x
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-regional-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-enabled-regional-stage-basepath.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
     endpointType: regional

@@ -1,5 +1,5 @@
 # Enabled with custom basepath
-service: enabled-basepath-${opt:RANDOM_STRING}
+service: sls-dm-enabled-basepath
 provider:
   name: aws
   runtime: nodejs12.x
@@ -17,7 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-enabled-basepath.${env:TEST_DOMAIN}
     basePath: 'api'
 
 package:

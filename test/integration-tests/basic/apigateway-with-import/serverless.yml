@@ -1,5 +1,5 @@
 # APIGateway with import other CloudFormation stack outputs
-service: sls-domain-manager-apigateway-with-import
+service: sls-dm-apigateway-with-import
 
 provider:
   lambdaHashingVersion: 20201221

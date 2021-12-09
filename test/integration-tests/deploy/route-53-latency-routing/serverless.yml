@@ -1,4 +1,4 @@
-service: route-53-latency-routing-${opt:RANDOM_STRING}
+service: sls-dm-route-53-latency-routing
 provider:
   name: aws
   runtime: nodejs12.x
@@ -17,7 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: route-53-latency-routing-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-route-53-latency-routing.${env:TEST_DOMAIN}
     endpointType: regional
     route53Params:
       routingPolicy: latency

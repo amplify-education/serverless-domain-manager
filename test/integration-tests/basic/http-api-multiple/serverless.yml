@@ -1,4 +1,4 @@
-service: sls-domain-manager-http-api
+service: sls-dm-http-api
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -17,12 +17,12 @@ plugins:
 custom:
   customDomains:
     - http:
-        domainName: sls-domain-manager-http-api-multi.${env:TEST_DOMAIN}
+        domainName: sls-dm-http-api-multi.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true
     - http:
-        domainName: sls-domain-manager-http-api-milti2.${env:TEST_DOMAIN}
+        domainName: sls-dm-http-api-milti2.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true

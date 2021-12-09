@@ -1,5 +1,5 @@
 # create_domain should be run as part of deployment
-service: auto-domain-${opt:RANDOM_STRING}
+service: sls-dm-auto-domain
 provider:
   name: aws
   runtime: nodejs12.x
@@ -17,7 +17,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: auto-domain-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: sls-dm-auto-domain.${env:TEST_DOMAIN}
     basePath: ''
     autoDomain: true
     autoDomainWaitFor: 120

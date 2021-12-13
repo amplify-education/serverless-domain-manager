@@ -1,6 +1,7 @@
 # Enabled with custom basepath
 service: sls-dm-basepath-nested-stack
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2

@@ -1,5 +1,6 @@
 service: sls-dm-route-53-latency-routing
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2

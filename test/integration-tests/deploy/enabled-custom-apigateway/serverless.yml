@@ -1,6 +1,7 @@
 # Enabled with default values
 service: sls-dm-enabled-custom-apigateway
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2

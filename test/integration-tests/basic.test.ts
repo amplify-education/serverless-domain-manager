@@ -89,29 +89,12 @@ describe("Integration Tests", function () {
             expect(basePath).to.equal("hello-world");
         } finally {
             // should destroy the last created config folder ( import config )
-            await utilities.destroyResources(testExportName);
-            // recreate config for removing export lambda
-            await utilities.createTempDir(TempDir, testImportName);
-            await utilities.destroyResources(testImportName);
+            await utilities.destroyResources(`${testExportName} & ${testImportName}`);
         }
     });
 
     it("Creates a domain multiple times without failure", async () => {
         const testName = "create-domain-idempotent";
-        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
-        } finally {
-            await utilities.destroyResources(testName);
-        }
-    });
-
-    it("Can use a specified profile for route53", async () => {
-        const testName = "route53-profile";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
         try {
             await utilities.createTempDir(TempDir, configFolder);

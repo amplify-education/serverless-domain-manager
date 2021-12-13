@@ -3,7 +3,7 @@ import "mocha";
 import itParam = require("mocha-param");
 
 import utilities = require("./test-utilities");
-import {TestDomain} from "./base";// tslint:disable-line
+import {TestDomain, UrlPrefix} from "./base";// tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "deploy";
@@ -13,7 +13,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Creates domain as part of deploy",
-        testDomain: `auto-domain.${TestDomain}`,
+        testDomain: `${UrlPrefix}-auto-domain.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/auto-domain`,
         testStage: "test",
@@ -21,7 +21,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with default values",
-        testDomain: `enabled-default.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-default.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-default`,
         testStage: "test",
@@ -31,7 +31,7 @@ const testCases = [
         restApiName: "rest-api-custom",
         testBasePath: "(none)",
         testDescription: "Enabled with custom api gateway",
-        testDomain: `enabled-custom-apigateway.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-custom-apigateway.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-custom-apigateway`,
         testStage: "test",
@@ -39,7 +39,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Enabled with custom basepath",
-        testDomain: `enabled-basepath.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-basepath.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-basepath`,
         testStage: "test",
@@ -47,7 +47,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with custom stage and empty basepath",
-        testDomain: `enabled-stage-basepath.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-stage-basepath.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/enabled-stage-basepath`,
         testStage: "test",
@@ -55,7 +55,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Enabled with regional endpoint, custom basePath",
-        testDomain: `enabled-regional-basepath.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-regional-basepath.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/enabled-regional-basepath`,
         testStage: "test",
@@ -63,7 +63,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Enabled with regional endpoint, custom stage, empty basepath",
-        testDomain: `enabled-regional-stage-basepath.${TestDomain}`,
+        testDomain: `${UrlPrefix}-enabled-regional-stage-basepath.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/enabled-regional-stage-basepath`,
         testStage: "test",
@@ -71,7 +71,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Create Web socket API and domain name",
-        testDomain: `web-socket.${TestDomain}`,
+        testDomain: `${UrlPrefix}-web-socket.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/web-socket`,
         testStage: "test",
@@ -79,7 +79,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Create HTTP API and domain name",
-        testDomain: `http-api.${TestDomain}`,
+        testDomain: `${UrlPrefix}-http-api.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/http-api`,
         testStage: "$default",
@@ -87,7 +87,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy regional domain with TLS 1.0",
-        testDomain: `regional-tls-1-0.${TestDomain}`,
+        testDomain: `${UrlPrefix}-regional-tls-1-0.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/regional-tls-1-0`,
         testStage: "test",
@@ -95,7 +95,7 @@ const testCases = [
     {
         testBasePath: "api",
         testDescription: "Deploy with nested CloudFormation stack",
-        testDomain: `basepath-nested-stack.${TestDomain}`,
+        testDomain: `${UrlPrefix}-basepath-nested-stack.${TestDomain}`,
         testEndpoint: "EDGE",
         testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
         testStage: "test",
@@ -103,7 +103,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy with latency routing",
-        testDomain: `route-53-latency-routing.${TestDomain}`,
+        testDomain: `${UrlPrefix}-route-53-latency-routing.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/route-53-latency-routing`,
         testStage: "test",
@@ -111,7 +111,7 @@ const testCases = [
     {
         testBasePath: "(none)",
         testDescription: "Deploy with weighted routing",
-        testDomain: `route-53-weighted-routing.${TestDomain}`,
+        testDomain: `${UrlPrefix}-route-53-weighted-routing.${TestDomain}`,
         testEndpoint: "REGIONAL",
         testFolder: `${CONFIGS_FOLDER}/route-53-weighted-routing`,
         testStage: "test",
@@ -126,7 +126,7 @@ describe("Integration Tests", function() {
         itParam("${value.testDescription}", testCases, async (value) => {
             let restApiInfo;
             if (value.createApiGateway) {
-                restApiInfo = await utilities.setupApiGatewayResources(value.apiGatewayPath);
+                restApiInfo = await utilities.setupApiGatewayResources(value.restApiName);
             }
             try {
                 await utilities.createResources(value.testFolder, value.testDomain);

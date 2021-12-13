@@ -1,6 +1,7 @@
 # Enabled with regional endpoint, custom stage, empty basepath
 service: sls-dm-enabled-regional-stage-basepath
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2

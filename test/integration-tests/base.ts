@@ -7,7 +7,7 @@ const RANDOM_STRING = randomstring.generate({
     charset: "alphanumeric",
     length: 5,
 });
-const TEMP_DIR = `~/tmp/domain-manager-integration-tests`;
+const TEMP_DIR = `~/tmp/domain-manager-integration-tests/${RANDOM_STRING}`;
 const TEST_DOMAIN = process.env.TEST_DOMAIN;
 
 // setting a `RANDOM_STRING` variable to use in each integration test

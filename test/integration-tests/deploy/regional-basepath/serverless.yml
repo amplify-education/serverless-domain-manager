@@ -1,10 +1,11 @@
-# Enabled with custom basepath
-service: sls-dm-enabled-basepath
+# Enabled with regional endpoint, custom basePath
+service: ${env:PLUGIN_IDENTIFIER}-regional-basepath-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
+  endpointType: regional
   stage: test
 functions:
   helloWorld:
@@ -18,8 +19,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-enabled-basepath.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-regional-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
+    endpointType: regional
 
 package:
   exclude:

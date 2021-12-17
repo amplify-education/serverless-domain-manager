@@ -1,4 +1,4 @@
-service: sls-dm-http-api
+service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -17,12 +17,12 @@ plugins:
 custom:
   customDomains:
     - http:
-        domainName: sls-dm-http-api-multi.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true
     - http:
-        domainName: sls-dm-http-api-milti2.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true

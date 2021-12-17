@@ -1,5 +1,5 @@
 # Enabled with custom stage and empty basepath
-service: sls-dm-enabled-stage-basepath
+service: ${env:PLUGIN_IDENTIFIER}-stage-basepath-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-enabled-stage-basepath.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-stage-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
 

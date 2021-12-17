@@ -1,4 +1,4 @@
-service: sls-dm-http-api
+service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -17,7 +17,7 @@ plugins:
 custom:
   customDomain:
     http:
-      domainName: sls-dm-http-api.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       basePath: ''
       endpointType: 'regional'
 

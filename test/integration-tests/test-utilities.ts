@@ -2,7 +2,7 @@
 
 import aws = require("aws-sdk");
 import shell = require("shelljs");
-import {TempDir} from "./base"; // tslint:disable-line
+import {TEMP_DIR} from "./base"; // tslint:disable-line
 
 const AWS_PROFILE = process.env.AWS_PROFILE;
 const apiGateway = new aws.APIGateway({
@@ -152,11 +152,11 @@ function slsRemove(tempDir) {
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
 async function createResources(folderName, url) {
-  console.debug(`\tCreating Resources for ${url} \tUsing tmp directory ${TempDir}`);
+  console.debug(`\tCreating Resources for ${url} \tUsing tmp directory ${TEMP_DIR}`);
   try {
-    await createTempDir(TempDir, folderName);
-    await slsCreateDomain(TempDir);
-    await slsDeploy(TempDir);
+    await createTempDir(TEMP_DIR, folderName);
+    await slsCreateDomain(TEMP_DIR);
+    await slsDeploy(TEMP_DIR);
     console.debug("\tResources Created");
   } catch (e) {
     console.debug("\tResources Failed to Create");
@@ -171,9 +171,9 @@ async function createResources(folderName, url) {
 async function destroyResources(url?) {
   try {
     console.debug(`\tCleaning Up Resources for ${url}`);
-    await slsRemove(TempDir);
-    await slsDeleteDomain(TempDir);
-    await exec(`rm -rf ${TempDir}`);
+    await slsRemove(TEMP_DIR);
+    await slsDeleteDomain(TEMP_DIR);
+    await exec(`rm -rf ${TEMP_DIR}`);
     console.debug("\tResources Cleaned Up");
   } catch (e) {
     console.debug("\tFailed to Clean Up Resources");

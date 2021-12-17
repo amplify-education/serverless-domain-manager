@@ -1,4 +1,4 @@
-service: sls-dm-route-53-weighted-routing
+service: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-route-53-weighted-routing.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     endpointType: regional
     route53Params:
       routingPolicy: weighted

@@ -1,5 +1,5 @@
 # Creating a domain should be idempotent
-service: sls-dm-create-domain-idempotent
+service: ${env:PLUGIN_IDENTIFIER}-create-domain-idempotent-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-create-domain-idempotent.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-create-domain-idempotent-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: ''
 
 package:

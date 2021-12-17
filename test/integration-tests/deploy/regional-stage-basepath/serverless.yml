@@ -1,5 +1,5 @@
-# Enabled with regional endpoint, custom basePath
-service: sls-dm-enabled-regional-basepath
+# Enabled with regional endpoint, custom stage, empty basepath
+service: ${env:PLUGIN_IDENTIFIER}-regional-stage-basepath-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -19,8 +19,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-enabled-regional-basepath.${env:TEST_DOMAIN}
-    basePath: 'api'
+    domainName: ${env:PLUGIN_IDENTIFIER}-regional-stage-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: test
+    basePath: ''
     endpointType: regional
 
 package:

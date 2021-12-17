@@ -1,15 +1,11 @@
 # Enabled with default values
-service: sls-dm-enabled-custom-apigateway
+service: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
   stage: test
-  apiGateway:
-    restApiId: ${env:REST_API_ID}
-    restApiResources:
-      'hello-world': ${env:RESOURCE_ID}
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -22,7 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: sls-dm-enabled-custom-apigateway.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
 
 package:
   exclude:

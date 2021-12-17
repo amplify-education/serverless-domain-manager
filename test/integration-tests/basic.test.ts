@@ -1,7 +1,12 @@
 import chai = require("chai");
 import "mocha";
 import utilities = require("./test-utilities");
-import {TempDir, TestDomain, UrlPrefix } from "./base"; // tslint:disable-line
+import {
+    PLUGIN_IDENTIFIER,
+    RANDOM_STRING,
+    TEMP_DIR,
+    TEST_DOMAIN,
+} from "./base"; // tslint:disable-line
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";
@@ -13,15 +18,15 @@ describe("Integration Tests", function () {
     it("Creates a empty basepath mapping", async () => {
         const testName = "null-basepath-mapping";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        const testURL = `${UrlPrefix}-${testName}.${TestDomain}`;
+        const testURL = `${PLUGIN_IDENTIFIER}-${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
         // Perform sequence of commands to replicate basepath mapping issue
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
-            await utilities.slsDeleteDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+            await utilities.slsDeleteDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
 
             const basePath = await utilities.getBasePath(testURL);
             expect(basePath).to.equal("(none)");
@@ -33,15 +38,15 @@ describe("Integration Tests", function () {
     it("Delete domain then recreate", async () => {
         const testName = "basepath-mapping";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        const testURL = `${UrlPrefix}-${testName}.${TestDomain}`;
+        const testURL = `${PLUGIN_IDENTIFIER}-${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
         // Perform sequence of commands to replicate basepath mapping issue
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
-            await utilities.slsDeleteDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+            await utilities.slsDeleteDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
 
             const basePath = await utilities.getBasePath(testURL);
             expect(basePath).to.equal("api");
@@ -53,16 +58,16 @@ describe("Integration Tests", function () {
     it("Delete domain then remove", async () => {
         const testName = "null-basepath-mapping";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        const testURL = `${UrlPrefix}-${testName}.${TestDomain}`;
+        const testURL = `${PLUGIN_IDENTIFIER}-${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
         // Perform sequence of commands to replicate basepath mapping issue
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
-            await utilities.slsDeleteDomain(TempDir);
-            await utilities.slsRemove(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+            await utilities.slsDeleteDomain(TEMP_DIR);
+            await utilities.slsRemove(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
 
             const basePath = await utilities.getBasePath(testURL);
             expect(basePath).to.equal("(none)");
@@ -76,14 +81,14 @@ describe("Integration Tests", function () {
         const testImportName = "apigateway-with-import";
         const configExportFolder = `${CONFIGS_FOLDER}/${testExportName}`;
         const configImportFolder = `${CONFIGS_FOLDER}/${testImportName}`;
-        const testExportURL = `${UrlPrefix}-${testExportName}.${TestDomain}`;
+        const testExportURL = `${PLUGIN_IDENTIFIER}-${testExportName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
         // Perform sequence of commands to replicate basepath mapping issue
         try {
-            await utilities.createTempDir(TempDir, configExportFolder);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configExportFolder);
+            await utilities.slsDeploy(TEMP_DIR);
 
-            await utilities.createTempDir(TempDir, configImportFolder);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configImportFolder);
+            await utilities.slsDeploy(TEMP_DIR);
 
             const basePath = await utilities.getBasePath(testExportURL);
             expect(basePath).to.equal("hello-world");
@@ -97,11 +102,11 @@ describe("Integration Tests", function () {
         const testName = "create-domain-idempotent";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
         } finally {
             await utilities.destroyResources(testName);
         }
@@ -111,11 +116,11 @@ describe("Integration Tests", function () {
         const testName = "deploy-idempotent";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsCreateDomain(TempDir);
-            await utilities.slsDeploy(TempDir);
-            await utilities.slsDeploy(TempDir);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
         } finally {
             await utilities.destroyResources(testName);
         }
@@ -125,8 +130,8 @@ describe("Integration Tests", function () {
         const testName = "http-api-multiple";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
         try {
-            await utilities.createTempDir(TempDir, configFolder);
-            await utilities.slsDeploy(TempDir);
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsDeploy(TEMP_DIR);
         } finally {
             await utilities.destroyResources(testName);
         }

@@ -1,7 +1,7 @@
 import randomstring = require("randomstring");
 
 // this is set in the each sls configs for the cleanup purpose in case of tests failure
-const PLUGIN_IDENTIFIER = "SDM";
+const PLUGIN_IDENTIFIER = "sdm";
 const RANDOM_STRING = randomstring.generate({
     capitalization: "lowercase",
     charset: "alphanumeric",

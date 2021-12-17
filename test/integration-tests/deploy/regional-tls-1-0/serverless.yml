@@ -1,6 +1,7 @@
 # Test regional domains with TLS 1.0
-service: regional-tls-1-0-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -19,7 +20,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: regional-tls-1-0-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     securityPolicy: tls_1_0
     endpointType: regional
 

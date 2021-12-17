@@ -1,10 +1,10 @@
-# Enabled with regional endpoint, custom stage, empty basepath
-service: enabled-regional-stage-basepath-${opt:RANDOM_STRING}
+# Enabled with default values
+service: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
   stage: test
 functions:
   helloWorld:
@@ -18,10 +18,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-regional-stage-basepath-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    stage: test
-    basePath: ''
-    endpointType: regional
+    domainName: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
 
 package:
   exclude:

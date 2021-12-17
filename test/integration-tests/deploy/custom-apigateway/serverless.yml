@@ -1,6 +1,7 @@
 # Enabled with default values
-service: enabled-custom-apigateway-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-custom-apigateway-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -21,7 +22,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-custom-apigateway-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
 
 package:
   exclude:

@@ -68,6 +68,6 @@
     "aws-sdk": "^2.1046.0"
   },
   "peerDependencies": {
-    "serverless": "1 || 2 || 3"
+    "serverless": "<4"
   }
 }

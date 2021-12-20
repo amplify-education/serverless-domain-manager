@@ -39,11 +39,8 @@ jobs:
         with:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
-
       - run: npm install
       - run: npm run build
-      - run: pwd
-      - run: find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" # print out dirs tree
 
       - name: Publish new version
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
@@ -52,9 +49,13 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --verbose
 
+      - name: Print dirs
+        if: failure()
+        run: pwd && find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" # print out dirs tree
+
       - name: Upload logs
         if: failure()
         uses: actions/upload-artifact@v1
         with:
           name: logs
-          path: /home/runner/**
+          path: /home/runner/work/

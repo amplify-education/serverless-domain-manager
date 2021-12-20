@@ -56,4 +56,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: logs
-          path: /home/runner/.npm/_logs/**
+          path: /home/runner/.npm/_logs/*-debug.log
+      - run: ls -lta /home/runner/.npm/_logs

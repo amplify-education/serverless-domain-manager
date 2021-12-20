@@ -40,7 +40,6 @@ jobs:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm config get registry
       - run: npm install
       - run: npm run build
 

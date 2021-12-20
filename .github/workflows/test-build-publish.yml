@@ -52,7 +52,7 @@ jobs:
         run: npm publish --verbose
 
       - name: Upload logs
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v1
         with:
           name: logs

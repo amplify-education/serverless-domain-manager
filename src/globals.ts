@@ -1,3 +1,4 @@
+import chalk = require("chalk");
 import DomainConfig = require("./domain-config");
 import {ServerlessInstance, ServerlessOptions} from "./types";
 
@@ -54,7 +55,8 @@ export default class Globals {
         }
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            Globals.cliLog("Error:", `${domain ? domain + ": " : ""} ${message}`);
+            const error = chalk.bold.red;
+            Globals.cliLog(error("Error:"), `${domain ? domain + ": " : ""} ${message}`);
         }
     }
 
@@ -67,7 +69,7 @@ export default class Globals {
     public static logInfo(message: any, debug = false): void {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            Globals.cliLog("Info:", message);
+            Globals.cliLog(chalk.blue("Info:"), message);
         }
     }
 
@@ -80,7 +82,8 @@ export default class Globals {
     public static logWarning(message: any, debug = false): void {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            Globals.cliLog("WARNING:", message);
+            const warning = chalk.keyword("orange");
+            Globals.cliLog(warning("WARNING:"), message);
         }
     }
 
@@ -89,7 +92,7 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.cliLog( "Summary:", "Distribution Domain Name");
+        Globals.cliLog( chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
         Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
         Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
         Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);

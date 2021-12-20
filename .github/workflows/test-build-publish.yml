@@ -40,7 +40,6 @@ jobs:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm config get registry
       - run: npm install
       - run: npm run build
 
@@ -56,4 +55,5 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: logs
-          path: /home/runner/.npm/_logs/**
+          path: /home/runner/.npm/_logs/*-debug.log
+      - run: ls -lta /home/runner/.npm/_logs

@@ -42,6 +42,8 @@ jobs:
 
       - run: npm install
       - run: npm run build
+      - run: pwd
+      - run: find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" # print out dirs tree
 
       - name: Publish new version
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
@@ -55,5 +57,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: logs
-          path: /home/runner/.npm/_logs/*-debug.log
-      - run: ls -lta /home/runner/.npm/_logs
+          path: /home/runner/**

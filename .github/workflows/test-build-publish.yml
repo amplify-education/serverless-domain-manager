@@ -51,7 +51,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --verbose
 
-      - name: Upload artifact
+      - name: Upload logs
+        if: failure()
         uses: actions/upload-artifact@v1
         with:
           name: logs

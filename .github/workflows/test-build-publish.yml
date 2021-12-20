@@ -51,11 +51,4 @@ jobs:
 
       - name: Print dirs
         if: failure()
-        run: pwd && find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" # print out dirs tree
-
-      - name: Upload logs
-        if: failure()
-        uses: actions/upload-artifact@v1
-        with:
-          name: logs
-          path: /home/runner/work/
+        run: find /home/runner/.npm/_logs/ -type f -exec cat {} \;

@@ -18,14 +18,7 @@ class CloudFormationWrapper {
      * Gets rest API id from CloudFormation stack or nested stack
      */
     public async getApiId(domain: DomainConfig, stackName: string): Promise<string> {
-        let logicalResourceId = "ApiGatewayRestApi";
-        if (domain.apiType === Globals.apiTypes.http) {
-            logicalResourceId = "HttpApi";
-        }
-        if (domain.apiType === Globals.apiTypes.websocket) {
-            logicalResourceId = "WebsocketsApi";
-        }
-
+        const logicalResourceId = Globals.CFResourceIds[domain.apiType];
         let response;
         try {
             // trying to get information for specified stack name

@@ -1,6 +1,7 @@
 # Creating a domain should be idempotent
-service: route53-profile-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -15,10 +16,9 @@ functions:
           cors: true
 plugins:
   - serverless-domain-manager
-
 custom:
   customDomain:
-    domainName: route53-profile-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     route53Profile: default
 
 package:

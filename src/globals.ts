@@ -1,5 +1,5 @@
 import chalk = require("chalk");
-import DomainConfig = require("./DomainConfig");
+import DomainConfig = require("./domain-config");
 import {ServerlessInstance, ServerlessOptions} from "./types";
 
 export default class Globals {
@@ -30,6 +30,12 @@ export default class Globals {
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
+    };
+
+    public static routingPolicies = {
+        simple: "simple",
+        latency: "latency",
+        weighted: "weighted",
     };
 
     public static cliLog(prefix: string, message: string): void {

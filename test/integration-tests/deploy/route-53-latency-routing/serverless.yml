@@ -1,14 +1,11 @@
-# Enabled with default values
-service: enabled-custom-apigateway-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-route-53-latency-routing-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
+  endpointType: regional
   stage: test
-  apiGateway:
-    restApiId: ${env:REST_API_ID}
-    restApiResources:
-      'hello-world': ${env:RESOURCE_ID}
 functions:
   helloWorld:
     handler: handler.helloWorld
@@ -21,7 +18,10 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-custom-apigateway-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-route-53-latency-routing-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    endpointType: regional
+    route53Params:
+      routingPolicy: latency
 
 package:
   exclude:

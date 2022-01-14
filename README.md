@@ -120,6 +120,22 @@ custom:
         endpointType: 'regional'
 ```
 
+For multi-region deployments, a `route53Params` structure can be used to support latency or weighted routing policies
+
+```yaml
+custom:
+  customDomain:
+    domainName: serverless.foo.com
+    stage: ci
+    basePath: api
+    certificateName: '*.foo.com'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    route53Params:
+      routingPolicy: latency
+```
+
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
 | domainName _(Required)_ | | The domain name to be created in API Gateway and Route53 (if enabled) for this API. |
@@ -136,10 +152,14 @@ custom:
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
-allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
+allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an update. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
 | autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
 | autoDomainWaitFor | `120` | How long to wait for create_domain to finish before starting deployment if domain does not exist immediately. |
-
+| route53Params |  | A set of options to customize Route 53 record creation. If left empty, A and AAAA records with simple routing will be created. If `createRoute53Record` is `false`, anything passed here will be ignored.  |
+| route53Params:<br/>&nbsp; routingPolicy | simple | Defines the Route 53 routing policy, accepts `simple`, `latency` or `weighted`. |
+| route53Params:<br/>&nbsp; weight | `200` | Sets the weight for weighted routing. Ignored for `simple` and `latency` routing. |
+| route53Params:<br/>&nbsp; setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and `weighted` routing. Defaults to the regional endpoint if not provided. |
+| route53Params:<br/>&nbsp; healthCheckId |  | An optional id for a Route 53 health check. If it is failing, Route 53 will stop routing to it. Only relevant for `latency` and `weighted` routing. If it is not provided, no health check will be associated with the record. |
 
 
 ## Running
@@ -180,6 +200,7 @@ npm test
 To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). Then,
 ```
 export TEST_DOMAIN=example.com
+npm run build
 npm run integration-test
 ```
 

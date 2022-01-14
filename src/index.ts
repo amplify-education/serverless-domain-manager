@@ -2,8 +2,8 @@
 
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
-import DomainConfig = require("./DomainConfig");
-import Globals from "./Globals";
+import DomainConfig = require("./domain-config");
+import Globals from "./globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
 
@@ -452,9 +452,30 @@ class ServerlessCustomDomain {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
+
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
-        const Changes = ["A", "AAAA"].map((Type) => ({
+        const route53Params = domain.route53Params;
+        const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
+
+        let routingOptions = {}
+        if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
+            routingOptions = {
+                Region: domain.region,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                ...route53healthCheck,
+            }
+        }
+
+        if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
+            routingOptions = {
+                Weight: domain.route53Params.weight,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                ...route53healthCheck,
+            }
+        }
+
+        const changes = ["A", "AAAA"].map((Type) => ({
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
@@ -464,11 +485,13 @@ class ServerlessCustomDomain {
                 },
                 Name: domain.givenDomainName,
                 Type,
+                ...routingOptions,
             },
         }));
+
         const params = {
             ChangeBatch: {
-                Changes,
+                Changes: changes,
                 Comment: "Record created by serverless-domain-manager",
             },
             HostedZoneId: route53HostedZoneId,

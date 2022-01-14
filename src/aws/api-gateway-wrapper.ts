@@ -1,9 +1,9 @@
 /**
  * Wrapper class for AWS APIGateway provider
  */
-import DomainConfig = require("../DomainConfig");
-import DomainInfo = require("../DomainInfo");
-import Globals from "../Globals";
+import DomainConfig = require("../domain-config");
+import DomainInfo = require("../domain-info");
+import Globals from "../globals";
 import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
 import {getAWSPagedResults, throttledCall} from "../utils";
 
@@ -91,7 +91,7 @@ class APIGatewayWrapper {
     }
 
     /**
-     * Delete Custom Domain Name through API Gateway
+     * Get Custom Domain Info through API Gateway
      */
     public async getCustomDomainInfo(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
@@ -102,6 +102,7 @@ class APIGatewayWrapper {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code !== "NotFoundException") {
+                Globals.logError(err, domain.givenDomainName);
                 throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
             }
             Globals.logError(`${domain.givenDomainName} does not exist`);

@@ -16,6 +16,7 @@ export interface CustomDomain { // tslint:disable-line
     autoDomain: boolean | undefined;
     autoDomainWaitFor: string | undefined;
     allowPathMatching: boolean | undefined;
+    route53Params: Route53Params | undefined
 }
 
 export interface ServerlessInstance { // tslint:disable-line
@@ -62,4 +63,11 @@ export interface ServerlessInstance { // tslint:disable-line
 
 export interface ServerlessOptions { // tslint:disable-line
     stage: string;
+}
+
+export interface Route53Params {
+    routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;
+    weight: number | undefined;
+    setIdentifier: string | undefined;
+    healthCheckId: string | undefined;
 }

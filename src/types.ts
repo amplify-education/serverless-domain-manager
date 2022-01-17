@@ -5,8 +5,6 @@ export interface CustomDomain { // tslint:disable-line
     certificateName: string | undefined;
     certificateArn: string | undefined;
     createRoute53Record: boolean | undefined;
-    route53Profile: string | undefined;
-    route53Region: string | undefined;
     endpointType: string | undefined;
     apiType: string | undefined;
     hostedZoneId: string | undefined;
@@ -49,7 +47,6 @@ export interface ServerlessInstance { // tslint:disable-line
                 config: {
                     update(toUpdate: object): void,
                 },
-                SharedIniFileCredentials: any,
             }
             getCredentials(),
             getRegion(),

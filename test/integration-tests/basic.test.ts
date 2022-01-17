@@ -112,21 +112,6 @@ describe("Integration Tests", function () {
         }
     });
 
-    it("Can use a specified profile for route53", async () => {
-        const testName = "route53-profile";
-        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-        try {
-            await utilities.createTempDir(TEMP_DIR, configFolder);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        } finally {
-            await utilities.destroyResources(testURL, RANDOM_STRING);
-        }
-    });
-
     it("Deploys multiple times without failure", async () => {
         const testName = "deploy-idempotent";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;

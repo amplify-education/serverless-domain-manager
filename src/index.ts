@@ -185,18 +185,17 @@ class ServerlessCustomDomain {
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         try {
-            await this.changeResourceRecordSet("UPSERT", domain);
-            Globals.logInfo(
-                `Custom domain ${domain.givenDomainName} was created.
-                        New domains may take up to 40 minutes to be initialized.`,
-            );
-
             if (!domain.domainInfo) {
                 domain.certificateArn = await this.getCertArn(domain);
                 await this.apiGatewayWrapper.createCustomDomain(domain);
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
+            await this.changeResourceRecordSet("UPSERT", domain);
+            Globals.logInfo(
+                `Custom domain ${domain.givenDomainName} was created.
+                        New domains may take up to 40 minutes to be initialized.`,
+            );
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to create domain ${domain.givenDomainName}`);

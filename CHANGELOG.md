@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.3.1] - 2021-01-18
-- Updated output for `compiledCloudFormationTemplate`. Thank you ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
+- Updated output for `compiledCloudFormationTemplate`. Thank you @nalbion ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
 - Fixed Route53 creation for `create_domain` action.
 
 ## [5.3.0] - 2021-01-14

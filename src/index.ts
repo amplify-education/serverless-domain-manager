@@ -72,7 +72,7 @@ class ServerlessCustomDomain {
         // setup AWS resources
         this.initAWSResources();
 
-        return await lifecycleFunc.call(this);
+        return lifecycleFunc.call(this);
     }
 
     /**
@@ -170,26 +170,26 @@ class ServerlessCustomDomain {
      * Setup route53 resource
      */
     public createRoute53Resource(domain: DomainConfig): any {
-      let route53: any;
+        let route53: any;
 
-      const domainProfile = domain.route53Profile;
-      if (domainProfile) {
-        const route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
-          profile: domainProfile,
-        });
-        const route53Region = domain.route53Region || this.serverless.providers.aws.getRegion();
+        const domainProfile = domain.route53Profile;
+        if (domainProfile) {
+            const route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
+                profile: domainProfile,
+            });
+            const route53Region = domain.route53Region || this.serverless.providers.aws.getRegion();
 
-        route53 = new this.serverless.providers.aws.sdk.Route53({
-          credentials: route53Credentials,
-          region: route53Region,
-        });
-      } else {
-        const credentials = this.serverless.providers.aws.getCredentials();
-        credentials.region = this.serverless.providers.aws.getRegion();
-        route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
-      }
+            route53 = new this.serverless.providers.aws.sdk.Route53({
+                credentials: route53Credentials,
+                region: route53Region,
+            });
+        } else {
+            const credentials = this.serverless.providers.aws.getCredentials();
+            credentials.region = this.serverless.providers.aws.getRegion();
+            route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
+        }
 
-      return route53;
+        return route53;
     }
 
     /**
@@ -209,18 +209,15 @@ class ServerlessCustomDomain {
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         try {
-            if (!domain.domainInfo) {
-
-                domain.certificateArn = await this.getCertArn(domain);
-
-                await this.apiGatewayWrapper.createCustomDomain(domain);
-
-                await this.changeResourceRecordSet("UPSERT", domain);
-
-                Globals.logInfo(
-                    `Custom domain ${domain.givenDomainName} was created.
+            await this.changeResourceRecordSet("UPSERT", domain);
+            Globals.logInfo(
+                `Custom domain ${domain.givenDomainName} was created.
                         New domains may take up to 40 minutes to be initialized.`,
-                );
+            );
+
+            if (!domain.domainInfo) {
+                domain.certificateArn = await this.getCertArn(domain);
+                await this.apiGatewayWrapper.createCustomDomain(domain);
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
@@ -447,8 +444,7 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
-        const createRoute53Record = domain.createRoute53Record;
-        if (createRoute53Record !== undefined && createRoute53Record === false) {
+        if (domain.createRoute53Record === false) {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }

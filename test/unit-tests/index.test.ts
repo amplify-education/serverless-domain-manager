@@ -1198,7 +1198,8 @@ describe("Custom Domain Plugin", () => {
                 d.acm = new aws.ACM();
             });
             await plugin.createDomains();
-            expect(consoleOutput[0]).to.equal(`Custom domain test_domain already exists.`);
+            expect(consoleOutput[0]).to.contains(`Custom domain test_domain was created.`);
+            expect(consoleOutput[1]).to.equal(`Custom domain test_domain already exists.`);
         });
 
         afterEach(() => {

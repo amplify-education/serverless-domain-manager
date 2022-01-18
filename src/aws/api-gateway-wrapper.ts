@@ -50,7 +50,7 @@ class APIGatewayWrapper {
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Failed to create custom domain ${domain.givenDomainName}:\n ${err}`);
+                throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
 
         } else { // For Regional domain name create with ApiGatewayV2
@@ -70,7 +70,7 @@ class APIGatewayWrapper {
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Failed to create custom domain ${domain.givenDomainName}:\n${err}`);
+                throw new Error(`Failed to create custom domain ${domain.givenDomainName}:\n`);
             }
         }
     }
@@ -86,7 +86,7 @@ class APIGatewayWrapper {
             });
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Failed to delete custom domain ${domain.givenDomainName}:\n${err}`);
+            throw new Error(`Failed to delete custom domain ${domain.givenDomainName}\n`);
         }
     }
 
@@ -103,7 +103,7 @@ class APIGatewayWrapper {
         } catch (err) {
             if (err.code !== "NotFoundException") {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Unable to fetch information about ${domain.givenDomainName}:\n${err}`);
+                throw new Error(`Unable to fetch information about ${domain.givenDomainName}\n`);
             }
             Globals.logInfo(`${domain.givenDomainName} does not exist`);
         }
@@ -197,7 +197,6 @@ class APIGatewayWrapper {
             // Make API call
             try {
                 await throttledCall(this.apiGateway, "updateBasePathMapping", params);
-
                 Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
                     to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {

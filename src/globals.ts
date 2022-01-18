@@ -1,6 +1,6 @@
 import chalk = require("chalk");
 import DomainConfig = require("./domain-config");
-import {ServerlessInstance, ServerlessOptions} from "./types";
+import {ServerlessInstance, ServerlessOptions, ServerlessProgressFactory} from "./types";
 
 export default class Globals {
 
@@ -8,6 +8,12 @@ export default class Globals {
 
     public static serverless: ServerlessInstance;
     public static options: ServerlessOptions;
+    public static log: ((message: string) => void) & {
+        error(message: string): void
+        verbose(message: string): void
+        warning(message: string): void
+    };
+    public static progress: ServerlessProgressFactory;
 
     public static defaultRegion = "us-east-1";
 
@@ -99,9 +105,18 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.cliLog(chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
-        Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
-        Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
-        Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        if (Globals.log) {
+            Globals.serverless.addServiceOutputSection('domain manager', [
+                `domain name: ${domain.givenDomainName}`,
+                `target domain: ${domain.domainInfo.domainName}`,
+                `hosted zone id: ${domain.domainInfo.hostedZoneId}`
+            ]);
+        } else {
+            Globals.cliLog( chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
+            Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
+            Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
+            Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        }
     }
+
 }

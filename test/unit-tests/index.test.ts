@@ -1171,7 +1171,7 @@ describe("Custom Domain Plugin", () => {
 
             await plugin.createDomains();
             expect(consoleOutput[0]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
-                        New domains may take up to 40 minutes to be initialized.`);
+                            New domains may take up to 40 minutes to be initialized.`);
         });
 
         it("Does not create domain if one existed before", async () => {

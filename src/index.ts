@@ -170,26 +170,20 @@ class ServerlessCustomDomain {
      * Setup route53 resource
      */
     public createRoute53Resource(domain: DomainConfig): any {
-      let route53: any;
+        let route53Credentials = this.serverless.providers.aws.getCredentials();
+        let route53Region = this.serverless.providers.aws.getRegion();
 
-      const domainProfile = domain.route53Profile;
-      if (domainProfile) {
-        const route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
-          profile: domainProfile,
+        if (domain.route53Profile) {
+            route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
+                profile: domain.route53Profile,
+            });
+            route53Region = domain.route53Region || route53Region;
+        }
+
+        return new this.serverless.providers.aws.sdk.Route53({
+            credentials: route53Credentials,
+            region: route53Region,
         });
-        const route53Region = domain.route53Region || this.serverless.providers.aws.getRegion();
-
-        route53 = new this.serverless.providers.aws.sdk.Route53({
-          credentials: route53Credentials,
-          region: route53Region,
-        });
-      } else {
-        const credentials = this.serverless.providers.aws.getCredentials();
-        credentials.region = this.serverless.providers.aws.getRegion();
-        route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
-      }
-
-      return route53;
     }
 
     /**

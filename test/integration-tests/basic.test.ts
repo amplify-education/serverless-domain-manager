@@ -98,6 +98,21 @@ describe("Integration Tests", function () {
         }
     });
 
+    it("Can use a specified profile for route53", async () => {
+        const testName = "route53-profile";
+        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
+        const testURL = `${PLUGIN_IDENTIFIER}-${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
+        try {
+            await utilities.createTempDir(TEMP_DIR, configFolder);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsCreateDomain(TEMP_DIR);
+            await utilities.slsDeploy(TEMP_DIR);
+        } finally {
+            await utilities.destroyResources(testURL);
+        }
+    });
+
     it("Creates a domain multiple times without failure", async () => {
         const testName = "create-domain-idempotent";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
@@ -109,21 +124,6 @@ describe("Integration Tests", function () {
             await utilities.slsDeploy(TEMP_DIR);
         } finally {
             await utilities.destroyResources(testName);
-        }
-    });
-
-    it("Can use a specified profile for route53", async () => {
-        const testName = "route53-profile";
-        const configFolder = `${CONFIGS_FOLDER}/${testName}`;
-        const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`;
-        try {
-            await utilities.createTempDir(TEMP_DIR, configFolder);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsCreateDomain(TEMP_DIR, RANDOM_STRING);
-            await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING);
-        } finally {
-            await utilities.destroyResources(testURL, RANDOM_STRING);
         }
     });
 

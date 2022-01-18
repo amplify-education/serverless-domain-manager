@@ -408,9 +408,7 @@ class ServerlessCustomDomain {
                 });
             }
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw Error(`Could not list certificates in Certificate Manager.\n${err}`);
         }
         if (certificateArn == null) {
@@ -486,9 +484,7 @@ class ServerlessCustomDomain {
         try {
             await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
         }
     }
@@ -548,9 +544,7 @@ class ServerlessCustomDomain {
                 return hostedZoneId.substring(startPos, endPos);
             }
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
         }
         throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
@@ -576,9 +570,7 @@ class ServerlessCustomDomain {
                 try {
                     importValues = await this.cloudFormationWrapper.getImportValues([importName]);
                 } catch (err) {
-                    if (!Globals.log) {
-                        Globals.logError(err, domain.givenDomainName);
-                    }
+                    Globals.logError(err, domain.givenDomainName);
                     throw new Error(`Failed to find CloudFormation ImportValue by ${importName}\n`);
                 }
                 if (!importValues[importName]) {
@@ -596,9 +588,7 @@ class ServerlessCustomDomain {
         try {
             return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
         }
     }

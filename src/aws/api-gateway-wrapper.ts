@@ -70,7 +70,7 @@ class APIGatewayWrapper {
                 domain.domainInfo = new DomainInfo(createdDomain);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Failed to create custom domain ${domain.givenDomainName}:\n`);
+                throw new Error(`Failed to create custom domain ${domain.givenDomainName}\n`);
             }
         }
     }

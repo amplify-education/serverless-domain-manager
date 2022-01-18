@@ -33,6 +33,13 @@ export default class Globals {
         [Globals.apiTypes.websocket]: "websocketApiId",
     };
 
+    // Cloud Formation Resource Ids
+    public static CFResourceIds = {
+        [Globals.apiTypes.http]: "HttpApi",
+        [Globals.apiTypes.rest]: "ApiGatewayRestApi",
+        [Globals.apiTypes.websocket]: "WebsocketsApi",
+    };
+
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",

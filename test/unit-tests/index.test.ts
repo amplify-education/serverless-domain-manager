@@ -1199,6 +1199,7 @@ describe("Custom Domain Plugin", () => {
             });
             await plugin.createDomains();
             expect(consoleOutput[0]).to.equal(`Custom domain test_domain already exists.`);
+            expect(consoleOutput[1]).to.contains(`Custom domain test_domain was created.`);
         });
 
         afterEach(() => {

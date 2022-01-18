@@ -39,12 +39,16 @@ jobs:
         with:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
-
       - run: npm install
       - run: npm run build
+
       - name: Publish new version
         # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
         #       as it appears actions/setup-node sets own value
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: npm publish --verbose
+
+      - name: Print dirs
+        if: failure()
+        run: find /home/runner/.npm/_logs/ -type f -exec cat {} \;

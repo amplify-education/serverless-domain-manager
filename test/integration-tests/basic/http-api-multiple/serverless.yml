@@ -1,5 +1,6 @@
-service: http-api-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -16,12 +17,12 @@ plugins:
 custom:
   customDomains:
     - http:
-        domainName: http-api-multi-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true
     - http:
-        domainName: http-api-milti2-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: 'regional'
         autoDomain: true

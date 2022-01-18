@@ -78,7 +78,7 @@ class ServerlessCustomDomain {
         // setup AWS resources
         this.initAWSResources();
 
-        return await lifecycleFunc.call(this);
+        return lifecycleFunc.call(this);
     }
 
     /**
@@ -196,30 +196,22 @@ class ServerlessCustomDomain {
         const creationProgress = Globals.log && Globals.progress.get(`create-${domain.givenDomainName}`);
         try {
             if (!domain.domainInfo) {
-                if (Globals.log) {
-                    Globals.log.verbose(`Create domain ${domain.givenDomainName}`);
-                    creationProgress.update(`Create domain ${domain.givenDomainName}`);
-                }
                 domain.certificateArn = await this.getCertArn(domain);
-
                 await this.apiGatewayWrapper.createCustomDomain(domain);
-
-                await this.changeResourceRecordSet("UPSERT", domain);
-
-                if (Globals.log) {
-                    Globals.log(`Custom domain ${domain.givenDomainName} was created. New domains may take up to 40 minutes to be initialized.`);
-                } else {
-                    Globals.logInfo(
-                        `Custom domain ${domain.givenDomainName} was created.
-                            New domains may take up to 40 minutes to be initialized.`,
-                    );
-                }
             } else {
                 if (Globals.log) {
                     Globals.log(`Custom domain ${domain.givenDomainName} already exists.`);
                 } else {
                     Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
                 }
+            }
+            await this.changeResourceRecordSet("UPSERT", domain);
+            if (Globals.log) {
+                Globals.log(`Custom domain ${domain.givenDomainName} was created. New domains may take up to 40 minutes to be initialized.`);
+            } else {
+                Globals.logInfo(
+                    `Custom domain ${domain.givenDomainName} was created. New domains may take up to 40 minutes to be initialized.`,
+                );
             }
         } catch (err) {
             if (!Globals.log) {
@@ -497,8 +489,7 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
-        const createRoute53Record = domain.createRoute53Record;
-        if (createRoute53Record !== undefined && createRoute53Record === false) {
+        if (domain.createRoute53Record === false) {
             if (Globals.log) {
                 Globals.log(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             } else {
@@ -511,12 +502,16 @@ class ServerlessCustomDomain {
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
         const route53Params = domain.route53Params;
         const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
+        const domainInfo = domain.domainInfo ?? {
+            domainName: domain.givenDomainName,
+            hostedZoneId: route53HostedZoneId,
+        }
 
         let routingOptions = {}
         if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
             routingOptions = {
                 Region: domain.region,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             }
         }
@@ -524,7 +519,7 @@ class ServerlessCustomDomain {
         if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
             routingOptions = {
                 Weight: domain.route53Params.weight,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             }
         }
@@ -533,9 +528,9 @@ class ServerlessCustomDomain {
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
-                    DNSName: domain.domainInfo.domainName,
+                    DNSName: domainInfo.domainName,
                     EvaluateTargetHealth: false,
-                    HostedZoneId: domain.domainInfo.hostedZoneId,
+                    HostedZoneId: domainInfo.hostedZoneId,
                 },
                 Name: domain.givenDomainName,
                 Type,
@@ -714,15 +709,24 @@ class ServerlessCustomDomain {
 
         service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
             Value: domain.domainInfo.domainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
+            },
         };
 
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${domainNameOutputKey}`,
+            },
         };
 
         if (domain.domainInfo.hostedZoneId) {
             service.provider.compiledCloudFormationTemplate.Outputs[hostedZoneIdOutputKey] = {
                 Value: domain.domainInfo.hostedZoneId,
+                Export: {
+                    Name: `sls-${service.service}-${domain.stage}-${hostedZoneIdOutputKey}`,
+                },
             };
         }
     }

@@ -1,5 +1,6 @@
-service: web-socket-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-web-socket-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -15,7 +16,7 @@ plugins:
 custom:
   customDomain:
     websocket:
-      domainName: web-socket-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-web-socket-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       basePath: ''
       endpointType: 'regional'
 

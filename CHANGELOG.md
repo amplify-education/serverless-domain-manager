@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.3.2] - 2021-01-19
+- Added logs for Serverless Framework v3. Thank you @medikoo ([448](https://github.com/amplify-education/serverless-domain-manager/pull/448))
+
 ## [5.3.1] - 2021-01-18
 - Updated output for `compiledCloudFormationTemplate`. Thank you @nalbion ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
 - Fixed Route53 creation for `create_domain` action.

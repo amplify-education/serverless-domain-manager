@@ -73,7 +73,7 @@ class ServerlessCustomDomain {
         // setup AWS resources
         this.initAWSResources();
 
-        return await lifecycleFunc.call(this);
+        return lifecycleFunc.call(this);
     }
 
     /**
@@ -186,20 +186,16 @@ class ServerlessCustomDomain {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         try {
             if (!domain.domainInfo) {
-
                 domain.certificateArn = await this.getCertArn(domain);
-
                 await this.apiGatewayWrapper.createCustomDomain(domain);
-
-                await this.changeResourceRecordSet("UPSERT", domain);
-
-                Globals.logInfo(
-                    `Custom domain ${domain.givenDomainName} was created.
-                        New domains may take up to 40 minutes to be initialized.`,
-                );
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
+            await this.changeResourceRecordSet("UPSERT", domain);
+            Globals.logInfo(
+                `Custom domain ${domain.givenDomainName} was created.
+                        New domains may take up to 40 minutes to be initialized.`,
+            );
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to create domain ${domain.givenDomainName}`);
@@ -423,8 +419,7 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
-        const createRoute53Record = domain.createRoute53Record;
-        if (createRoute53Record !== undefined && createRoute53Record === false) {
+        if (domain.createRoute53Record === false) {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
@@ -433,12 +428,16 @@ class ServerlessCustomDomain {
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
         const route53Params = domain.route53Params;
         const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
+        const domainInfo = domain.domainInfo ?? {
+            domainName: domain.givenDomainName,
+            hostedZoneId: route53HostedZoneId,
+        }
 
         let routingOptions = {}
         if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
             routingOptions = {
                 Region: domain.region,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             }
         }
@@ -446,7 +445,7 @@ class ServerlessCustomDomain {
         if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
             routingOptions = {
                 Weight: domain.route53Params.weight,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domain.domainInfo.domainName,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             }
         }
@@ -455,9 +454,9 @@ class ServerlessCustomDomain {
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
-                    DNSName: domain.domainInfo.domainName,
+                    DNSName: domainInfo.domainName,
                     EvaluateTargetHealth: false,
-                    HostedZoneId: domain.domainInfo.hostedZoneId,
+                    HostedZoneId: domainInfo.hostedZoneId,
                 },
                 Name: domain.givenDomainName,
                 Type,

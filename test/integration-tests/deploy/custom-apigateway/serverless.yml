@@ -8,6 +8,7 @@ provider:
   stage: test
   apiGateway:
     restApiId: ${env:REST_API_ID}
+    restApiRootResourceId: ${env:RESOURCE_ID}
     restApiResources:
       'hello-world': ${env:RESOURCE_ID}
 functions:

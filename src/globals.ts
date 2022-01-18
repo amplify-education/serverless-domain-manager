@@ -27,6 +27,13 @@ export default class Globals {
         [Globals.apiTypes.websocket]: "websocketApiId",
     };
 
+    // Cloud Formation Resource Ids
+    public static CFResourceIds = {
+        [Globals.apiTypes.http]: "HttpApi",
+        [Globals.apiTypes.rest]: "ApiGatewayRestApi",
+        [Globals.apiTypes.websocket]: "WebsocketsApi",
+    };
+
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
@@ -92,7 +99,7 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.cliLog( chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
+        Globals.cliLog(chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
         Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
         Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
         Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);

@@ -1170,8 +1170,10 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             await plugin.createDomains();
-            expect(consoleOutput[0]).to.contain(`Custom domain ${plugin.domains[0].givenDomainName} was created.
-                            New domains may take up to 40 minutes to be initialized.`);
+            expect(consoleOutput[0]).to.contains("test_domain does not exist")
+            expect(consoleOutput[1]).to.contains(
+                `Custom domain ${plugin.domains[0].givenDomainName} was created.`
+            );
         });
 
         it("Does not create domain if one existed before", async () => {
@@ -1456,7 +1458,7 @@ describe("Custom Domain Plugin", () => {
                 // check if distribution domain name is printed
             }).catch((err) => {
                 const expectedErrorMessage = `Unable to fetch information about test_domain`;
-                expect(err.message).to.equal(expectedErrorMessage);
+                expect(err.message).to.contains(expectedErrorMessage);
             });
         });
 

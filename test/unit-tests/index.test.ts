@@ -1922,7 +1922,8 @@ describe("Custom Domain Plugin", () => {
                     routingPolicy: 'latency'
                 }
             });
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
@@ -1933,7 +1934,7 @@ describe("Custom Domain Plugin", () => {
                 },
             );
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             await plugin.changeResourceRecordSet("UPSERT", dc);
 
@@ -2001,7 +2002,8 @@ describe("Custom Domain Plugin", () => {
                     healthCheckId: "test_healthcheck",
                 }
             });
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
@@ -2012,7 +2014,7 @@ describe("Custom Domain Plugin", () => {
                 },
             );
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             await plugin.changeResourceRecordSet("UPSERT", dc);
 
@@ -2081,7 +2083,8 @@ describe("Custom Domain Plugin", () => {
                     weight: 100,
                 }
             });
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
@@ -2092,7 +2095,7 @@ describe("Custom Domain Plugin", () => {
                 },
             );
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             await plugin.changeResourceRecordSet("UPSERT", dc);
 
@@ -2159,7 +2162,8 @@ describe("Custom Domain Plugin", () => {
                     weight: 100,
                 }
             });
-            plugin.route53 = new aws.Route53();
+            const route53 = new aws.Route53();
+            plugin.createRoute53Resource = () => route53;
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
@@ -2170,7 +2174,7 @@ describe("Custom Domain Plugin", () => {
                 },
             );
 
-            const spy = chai.spy.on(plugin.route53, "changeResourceRecordSets");
+            const spy = chai.spy.on(route53, "changeResourceRecordSets");
 
             await plugin.changeResourceRecordSet("UPSERT", dc);
 

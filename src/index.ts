@@ -139,12 +139,8 @@ class ServerlessCustomDomain {
 
             // Show warning if allowPathMatching is set to true
             if (domain.allowPathMatching) {
-                if (Globals.log) {
-                    Globals.log.warning(`"allowPathMatching" is set for ${domain.givenDomainName}. This should only be used when migrating a path to a different API type. e.g. REST to HTTP.`);
-                } else {
-                    Globals.logWarning(`"allowPathMatching" is set for ${domain.givenDomainName}.
-                        This should only be used when migrating a path to a different API type. e.g. REST to HTTP.`);
-                }
+                Globals.logWarning(`"allowPathMatching" is set for ${domain.givenDomainName}.
+                    This should only be used when migrating a path to a different API type. e.g. REST to HTTP.`);
             }
 
             if (domain.apiType === Globals.apiTypes.rest) {
@@ -199,24 +195,15 @@ class ServerlessCustomDomain {
                 domain.certificateArn = await this.getCertArn(domain);
                 await this.apiGatewayWrapper.createCustomDomain(domain);
             } else {
-                if (Globals.log) {
-                    Globals.log(`Custom domain ${domain.givenDomainName} already exists.`);
-                } else {
-                    Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
-                }
+                Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
             await this.changeResourceRecordSet("UPSERT", domain);
-            if (Globals.log) {
-                Globals.log(`Custom domain ${domain.givenDomainName} was created. New domains may take up to 40 minutes to be initialized.`);
-            } else {
-                Globals.logInfo(
-                    `Custom domain ${domain.givenDomainName} was created. New domains may take up to 40 minutes to be initialized.`,
-                );
-            }
+            Globals.logInfo(
+                `Custom domain ${domain.givenDomainName} was created.
+                 New domains may take up to 40 minutes to be initialized.`
+            );
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to create domain ${domain.givenDomainName}: ${err.message}`);
         } finally {
             if (creationProgress) {
@@ -246,22 +233,12 @@ class ServerlessCustomDomain {
                 await this.apiGatewayWrapper.deleteCustomDomain(domain);
                 await this.changeResourceRecordSet("DELETE", domain);
                 domain.domainInfo = undefined;
-                if (Globals.log) {
-                    Globals.log(`Custom domain ${domain.givenDomainName} was deleted.`);
-                } else {
-                    Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
-                }
+                Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
             } else {
-                if (Globals.log) {
-                    Globals.log(`Custom domain ${domain.givenDomainName} does not exist.`);
-                } else {
-                    Globals.logInfo(`Custom domain ${domain.givenDomainName} does not exist.`);
-                }
+                Globals.logInfo(`Custom domain ${domain.givenDomainName} does not exist.`);
             }
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to delete domain ${domain.givenDomainName}`);
         }
     }
@@ -273,11 +250,7 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             const autoDomain = domain.autoDomain;
             if (autoDomain === true) {
-                if (Globals.log) {
-                    Globals.log("Creating domain name before deploy.");
-                } else {
-                    Globals.logInfo("Creating domain name before deploy.");
-                }
+                Globals.logInfo("Creating domain name before deploy.");
                 await this.createDomain(domain);
             }
 
@@ -288,15 +261,11 @@ class ServerlessCustomDomain {
                 const maxWaitFor = parseInt(domain.autoDomainWaitFor, 10) || 120;
                 const pollInterval = 3;
                 for (let i = 0; i * pollInterval < maxWaitFor && atLeastOneDoesNotExist() === true; i++) {
-                    if (Globals.log) {
-                        Globals.log(`Poll #${i + 1}: polling every ${pollInterval} seconds for domain to exist or until ${maxWaitFor} seconds have elapsed before starting deployment`);
-                    } else {
-                        Globals.logInfo(`
-                            Poll #${i + 1}: polling every ${pollInterval} seconds
-                            for domain to exist or until ${maxWaitFor} seconds
-                            have elapsed before starting deployment
-                        `);
-                    }
+                    Globals.logInfo(`
+                        Poll #${i + 1}: polling every ${pollInterval} seconds
+                        for domain to exist or until ${maxWaitFor} seconds
+                        have elapsed before starting deployment
+                    `);
                     await sleep(pollInterval);
                     domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
                 }
@@ -323,9 +292,7 @@ class ServerlessCustomDomain {
                 }
 
             } catch (err) {
-                if (!Globals.log) {
-                    Globals.logError(err, domain.givenDomainName);
-                }
+                Globals.logError(err, domain.givenDomainName);
                 throw new Error(`Unable to setup base domain mappings for ${domain.givenDomainName}`);
             }
         })).then(() => {
@@ -347,43 +314,27 @@ class ServerlessCustomDomain {
 
                 // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
-                    if (Globals.log) {
-                        Globals.log(`Unable to find corresponding API for ${domain.givenDomainName}, API Mappings may need to be manually removed.`);
-                    } else {
-                        Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
-                            API Mappings may need to be manually removed.`);
-                    }
+                    Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
+                        API Mappings may need to be manually removed.`);
                 } else {
                     domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
                     await this.apiGatewayWrapper.deleteBasePathMapping(domain);
                 }
             } catch (err) {
                 if (err.message.indexOf("Failed to find CloudFormation") > -1) {
-                    if (Globals.log) {
-                        Globals.log(`Unable to find Cloudformation Stack for ${domain.givenDomainName}, API Mappings may need to be manually removed.`);
-                    } else {
-                        Globals.logInfo(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
-                            API Mappings may need to be manually removed.`);
-                    }
+                    Globals.logInfo(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
+                        API Mappings may need to be manually removed.`);
                 } else {
-                    if (Globals.log) {
-                        Globals.log.error(`${domain.givenDomainName}: Unable to remove base path mappings: ${err}`);
-                    } else {
-                        Globals.logError(err, domain.givenDomainName);
-                        Globals.logError(
-                            `Unable to remove base path mappings`, domain.givenDomainName, false,
-                        );
-                    }
+                    Globals.logError(err, domain.givenDomainName);
+                    Globals.logError(
+                        `Unable to remove base path mappings`, domain.givenDomainName, false,
+                    );
                 }
             }
 
             const autoDomain = domain.autoDomain;
             if (autoDomain === true) {
-                if (Globals.log) {
-                    Globals.log("Deleting domain name after removing base path mapping.");
-                } else {
-                    Globals.logInfo("Deleting domain name after removing base path mapping.");
-                }
+                Globals.logInfo("Deleting domain name after removing base path mapping.");
                 await this.deleteDomain(domain);
             }
         }));
@@ -399,15 +350,9 @@ class ServerlessCustomDomain {
             if (domain.domainInfo) {
                 Globals.printDomainSummary(domain);
             } else {
-                if (Globals.log) {
-                    Globals.log(
-                        `Unable to print Serverless Domain Manager Summary for ${domain.givenDomainName}`,
-                    );
-                } else {
-                    Globals.logInfo(
-                        `Unable to print Serverless Domain Manager Summary for ${domain.givenDomainName}`,
-                    );
-                }
+                Globals.logInfo(
+                    `Unable to print ${Globals.pluginName} Summary for ${domain.givenDomainName}`,
+                );
             }
         }
     }
@@ -417,11 +362,7 @@ class ServerlessCustomDomain {
      */
     public async getCertArn(domain: DomainConfig): Promise<string> {
         if (domain.certificateArn) {
-            if (Globals.log) {
-                Globals.log(`Selected specific certificateArn ${domain.certificateArn}`);
-            } else {
-                Globals.logInfo(`Selected specific certificateArn ${domain.certificateArn}`);
-            }
+            Globals.logInfo(`Selected specific certificateArn ${domain.certificateArn}`);
             return domain.certificateArn;
         }
 
@@ -467,9 +408,7 @@ class ServerlessCustomDomain {
                 });
             }
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw Error(`Could not list certificates in Certificate Manager.\n${err}`);
         }
         if (certificateArn == null) {
@@ -490,11 +429,7 @@ class ServerlessCustomDomain {
         }
 
         if (domain.createRoute53Record === false) {
-            if (Globals.log) {
-                Globals.log(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
-            } else {
-                Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
-            }
+            Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
 
@@ -549,9 +484,7 @@ class ServerlessCustomDomain {
         try {
             await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
         }
     }
@@ -561,27 +494,15 @@ class ServerlessCustomDomain {
      */
     public async getRoute53HostedZoneId(domain: DomainConfig): Promise<string> {
         if (domain.hostedZoneId) {
-            if (Globals.log) {
-                Globals.log(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
-            } else {
-                Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
-            }
+            Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
             return domain.hostedZoneId;
         }
 
         const filterZone = domain.hostedZonePrivate !== undefined;
         if (filterZone && domain.hostedZonePrivate) {
-            if (Globals.log) {
-                Globals.log("Filtering to only private zones.");
-            } else {
-                Globals.logInfo("Filtering to only private zones.");
-            }
+            Globals.logInfo("Filtering to only private zones.");
         } else if (filterZone && !domain.hostedZonePrivate) {
-            if (Globals.log) {
-                Globals.log("Filtering to only public zones.");
-            } else {
-                Globals.logInfo("Filtering to only public zones.");
-            }
+            Globals.logInfo("Filtering to only public zones.");
         }
 
         let hostedZoneData;
@@ -623,9 +544,7 @@ class ServerlessCustomDomain {
                 return hostedZoneId.substring(startPos, endPos);
             }
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
         }
         throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
@@ -641,11 +560,7 @@ class ServerlessCustomDomain {
         if (apiId) {
             // if string value exists return the value
             if (typeof apiId === "string") {
-                if (Globals.log) {
-                    Globals.log(`Mapping custom domain to existing API  ${apiId}.`);
-                } else {
-                    Globals.logInfo(`Mapping custom domain to existing API  ${apiId}.`);
-                }
+                Globals.logInfo(`Mapping custom domain to existing API  ${apiId}.`);
                 return apiId;
             }
             // in case object and Fn::ImportValue try to get restApiId from the CloudFormation exports
@@ -655,9 +570,7 @@ class ServerlessCustomDomain {
                 try {
                     importValues = await this.cloudFormationWrapper.getImportValues([importName]);
                 } catch (err) {
-                    if (!Globals.log) {
-                        Globals.logError(err, domain.givenDomainName);
-                    }
+                    Globals.logError(err, domain.givenDomainName);
                     throw new Error(`Failed to find CloudFormation ImportValue by ${importName}\n`);
                 }
                 if (!importValues[importName]) {
@@ -675,9 +588,7 @@ class ServerlessCustomDomain {
         try {
             return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {
-            if (!Globals.log) {
-                Globals.logError(err, domain.givenDomainName);
-            }
+            Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
         }
     }

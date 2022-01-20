@@ -110,7 +110,7 @@ class CloudFormationWrapper {
                 response = await this.getStack(logicalResourceId, name);
                 break;
             } catch (err) {
-                Globals.logError(err);
+                Globals.logWarning(err);
             }
         }
         return response;

@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "5.3.1",
+  "version": "5.4.0",
   "engines": {
     "node": ">=12"
   },
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
-    "@types/node": "^17.0.9",
+    "@types/node": "^17.0.10",
     "aws-sdk-mock": "^5.5.1",
     "chai": "^4.3.4",
     "chai-spies": "^1.0.0",

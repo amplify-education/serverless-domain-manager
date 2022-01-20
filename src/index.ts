@@ -4,7 +4,7 @@ import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import DomainConfig = require("./domain-config");
 import Globals from "./globals";
-import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
+import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
@@ -25,12 +25,17 @@ class ServerlessCustomDomain {
     // Domain Manager specific properties
     public domains: DomainConfig[] = [];
 
-    constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
+    constructor(serverless: ServerlessInstance, options: ServerlessOptions, v3Utils?: ServerlessUtils) {
         this.serverless = serverless;
         Globals.serverless = serverless;
 
         this.options = options;
         Globals.options = options;
+
+        if (v3Utils) {
+            Globals.log = v3Utils.log
+            Globals.progress = v3Utils.progress
+        }
 
         this.commands = {
             create_domain: {
@@ -202,6 +207,7 @@ class ServerlessCustomDomain {
      */
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+        const creationProgress = Globals.log && Globals.progress.get(`create-${domain.givenDomainName}`);
         try {
             if (!domain.domainInfo) {
                 domain.certificateArn = await this.getCertArn(domain);
@@ -212,11 +218,15 @@ class ServerlessCustomDomain {
             await this.changeResourceRecordSet("UPSERT", domain);
             Globals.logInfo(
                 `Custom domain ${domain.givenDomainName} was created.
-                        New domains may take up to 40 minutes to be initialized.`,
+                 New domains may take up to 40 minutes to be initialized.`
             );
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to create domain ${domain.givenDomainName}`);
+            throw new Error(`Unable to create domain ${domain.givenDomainName}: ${err.message}`);
+        } finally {
+            if (creationProgress) {
+                creationProgress.remove();
+            }
         }
 
     }
@@ -274,7 +284,6 @@ class ServerlessCustomDomain {
                         for domain to exist or until ${maxWaitFor} seconds
                         have elapsed before starting deployment
                     `);
-
                     await sleep(pollInterval);
                     domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
                 }
@@ -360,7 +369,7 @@ class ServerlessCustomDomain {
                 Globals.printDomainSummary(domain);
             } else {
                 Globals.logInfo(
-                    `Unable to print Serverless Domain Manager Summary for ${domain.givenDomainName}`,
+                    `Unable to print ${Globals.pluginName} Summary for ${domain.givenDomainName}`,
                 );
             }
         }

@@ -144,7 +144,7 @@ custom:
 | certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
 | certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
 | createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
-| route53Profile | `(none)` | Profile to use for accessing Route53 resources |
+| route53Profile | `(none)` | Profile to use for accessing Route53 resources when Route53 records are in a different account |
 | route53Region | `(none)` | Region to send Route53 services requests to (only applicable if also using route53Profile option) |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
@@ -241,7 +241,7 @@ NOTE: Always test this process in a lower level staging or development environme
 * (1/17/2018) The `create_domain` command provided by this plugin does not currently update an existing Custom Domain's configuration. Instead, it only supports updating the Route 53 record pointing to the Custom Domain. For example, one must delete and recreate a Custom Domain to migrate it from regional to edge or vice versa, or to modify the certificate.
 * (8/22/2018) Creating a custom domain creates a CloudFront Distribution behind the scenes for fronting your API Gateway. This CloudFront Distribution is managed by AWS and cannot be viewed/managed by you. This is not a bug, but a quirk of how the Custom Domain feature works in API Gateway.
 * (2/12/2019) Users who upgraded from 2.x.x to version 3.0.4 (now unpublished) and then reverted back to 2.x.x will be unable to deploy because of a bug that will be fixed in 3.1.0. The workaround is to delete the basepath mapping manually, which will let them successfully revert back to 2.x.x.
-* (1/20/2022) Using `route53Profile` option requires having the same hosted zone name in both AWS accounts for reading ACM certificates.  
+* (1/20/2022) Using `route53Profile` option requires having hosted zone for the domain in this profile and ACM certificate in the main profile (where functions are deployed).  
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

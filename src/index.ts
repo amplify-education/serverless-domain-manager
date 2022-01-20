@@ -13,7 +13,6 @@ class ServerlessCustomDomain {
 
     // AWS SDK resources
     public apiGatewayWrapper: APIGatewayWrapper;
-    public route53: any;
     public acm: any;
     public cloudFormationWrapper: CloudFormationWrapper;
 
@@ -169,8 +168,27 @@ class ServerlessCustomDomain {
         credentials.region = this.serverless.providers.aws.getRegion();
 
         this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
-        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
+    }
+
+    /**
+     * Setup route53 resource
+     */
+    public createRoute53Resource(domain: DomainConfig): any {
+        let route53Credentials = this.serverless.providers.aws.getCredentials();
+        let route53Region = this.serverless.providers.aws.getRegion();
+
+        if (domain.route53Profile) {
+            route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
+                profile: domain.route53Profile,
+            });
+            route53Region = domain.route53Region || route53Region;
+        }
+
+        return new this.serverless.providers.aws.sdk.Route53({
+            credentials: route53Credentials,
+            region: route53Region,
+        });
     }
 
     /**
@@ -482,7 +500,7 @@ class ServerlessCustomDomain {
         };
         // Make API call
         try {
-            await throttledCall(this.route53, "changeResourceRecordSets", params);
+            await throttledCall(this.createRoute53Resource(domain), "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
@@ -509,7 +527,7 @@ class ServerlessCustomDomain {
         const givenDomainNameReverse = domain.givenDomainName.split(".").reverse();
 
         try {
-            hostedZoneData = await throttledCall(this.route53, "listHostedZones", {});
+            hostedZoneData = await throttledCall(this.createRoute53Resource(domain), "listHostedZones", {});
             const targetHostedZone = hostedZoneData.HostedZones
                 .filter((hostedZone) => {
                     let hostedZoneName;

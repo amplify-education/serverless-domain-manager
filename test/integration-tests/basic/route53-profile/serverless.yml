@@ -20,7 +20,7 @@ plugins:
 custom:
   customDomain:
     domainName: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-    route53Profile: default
+    route53Profile: ${env:ROUTE53_PROFILE}
 
 package:
   exclude:

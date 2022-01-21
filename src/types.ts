@@ -1,3 +1,5 @@
+import {HTTPOptions} from "aws-sdk";
+
 export interface CustomDomain { // tslint:disable-line
     domainName: string;
     basePath: string | undefined;
@@ -5,6 +7,8 @@ export interface CustomDomain { // tslint:disable-line
     certificateName: string | undefined;
     certificateArn: string | undefined;
     createRoute53Record: boolean | undefined;
+    route53Profile: string | undefined;
+    route53Region: string | undefined;
     endpointType: string | undefined;
     apiType: string | undefined;
     hostedZoneId: string | undefined;
@@ -14,6 +18,7 @@ export interface CustomDomain { // tslint:disable-line
     autoDomain: boolean | undefined;
     autoDomainWaitFor: string | undefined;
     allowPathMatching: boolean | undefined;
+    route53Params: Route53Params | undefined
 }
 
 export interface ServerlessInstance { // tslint:disable-line
@@ -44,8 +49,10 @@ export interface ServerlessInstance { // tslint:disable-line
                 CloudFormation: any,
                 ACM: any,
                 config: {
+                    httpOptions: HTTPOptions,
                     update(toUpdate: object): void,
                 },
+                SharedIniFileCredentials: any,
             }
             getCredentials(),
             getRegion(),
@@ -55,8 +62,35 @@ export interface ServerlessInstance { // tslint:disable-line
         log(str: string, entity?: string),
         consoleLog(str: any),
     };
+    addServiceOutputSection?(name: string, data: string[]);
 }
 
 export interface ServerlessOptions { // tslint:disable-line
     stage: string;
+}
+
+interface ServerlessProgress {
+    update(message: string): void
+    remove(): void
+}
+
+export interface ServerlessProgressFactory {
+    get(name: string): ServerlessProgress;
+}
+
+export interface ServerlessUtils {
+    log: ((message: string) => void) & {
+        error(message: string): void
+        verbose(message: string): void
+        warning(message: string): void
+    }
+    progress: ServerlessProgressFactory
+}
+
+
+export interface Route53Params {
+    routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;
+    weight: number | undefined;
+    setIdentifier: string | undefined;
+    healthCheckId: string | undefined;
 }

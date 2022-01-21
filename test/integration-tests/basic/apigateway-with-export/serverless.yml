@@ -1,7 +1,8 @@
 # APIGateway with export outputs
-service: apigateway-with-export-${opt:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
 
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -24,7 +25,7 @@ resources:
       Value:
         Ref: ApiGatewayRestApi # Logical ID
       Export:
-        Name: api-${self:provider.stage}-restApiId-${opt:RANDOM_STRING}
+        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-restApiId
     RootResource:
       Description: Main service's API Gateway Root Resource ID
       Value:
@@ -32,7 +33,7 @@ resources:
           - ApiGatewayRestApi # Logical ID
           - RootResourceId # Logical ID
       Export:
-        Name: api-${self:provider.stage}-RootResourceId-${opt:RANDOM_STRING}
+        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-RootResourceId
 
 plugins:
   - serverless-domain-manager
@@ -40,7 +41,7 @@ plugins:
 custom:
   customDomain:
     stage: ${self:provider.stage}
-    domainName: apigateway-with-export-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world
     endpointType: regional

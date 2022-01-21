@@ -1,6 +1,6 @@
 import chalk = require("chalk");
-import DomainConfig = require("./DomainConfig");
-import {ServerlessInstance, ServerlessOptions} from "./types";
+import DomainConfig = require("./domain-config");
+import {ServerlessInstance, ServerlessOptions, ServerlessProgressFactory} from "./types";
 
 export default class Globals {
 
@@ -8,6 +8,12 @@ export default class Globals {
 
     public static serverless: ServerlessInstance;
     public static options: ServerlessOptions;
+    public static log: ((message: string) => void) & {
+        error(message: string): void
+        verbose(message: string): void
+        warning(message: string): void
+    };
+    public static progress: ServerlessProgressFactory;
 
     public static defaultRegion = "us-east-1";
 
@@ -27,9 +33,22 @@ export default class Globals {
         [Globals.apiTypes.websocket]: "websocketApiId",
     };
 
+    // Cloud Formation Resource Ids
+    public static CFResourceIds = {
+        [Globals.apiTypes.http]: "HttpApi",
+        [Globals.apiTypes.rest]: "ApiGatewayRestApi",
+        [Globals.apiTypes.websocket]: "WebsocketsApi",
+    };
+
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
+    };
+
+    public static routingPolicies = {
+        simple: "simple",
+        latency: "latency",
+        weighted: "weighted",
     };
 
     public static cliLog(prefix: string, message: string): void {
@@ -49,8 +68,12 @@ export default class Globals {
         }
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            const error = chalk.bold.red;
-            Globals.cliLog(error("Error:"), `${domain ? domain + ": " : ""} ${message}`);
+            if (Globals.log) {
+                Globals.log.error(message);
+            } else {
+                const error = chalk.bold.red;
+                Globals.cliLog(error("Error:"), `${domain ? domain + ": " : ""} ${message}`);
+            }
         }
     }
 
@@ -63,7 +86,11 @@ export default class Globals {
     public static logInfo(message: any, debug = false): void {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            Globals.cliLog(chalk.blue("Info:"), message);
+            if (Globals.log) {
+                Globals.log.verbose(message);
+            } else {
+                Globals.cliLog(chalk.blue("Info:"), message);
+            }
         }
     }
 
@@ -76,8 +103,12 @@ export default class Globals {
     public static logWarning(message: any, debug = false): void {
         const canLog = debug && process.env.SLS_DEBUG || !debug;
         if (canLog) {
-            const warning = chalk.keyword("orange");
-            Globals.cliLog(warning("WARNING:"), message);
+            if (Globals.log) {
+                Globals.log.warning(message);
+            } else {
+                const warning = chalk.keyword("orange");
+                Globals.cliLog(warning("WARNING:"), message);
+            }
         }
     }
 
@@ -86,9 +117,18 @@ export default class Globals {
      */
 
     public static printDomainSummary(domain: DomainConfig): void {
-        Globals.cliLog( chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
-        Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
-        Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
-        Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        if (Globals.log) {
+            Globals.serverless.addServiceOutputSection(Globals.pluginName, [
+                `domain name: ${domain.givenDomainName}`,
+                `target domain: ${domain.domainInfo.domainName}`,
+                `hosted zone id: ${domain.domainInfo.hostedZoneId}`
+            ]);
+        } else {
+            Globals.cliLog(chalk.yellow.underline("Summary:"), chalk.yellow("Distribution Domain Name"));
+            Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
+            Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
+            Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        }
     }
+
 }

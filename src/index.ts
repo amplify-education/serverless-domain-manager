@@ -526,7 +526,6 @@ class ServerlessCustomDomain {
 
         try {
             hostedZoneData = await throttledCall(this.createRoute53Resource(domain), "listHostedZones", {});
-            Globals.logInfo(hostedZoneData);
             const targetHostedZone = hostedZoneData.HostedZones
                 .filter((hostedZone) => {
                     let hostedZoneName;

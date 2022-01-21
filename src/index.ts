@@ -1,6 +1,5 @@
 "use strict";
 
-import {HTTPOptions} from "aws-sdk";
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import DomainConfig = require("./domain-config");
@@ -184,10 +183,12 @@ class ServerlessCustomDomain {
                     profile: domain.route53Profile
                 }),
                 region: domain.route53Region || route53Region,
+                httpOptions: this.serverless.providers.aws.sdk.config.httpOptions
             });
         }
         const credentials = this.serverless.providers.aws.getCredentials();
         credentials.region = route53Region;
+        credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
         return new this.serverless.providers.aws.sdk.Route53(credentials);
     }
 

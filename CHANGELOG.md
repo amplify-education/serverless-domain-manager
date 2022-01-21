@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] - 2021-01-24
+- Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
+
 ## [5.4.1] - 2021-01-21
-- Fix route53 resource creation.
+- Fixed route53 resource creation.
 
 ## [5.4.0] - 2021-01-20
 - Added custom route53 profile options. Thank you @CodeVision ([393](https://github.com/amplify-education/serverless-domain-manager/pull/393))

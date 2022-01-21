@@ -1,3 +1,5 @@
+import {HTTPOptions} from "aws-sdk";
+
 export interface CustomDomain { // tslint:disable-line
     domainName: string;
     basePath: string | undefined;
@@ -47,6 +49,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 CloudFormation: any,
                 ACM: any,
                 config: {
+                    httpOptions: HTTPOptions,
                     update(toUpdate: object): void,
                 },
                 SharedIniFileCredentials: any,

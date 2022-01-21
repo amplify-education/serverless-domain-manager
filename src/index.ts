@@ -180,14 +180,14 @@ class ServerlessCustomDomain {
 
         if (domain.route53Profile) {
             route53Credentials = new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
-                profile: domain.route53Profile,
+                profile: domain.route53Profile
             });
             route53Region = domain.route53Region || route53Region;
         }
 
         return new this.serverless.providers.aws.sdk.Route53({
             credentials: route53Credentials,
-            region: route53Region,
+            region: route53Region
         });
     }
 
@@ -528,6 +528,7 @@ class ServerlessCustomDomain {
 
         try {
             hostedZoneData = await throttledCall(this.createRoute53Resource(domain), "listHostedZones", {});
+            Globals.logInfo(hostedZoneData);
             const targetHostedZone = hostedZoneData.HostedZones
                 .filter((hostedZone) => {
                     let hostedZoneName;

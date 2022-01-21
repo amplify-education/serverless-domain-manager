@@ -1,6 +1,7 @@
-# Enabled with default values
-service: enabled-default-${opt:RANDOM_STRING}
+# Enabled with custom basepath
+service: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}
 provider:
+  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -17,7 +18,8 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: enabled-default-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: 'api'
 
 package:
   exclude:

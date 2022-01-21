@@ -1,5 +1,5 @@
-# create_domain should be run as part of deployment
-service: ${env:PLUGIN_IDENTIFIER}-auto-domain-${env:RANDOM_STRING}
+# Enabled with custom stage and empty basepath
+service: ${env:PLUGIN_IDENTIFIER}-stage-basepath-${env:RANDOM_STRING}
 provider:
   lambdaHashingVersion: 20201221
   name: aws
@@ -18,10 +18,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-auto-domain-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-stage-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: test
     basePath: ''
-    autoDomain: true
-    autoDomainWaitFor: 120
 
 package:
   exclude:

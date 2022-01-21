@@ -1,9 +1,9 @@
 /**
  * Wrapper class for AWS APIGateway provider
  */
-import DomainConfig = require("../DomainConfig");
-import DomainInfo = require("../DomainInfo");
-import Globals from "../Globals";
+import DomainConfig = require("../domain-config");
+import DomainInfo = require("../domain-info");
+import Globals from "../globals";
 import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
 import {getAWSPagedResults, throttledCall} from "../utils";
 
@@ -91,7 +91,7 @@ class APIGatewayWrapper {
     }
 
     /**
-     * Delete Custom Domain Name through API Gateway
+     * Get Custom Domain Info through API Gateway
      */
     public async getCustomDomainInfo(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
@@ -102,9 +102,10 @@ class APIGatewayWrapper {
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (err.code !== "NotFoundException") {
-                throw new Error(`Unable to fetch information about ${domain.givenDomainName}`);
+                Globals.logError(err, domain.givenDomainName);
+                throw new Error(`Unable to fetch information about ${domain.givenDomainName}\n`);
             }
-            Globals.logError(`${domain.givenDomainName} does not exist`);
+            Globals.logInfo(`${domain.givenDomainName} does not exist`);
         }
     }
 
@@ -197,7 +198,7 @@ class APIGatewayWrapper {
             try {
                 await throttledCall(this.apiGateway, "updateBasePathMapping", params);
                 Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
-                     to '${domain.basePath}' for ${domain.givenDomainName}`);
+                    to '${domain.basePath}' for ${domain.givenDomainName}`);
             } catch (err) {
                 Globals.logError(err, domain.givenDomainName);
                 throw new Error(`${domain.givenDomainName}: Unable to update basepath mapping.\n`);

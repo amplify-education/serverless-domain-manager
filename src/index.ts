@@ -3,9 +3,9 @@
 import {HTTPOptions} from "aws-sdk";
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
-import DomainConfig = require("./DomainConfig");
-import Globals from "./Globals";
-import {CustomDomain, ServerlessInstance, ServerlessOptions} from "./types";
+import DomainConfig = require("./domain-config");
+import Globals from "./globals";
+import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {getAWSPagedResults, sleep, throttledCall} from "./utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
@@ -14,7 +14,6 @@ class ServerlessCustomDomain {
 
     // AWS SDK resources
     public apiGatewayWrapper: APIGatewayWrapper;
-    public route53: any;
     public acm: any;
     public cloudFormationWrapper: CloudFormationWrapper;
 
@@ -27,12 +26,17 @@ class ServerlessCustomDomain {
     // Domain Manager specific properties
     public domains: DomainConfig[] = [];
 
-    constructor(serverless: ServerlessInstance, options: ServerlessOptions) {
+    constructor(serverless: ServerlessInstance, options: ServerlessOptions, v3Utils?: ServerlessUtils) {
         this.serverless = serverless;
         Globals.serverless = serverless;
 
         this.options = options;
         Globals.options = options;
+
+        if (v3Utils) {
+            Globals.log = v3Utils.log
+            Globals.progress = v3Utils.progress
+        }
 
         this.commands = {
             create_domain: {
@@ -74,7 +78,7 @@ class ServerlessCustomDomain {
         // setup AWS resources
         this.initAWSResources();
 
-        return await lifecycleFunc.call(this);
+        return lifecycleFunc.call(this);
     }
 
     /**
@@ -166,8 +170,25 @@ class ServerlessCustomDomain {
         credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
 
         this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
-        this.route53 = new this.serverless.providers.aws.sdk.Route53(credentials);
         this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
+    }
+
+    /**
+     * Setup route53 resource
+     */
+    public createRoute53Resource(domain: DomainConfig): any {
+        const route53Region = this.serverless.providers.aws.getRegion();
+        if (domain.route53Profile) {
+            return new this.serverless.providers.aws.sdk.Route53({
+                credentials: new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
+                    profile: domain.route53Profile
+                }),
+                region: domain.route53Region || route53Region,
+            });
+        }
+        const credentials = this.serverless.providers.aws.getCredentials();
+        credentials.region = route53Region;
+        return new this.serverless.providers.aws.sdk.Route53(credentials);
     }
 
     /**
@@ -186,25 +207,26 @@ class ServerlessCustomDomain {
      */
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+        const creationProgress = Globals.log && Globals.progress.get(`create-${domain.givenDomainName}`);
         try {
             if (!domain.domainInfo) {
-
                 domain.certificateArn = await this.getCertArn(domain);
-
                 await this.apiGatewayWrapper.createCustomDomain(domain);
-
-                await this.changeResourceRecordSet("UPSERT", domain);
-
-                Globals.logInfo(
-                    `Custom domain ${domain.givenDomainName} was created.
-                        New domains may take up to 40 minutes to be initialized.`,
-                );
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
+            await this.changeResourceRecordSet("UPSERT", domain);
+            Globals.logInfo(
+                `Custom domain ${domain.givenDomainName} was created.
+                 New domains may take up to 40 minutes to be initialized.`
+            );
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to create domain ${domain.givenDomainName}`);
+            throw new Error(`Unable to create domain ${domain.givenDomainName}: ${err.message}`);
+        } finally {
+            if (creationProgress) {
+                creationProgress.remove();
+            }
         }
 
     }
@@ -262,7 +284,6 @@ class ServerlessCustomDomain {
                         for domain to exist or until ${maxWaitFor} seconds
                         have elapsed before starting deployment
                     `);
-
                     await sleep(pollInterval);
                     domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
                 }
@@ -348,7 +369,7 @@ class ServerlessCustomDomain {
                 Globals.printDomainSummary(domain);
             } else {
                 Globals.logInfo(
-                    `Unable to print Serverless Domain Manager Summary for ${domain.givenDomainName}`,
+                    `Unable to print ${Globals.pluginName} Summary for ${domain.givenDomainName}`,
                 );
             }
         }
@@ -425,35 +446,61 @@ class ServerlessCustomDomain {
                 Action must be either UPSERT or DELETE.\n`);
         }
 
-        const createRoute53Record = domain.createRoute53Record;
-        if (createRoute53Record !== undefined && createRoute53Record === false) {
+        if (domain.createRoute53Record === false) {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
+
         // Set up parameters
         const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
-        const Changes = ["A", "AAAA"].map((Type) => ({
+        const route53Params = domain.route53Params;
+        const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
+        const domainInfo = domain.domainInfo ?? {
+            domainName: domain.givenDomainName,
+            hostedZoneId: route53HostedZoneId,
+        }
+
+        let routingOptions = {}
+        if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
+            routingOptions = {
+                Region: domain.region,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
+                ...route53healthCheck,
+            }
+        }
+
+        if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
+            routingOptions = {
+                Weight: domain.route53Params.weight,
+                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
+                ...route53healthCheck,
+            }
+        }
+
+        const changes = ["A", "AAAA"].map((Type) => ({
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
-                    DNSName: domain.domainInfo.domainName,
+                    DNSName: domainInfo.domainName,
                     EvaluateTargetHealth: false,
-                    HostedZoneId: domain.domainInfo.hostedZoneId,
+                    HostedZoneId: domainInfo.hostedZoneId,
                 },
                 Name: domain.givenDomainName,
                 Type,
+                ...routingOptions,
             },
         }));
+
         const params = {
             ChangeBatch: {
-                Changes,
+                Changes: changes,
                 Comment: "Record created by serverless-domain-manager",
             },
             HostedZoneId: route53HostedZoneId,
         };
         // Make API call
         try {
-            await throttledCall(this.route53, "changeResourceRecordSets", params);
+            await throttledCall(this.createRoute53Resource(domain), "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
@@ -480,7 +527,7 @@ class ServerlessCustomDomain {
         const givenDomainNameReverse = domain.givenDomainName.split(".").reverse();
 
         try {
-            hostedZoneData = await throttledCall(this.route53, "listHostedZones", {});
+            hostedZoneData = await throttledCall(this.createRoute53Resource(domain), "listHostedZones", {});
             const targetHostedZone = hostedZoneData.HostedZones
                 .filter((hostedZone) => {
                     let hostedZoneName;
@@ -591,15 +638,24 @@ class ServerlessCustomDomain {
 
         service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
             Value: domain.domainInfo.domainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
+            },
         };
 
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
+            Export: {
+                Name: `sls-${service.service}-${domain.stage}-${domainNameOutputKey}`,
+            },
         };
 
         if (domain.domainInfo.hostedZoneId) {
             service.provider.compiledCloudFormationTemplate.Outputs[hostedZoneIdOutputKey] = {
                 Value: domain.domainInfo.hostedZoneId,
+                Export: {
+                    Name: `sls-${service.service}-${domain.stage}-${hostedZoneIdOutputKey}`,
+                },
             };
         }
     }

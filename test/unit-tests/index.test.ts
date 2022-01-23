@@ -1678,7 +1678,7 @@ describe("Custom Domain Plugin", () => {
                 await plugin.hookWrapper(null);
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous enablement boolean: \"0\"`);
+                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous boolean config: \"0\"`);
             }
             expect(errored).to.equal(true);
         });
@@ -1691,7 +1691,7 @@ describe("Custom Domain Plugin", () => {
                 await plugin.hookWrapper(null);
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous enablement boolean: \"yes\"`);
+                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous boolean config: \"yes\"`);
             }
             expect(errored).to.equal(true);
         });

@@ -1,0 +1,32 @@
+service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.connect
+    events:
+      - httpApi:
+          method: GET
+          path: /hello-world
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomains:
+    - http:
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        basePath: ''
+        endpointType: 'regional'
+        autoDomain: true
+    - http:
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        basePath: ''
+        endpointType: 'regional'
+        autoDomain: true
+
+package:
+  exclude:
+    - node_modules/**

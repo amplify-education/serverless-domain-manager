@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.5.0] - 2021-01-24
 - Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
 - Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))
+- Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
 - Enabled dependabot
 
 ## [5.4.1] - 2021-01-21

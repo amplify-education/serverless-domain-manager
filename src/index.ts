@@ -518,55 +518,38 @@ class ServerlessCustomDomain {
         }
 
         const filterZone = domain.hostedZonePrivate !== undefined;
-        if (filterZone && domain.hostedZonePrivate) {
-            Globals.logInfo("Filtering to only private zones.");
-        } else if (filterZone && !domain.hostedZonePrivate) {
-            Globals.logInfo("Filtering to only public zones.");
+        if (filterZone) {
+            const zoneTypeString = domain.hostedZonePrivate ? "private" : "public";
+            Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
         }
 
-        let hostedZoneData;
-        const givenDomainNameReverse = domain.givenDomainName.split(".").reverse();
-
+        let hostedZones = [];
         try {
-            hostedZoneData = await throttledCall(this.createRoute53Resource(domain), "listHostedZones", {});
-            const targetHostedZone = hostedZoneData.HostedZones
-                .filter((hostedZone) => {
-                    let hostedZoneName;
-                    if (hostedZone.Name.endsWith(".")) {
-                        hostedZoneName = hostedZone.Name.slice(0, -1);
-                    } else {
-                        hostedZoneName = hostedZone.Name;
-                    }
-                    if (!filterZone || domain.hostedZonePrivate === hostedZone.Config.PrivateZone) {
-                        const hostedZoneNameReverse = hostedZoneName.split(".").reverse();
-
-                        if (givenDomainNameReverse.length === 1
-                            || (givenDomainNameReverse.length >= hostedZoneNameReverse.length)) {
-                            for (let i = 0; i < hostedZoneNameReverse.length; i += 1) {
-                                if (givenDomainNameReverse[i] !== hostedZoneNameReverse[i]) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-                    }
-                    return false;
-                })
-                .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-                .shift();
-
-            if (targetHostedZone) {
-                const hostedZoneId = targetHostedZone.Id;
-                // Extracts the hostzone Id
-                const startPos = hostedZoneId.indexOf("e/") + 2;
-                const endPos = hostedZoneId.length;
-                return hostedZoneId.substring(startPos, endPos);
-            }
+            const hostedZoneData = await throttledCall(
+                this.createRoute53Resource(domain), "listHostedZones", {}
+            );
+            hostedZones = hostedZoneData.HostedZones;
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
         }
-        throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
+
+        const targetHostedZone = hostedZones
+            .filter((hostedZone) => {
+                return !filterZone || domain.hostedZonePrivate === hostedZone.Config.PrivateZone;
+            })
+            .filter((hostedZone) => {
+                const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
+                return domain.givenDomainName.endsWith(hostedZoneName);
+            })
+            .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+            .shift();
+
+        if (targetHostedZone) {
+            return targetHostedZone.Id.replace("/hostedzone/", "");
+        } else {
+            throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
+        }
     }
 
     /**

@@ -51,7 +51,7 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
-        this.preserveExternalPathMappings = config.preserveExternalPathMappings;
+        this.preserveExternalPathMappings = this.evaluateBoolean(config.preserveExternalPathMappings, false);
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {

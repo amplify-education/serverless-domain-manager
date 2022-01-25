@@ -148,12 +148,9 @@ class APIGatewayWrapper {
         }
     }
 
-    /**
-     * Get basepath mapping
-     */
-    public async getBasePathMapping(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse> {
+    public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse[]> {
         try {
-            const mappings = await getAWSPagedResults(
+            return await getAWSPagedResults(
                 this.apiGatewayV2,
                 "getApiMappings",
                 "Items",
@@ -161,12 +158,6 @@ class APIGatewayWrapper {
                 "NextToken",
                 {DomainName: domain.givenDomainName},
             );
-            for (const mapping of mappings) {
-                if (mapping.ApiId === domain.apiId
-                    || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)) {
-                    return mapping;
-                }
-            }
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Unable to get API Mappings for ${domain.givenDomainName}`);
@@ -242,26 +233,6 @@ class APIGatewayWrapper {
             Globals.logError(err, domain.givenDomainName);
             Globals.logInfo(`Unable to remove basepath mapping for ${domain.givenDomainName}`);
         }
-    }
-
-    /**
-     * Checks for presence of external basepath mappings
-     */
-    public async checkExternalPathMappings(domain: DomainConfig): Promise<boolean> {
-        Globals.logInfo(`Checking for additional base path mappings on ${domain.givenDomainName}...`);
-        const mappings = await getAWSPagedResults(
-          this.apiGatewayV2,
-          "getApiMappings",
-          "Items",
-          "NextToken",
-          "NextToken",
-          {DomainName: domain.givenDomainName},
-        );
-        return mappings.filter((mapping) =>
-          !(mapping.ApiId === domain.apiId ||
-            (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)
-          ),
-        ).length > 0;
     }
 }
 

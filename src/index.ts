@@ -300,8 +300,15 @@ class ServerlessCustomDomain {
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
             try {
+                const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+                const filteredMappings = mappings.filter((mapping) => {
+                    return mapping.ApiId === domain.apiId || (
+                        mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                    )
+                });
+
                 domain.apiId = await this.getApiId(domain);
-                domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
+                domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                 domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
 
                 if (!domain.apiMapping) {
@@ -328,8 +335,7 @@ class ServerlessCustomDomain {
      */
     public async removeBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            const preserveExternalPathMappings = !!domain.preserveExternalPathMappings;
-            let noExternalPathMappingsOnDomain = !preserveExternalPathMappings;
+            let externalBasePathExists = false;
             try {
                 domain.apiId = await this.getApiId(domain);
 
@@ -338,15 +344,19 @@ class ServerlessCustomDomain {
                     Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
                         API Mappings may need to be manually removed.`);
                 } else {
-                    domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
-                    await this.apiGatewayWrapper.deleteBasePathMapping(domain);
-                    if (preserveExternalPathMappings) {
-                        noExternalPathMappingsOnDomain = (
-                          await this.apiGatewayWrapper.checkExternalPathMappings(domain) === false
-                        );
+                    const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+                    const filteredMappings = mappings.filter((mapping) => {
+                        return mapping.ApiId === domain.apiId || (
+                            mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                        )
+                    });
+                    if (domain.preserveExternalPathMappings) {
+                        externalBasePathExists = mappings.length > filteredMappings.length;
                     }
-                }
 
+                    domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
+                    await this.apiGatewayWrapper.deleteBasePathMapping(domain);
+                }
             } catch (err) {
                 if (err.message.indexOf("Failed to find CloudFormation") > -1) {
                     Globals.logInfo(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
@@ -359,8 +369,7 @@ class ServerlessCustomDomain {
                 }
             }
 
-            const autoDomain = domain.autoDomain;
-            if (autoDomain === true && noExternalPathMappingsOnDomain) {
+            if (domain.autoDomain === true && !externalBasePathExists) {
                 Globals.logInfo("Deleting domain name after removing base path mapping.");
                 await this.deleteDomain(domain);
             }

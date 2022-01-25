@@ -3,9 +3,9 @@
  */
 
 import * as AWS from "aws-sdk"; // imported for Types
-import DomainInfo = require("./DomainInfo");
-import Globals from "./Globals";
-import {CustomDomain} from "./types";
+import DomainInfo = require("./domain-info");
+import Globals from "./globals";
+import {CustomDomain, Route53Params} from "./types";
 
 class DomainConfig {
 
@@ -17,6 +17,8 @@ class DomainConfig {
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
     public createRoute53Record: boolean | undefined;
+    public route53Profile: string | undefined;
+    public route53Region: string | undefined;
     public endpointType: string | undefined;
     public apiType: string | undefined;
     public hostedZoneId: string | undefined;
@@ -25,21 +27,25 @@ class DomainConfig {
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
+    public route53Params: Route53Params;
     public preserveExternalPathMappings: boolean | undefined;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
+    public region: string;
 
     constructor(config: CustomDomain) {
 
-        this.enabled = this.evaluateEnabled(config.enabled);
+        this.enabled = this.evaluateBoolean(config.enabled, true);
         this.givenDomainName = config.domainName;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
-        this.createRoute53Record = config.createRoute53Record;
+        this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
+        this.route53Profile = config.route53Profile;
+        this.route53Region = config.route53Region;
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;
@@ -80,36 +86,60 @@ class DomainConfig {
         }
         this.securityPolicy = tlsVersionToUse;
 
-        let region = Globals.defaultRegion;
+        this.region = Globals.defaultRegion;
         if (this.endpointType === Globals.endpointTypes.regional) {
-            region = Globals.serverless.providers.aws.getRegion();
+            this.region = Globals.serverless.providers.aws.getRegion();
         }
-        const acmCredentials = Object.assign({}, Globals.serverless.providers.aws.getCredentials(), {region});
+        const acmCredentials = Object.assign(
+            {}, Globals.serverless.providers.aws.getCredentials(), {region: this.region}
+        );
         this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
+
+        const defaultRoutingPolicy = Globals.routingPolicies.simple;
+        const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? defaultRoutingPolicy;
+        const routingPolicyToUse = Globals.routingPolicies[routingPolicy];
+        if (!routingPolicyToUse) {
+            throw new Error(`${routingPolicy} is not a supported routing policy, use simple, latency, or weighted.`);
+        }
+
+        if (routingPolicyToUse !== defaultRoutingPolicy && endpointTypeToUse === Globals.endpointTypes.edge) {
+            throw new Error(
+                `${routingPolicy} routing is not intended to be used with edge endpoints. ` +
+                "Use a regional endpoint instead."
+            );
+        }
+
+        this.route53Params = {
+            routingPolicy: routingPolicyToUse,
+            setIdentifier: config.route53Params?.setIdentifier,
+            weight: config.route53Params?.weight ?? 200,
+            healthCheckId: config.route53Params?.healthCheckId
+        }
     }
 
     /**
-     * Determines whether this plug-in is enabled.
+     * Determines whether this boolean config is configured to true or false.
      *
-     * This method reads the customDomain property "enabled" to see if this plug-in should be enabled.
-     * If the property's value is undefined, a default value of true is assumed (for backwards
-     * compatibility).
-     * If the property's value is provided, this should be boolean, otherwise an exception is thrown.
-     * If no customDomain object exists, an exception is thrown.
+     * This method evaluates a customDomain property to see if it's true or false.
+     * If the property's value is undefined, the default value is returned.
+     * If the property's value is provided, this should be boolean, or a string parseable as boolean,
+     * otherwise an exception is thrown.
+     * @param {boolean|string} booleanConfig the config value provided
+     * @param {boolean} defaultValue the default value to return, if config value is undefined
+     * @returns {boolean} the parsed boolean from the config value, or the default value
      */
-    private evaluateEnabled(enabled: any): boolean {
-        // const enabled = this.serverless.service.custom.customDomain.enabled;
-        if (enabled === undefined) {
-            return true;
+    private evaluateBoolean(booleanConfig: any, defaultValue: boolean): boolean {
+        if (booleanConfig === undefined) {
+            return defaultValue;
         }
-        if (typeof enabled === "boolean") {
-            return enabled;
-        } else if (typeof enabled === "string" && enabled === "true") {
+        if (typeof booleanConfig === "boolean") {
+            return booleanConfig;
+        } else if (typeof booleanConfig === "string" && booleanConfig === "true") {
             return true;
-        } else if (typeof enabled === "string" && enabled === "false") {
+        } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
             return false;
         }
-        throw new Error(`${Globals.pluginName}: Ambiguous enablement boolean: "${enabled}"`);
+        throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${booleanConfig}"`);
     }
 }
 

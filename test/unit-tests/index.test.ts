@@ -1942,6 +1942,7 @@ describe("Custom Domain Plugin", () => {
         it("removeBasePathMapping should not call deleteDomain when preserveExternalPathMappings is true and " +
           "external mappings exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                // @ts-ignore
                 callback(null, {
                     StackResourceDetail:
                       {
@@ -1951,6 +1952,7 @@ describe("Custom Domain Plugin", () => {
                 });
             });
             AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                // @ts-ignore
                 callback(null, {
                     Items: [
                         {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},
@@ -1998,6 +2000,7 @@ describe("Custom Domain Plugin", () => {
         it("removeBasePathMapping should call deleteDomain when preserveExternalPathMappings is true and " +
           "external mappings don't exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
+                // @ts-ignore
                 callback(null, {
                     StackResourceDetail:
                       {
@@ -2007,6 +2010,7 @@ describe("Custom Domain Plugin", () => {
                 });
             });
             AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                // @ts-ignore
                 callback(null, {
                     Items: [
                         {ApiId: "test_rest_api_id", MappingKey: "test", ApiMappingId: "test_mapping_id", Stage: "test"},

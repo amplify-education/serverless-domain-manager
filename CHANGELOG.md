@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.6.0] - 2021-01-25
+- Added config option to avoid automatically deleting an APIGW domain when other base path mappings exist. Thank you @straticJeff ([389](https://github.com/amplify-education/serverless-domain-manager/pull/389))  
+
 ## [5.5.0] - 2021-01-24
 - Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
 - Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))

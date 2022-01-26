@@ -95,7 +95,7 @@ describe("Integration Tests", function () {
         } finally {
             // should destroy the last created config folder ( import config )
             await utilities.destroyResources(testImportName);
-            // temp dir are empty and we need to update it with export config for the proper clenup
+            // temp dir are empty and we need to update it with export config for the proper cleanup
             await utilities.createTempDir(TEMP_DIR, configExportFolder);
             await utilities.destroyResources(testExportName);
         }

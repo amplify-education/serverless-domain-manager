@@ -5,7 +5,7 @@
 import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
 import Globals from "./globals";
-import {CustomDomain, Route53Params, Tags} from "./types";
+import {CustomDomain, Route53Params} from "./types";
 
 class DomainConfig {
 

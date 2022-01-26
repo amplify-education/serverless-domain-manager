@@ -131,20 +131,20 @@ describe("Custom Domain Plugin", () => {
     });
 
     describe("custom route53 profile", () => {
-      it("uses the provided profile for route53", () => {
-        const route53ProfileConfig = {
-          route53Profile: "testroute53profile",
-          route53Region: "area-53-zone",
-        };
-        const plugin = constructPlugin(route53ProfileConfig);
+        it("uses the provided profile for route53", () => {
+            const route53ProfileConfig = {
+                route53Profile: "testroute53profile",
+                route53Region: "area-53-zone",
+            };
+            const plugin = constructPlugin(route53ProfileConfig);
 
-        plugin.initAWSResources();
-        const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-        const route53 = plugin.createRoute53Resource(dc);
+            plugin.initAWSResources();
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            const route53 = plugin.createRoute53Resource(dc);
 
-        expect(route53.config.credentials.profile).to.equal(route53ProfileConfig.route53Profile);
-        expect(route53.config.region).to.equal(route53ProfileConfig.route53Region);
-      });
+            expect(route53.config.credentials.profile).to.equal(route53ProfileConfig.route53Profile);
+            expect(route53.config.region).to.equal(route53ProfileConfig.route53Region);
+        });
     });
 
     describe("Domain Endpoint types", () => {
@@ -645,19 +645,23 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Create a domain name with tags", async () => {
-      AWS.mock("APIGateway", "createDomainName", (params, callback) => {
-        callback(null, { distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
-      });
+            AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+                callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
+            });
 
-      const plugin = constructPlugin({ domainName: "test_domain", tags: {foo: "bar"}});
-      plugin.apigateway = new aws.APIGateway();
-      plugin.givenDomainName = plugin.serverless.service.custom.customDomain.domainName;
+            const plugin = constructPlugin({domainName: "test_domain", tags: {foo: "bar"}});
+            plugin.initializeVariables();
+            plugin.initAWSResources();
 
-      const result = await plugin.createCustomDomain("fake_cert");
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-      expect(result.domainName).to.equal("foo");
-      expect(result.securityPolicy).to.equal("TLS_1_2");
-    });
+            dc.certificateArn = "fake_cert";
+
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+
+            expect(dc.domainInfo.domainName).to.equal("foo");
+            expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
+        });
 
         it("Create a new A Alias Record", async () => {
             AWS.mock("Route53", "listHostedZones", (params, callback) => {
@@ -2283,7 +2287,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Should throw an Error when passing a routing policy that is not supported", async () => {
-            const plugin = constructPlugin({route53Params: { routingPolicy: 'test_policy'} });
+            const plugin = constructPlugin({route53Params: {routingPolicy: 'test_policy'}});
 
             let errored = false;
             try {
@@ -2297,7 +2301,7 @@ describe("Custom Domain Plugin", () => {
 
         it("Should throw an Error when using latency routing with edge endpoints", async () => {
             const plugin = constructPlugin({
-                route53Params: { routingPolicy: "latency"}
+                route53Params: {routingPolicy: "latency"}
             });
 
             let errored = false;

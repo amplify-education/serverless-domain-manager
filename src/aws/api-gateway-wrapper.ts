@@ -65,7 +65,7 @@ class APIGatewayWrapper {
                     EndpointType: domain.endpointType,
                     SecurityPolicy: domain.securityPolicy,
                 }],
-                tags
+                Tags: tags
             };
 
             // Make API call to create domain

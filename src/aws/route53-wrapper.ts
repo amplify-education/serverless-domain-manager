@@ -2,7 +2,6 @@ import Globals from "../globals";
 import {throttledCall} from "../utils";
 import DomainConfig = require("../domain-config");
 import {Route53} from "aws-sdk";
-import {Tags} from "../types";
 
 class Route53Wrapper {
     public route53: Route53;
@@ -24,33 +23,12 @@ class Route53Wrapper {
         this.route53 = new Globals.serverless.providers.aws.sdk.Route53(credentials);
     }
 
-    public async changeTagsForResource(hostedZoneId: string, tags: Tags[]) {
-        const params = {
-            ResourceType: "hostedzone", // Valid values are healthcheck and hostedzone.
-            ResourceId: hostedZoneId,
-            AddTags: Object.keys(tags).map((key) => {
-                return {[key]: tags[key]}
-            }),
-        }
-        try {
-            return await throttledCall(this.route53, "ChangeTagsForResource", params);
-        } catch (err) {
-            throw new Error(`Failed to set up tags for Route53 record: ${err} \n`);
-        }
-    }
-
     /**
      * Change A Alias record through Route53 based on given action
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainInfo object containing info about custom domain
      */
     public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
-        if (action !== "UPSERT" && action !== "DELETE") {
-            throw new Error(
-                `Invalid action "${action}" when changing Route53 Record. Action must be either UPSERT or DELETE.\n`
-            );
-        }
-
         if (domain.createRoute53Record === false) {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
@@ -105,14 +83,10 @@ class Route53Wrapper {
         };
         // Make API call
         try {
-            await throttledCall(this.route53, "changeResourceRecordSets", params);
+            return await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);
             throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
-        }
-
-        if (action === "UPSERT" && domain.tags) {
-            await this.changeTagsForResource(route53HostedZoneId, domain.tags);
         }
     }
 

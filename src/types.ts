@@ -18,7 +18,7 @@ export interface CustomDomain { // tslint:disable-line
     autoDomain: boolean | undefined;
     autoDomainWaitFor: string | undefined;
     allowPathMatching: boolean | undefined;
-    route53Params: Route53Params | undefined
+    route53Params: Route53Params | undefined;
     preserveExternalPathMappings: boolean | undefined;
 }
 
@@ -35,6 +35,8 @@ export interface ServerlessInstance { // tslint:disable-line
                 restApiId: string,
                 websocketApiId: string,
             },
+            tags: Tags,
+            stackTags: Tags,
         }
         custom: {
             customDomain?: CustomDomain | undefined,

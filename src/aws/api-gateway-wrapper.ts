@@ -23,6 +23,7 @@ class APIGatewayWrapper {
     public async createCustomDomain(domain: DomainConfig): Promise<void> {
 
         let createdDomain = {};
+        const tags = {...Globals.serverless.service.provider.stackTags, ...Globals.serverless.service.provider.tags}
 
         // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
         if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
@@ -33,6 +34,7 @@ class APIGatewayWrapper {
                     types: [domain.endpointType],
                 },
                 securityPolicy: domain.securityPolicy,
+                tags
             };
 
             /* tslint:disable:no-string-literal */
@@ -61,6 +63,7 @@ class APIGatewayWrapper {
                     EndpointType: domain.endpointType,
                     SecurityPolicy: domain.securityPolicy,
                 }],
+                tags
             };
 
             // Make API call to create domain

@@ -108,6 +108,8 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                 },
                 stackName: "custom-stage-name",
                 stage: "test",
+                tags: undefined,
+                stackTags: undefined
             },
             service: "test",
         },
@@ -651,12 +653,12 @@ describe("Custom Domain Plugin", () => {
                 callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
             });
 
-            const plugin = constructPlugin({domainName: "test_domain", tags: {foo: "bar"}});
+            const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
             plugin.initAWSResources();
+            plugin.serverless.service.provider.tags = {foo: "bar"};
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-
             dc.certificateArn = "fake_cert";
 
             await plugin.apiGatewayWrapper.createCustomDomain(dc);
@@ -1929,15 +1931,15 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("removeBasePathMapping should not call deleteDomain when preserveExternalPathMappings is true and " +
-          "external mappings exist", async () => {
+            "external mappings exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
                 // @ts-ignore
                 callback(null, {
                     StackResourceDetail:
-                      {
-                          LogicalResourceId: "ApiGatewayRestApi",
-                          PhysicalResourceId: "test_rest_api_id",
-                      },
+                        {
+                            LogicalResourceId: "ApiGatewayRestApi",
+                            PhysicalResourceId: "test_rest_api_id",
+                        },
                 });
             });
             AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
@@ -1987,15 +1989,15 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("removeBasePathMapping should call deleteDomain when preserveExternalPathMappings is true and " +
-          "external mappings don't exist", async () => {
+            "external mappings don't exist", async () => {
             AWS.mock("CloudFormation", "describeStackResource", (params, callback) => {
                 // @ts-ignore
                 callback(null, {
                     StackResourceDetail:
-                      {
-                          LogicalResourceId: "ApiGatewayRestApi",
-                          PhysicalResourceId: "test_rest_api_id",
-                      },
+                        {
+                            LogicalResourceId: "ApiGatewayRestApi",
+                            PhysicalResourceId: "test_rest_api_id",
+                        },
                 });
             });
             AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {

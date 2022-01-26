@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [5.6.0] - 2021-01-26
+
+### Added
+- 
+
+## [5.6.0] - 2021-01-26
+
+### Added
 - Added config option to avoid automatically deleting an APIGW domain when other base path mappings exist. Thank you @straticJeff ([389](https://github.com/amplify-education/serverless-domain-manager/pull/389))  
 
 ## [5.5.0] - 2021-01-24
@@ -13,13 +20,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
 - Enabled dependabot
 
-### Changed
+### Fixed
 - Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))
+
+### Changed
 - Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
 
 ## [5.4.1] - 2021-01-21
 
-### Changed
+### Fixed
 - Fixed route53 resource creation.
 
 ## [5.4.0] - 2021-01-20
@@ -36,6 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Updated output for `compiledCloudFormationTemplate`. Thank you @nalbion ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
+
+### Fixed
 - Fixed Route53 creation for `create_domain` action.
 
 ## [5.3.0] - 2021-01-14
@@ -63,13 +74,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [5.1.3] - 2021-07-19
 
-### Changed
+### Fixed
 - Fixed filtering of stacks by the given stackName and check by the nested stack RootId. Thank you @matteobattista ([#427](https://github.com/amplify-education/serverless-domain-manager/pull/427))
+
+### Changed
 - Refactoring. Packages updating 
 
 ## [5.1.2] - 2021-07-16
 
-### Changed
+### Fixed
 - Fixed package publishing
 
 ## [5.1.1] - 2021-07-16
@@ -84,6 +97,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Disabled insensitive error logging for SLS_DEBUG off
+
+### Fixed
 - Fixed getting an api id for different types of the API gateway ([#366](https://github.com/amplify-education/serverless-domain-manager/issues/366))
 
 ## [5.0.0] - 2020-09-23

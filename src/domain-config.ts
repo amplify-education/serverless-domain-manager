@@ -27,7 +27,6 @@ class DomainConfig {
     public autoDomainWaitFor: string | undefined;
     public route53Params: Route53Params;
     public preserveExternalPathMappings: boolean | undefined;
-    public tags: Tags[] | undefined;
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;

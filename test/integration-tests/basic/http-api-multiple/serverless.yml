@@ -5,6 +5,8 @@ provider:
   runtime: nodejs12.x
   region: us-west-2
   stage: test
+  tags:
+    plugin: ${env:PLUGIN_IDENTIFIER}
 functions:
   helloWorld:
     handler: handler.connect

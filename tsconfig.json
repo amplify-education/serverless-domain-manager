@@ -6,12 +6,15 @@
     "target": "es6",
     "sourceMap": false,
     "outDir": "dist",
-    "types": ["node"]
+    "types": [
+      "mocha",
+      "node"
+    ]
   },
   "include": [
-    "*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "test/**/*.ts"
   ]
 }

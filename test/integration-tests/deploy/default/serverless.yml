@@ -1,0 +1,25 @@
+# Enabled with default values
+service: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: ${env:PLUGIN_IDENTIFIER}-default-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+
+package:
+  exclude:
+    - node_modules/**

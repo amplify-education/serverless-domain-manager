@@ -163,6 +163,7 @@ allowPathMatching | false | When updating an existing api mapping this will matc
 | route53Params:<br/>&nbsp; weight | `200` | Sets the weight for weighted routing. Ignored for `simple` and `latency` routing. |
 | route53Params:<br/>&nbsp; setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and `weighted` routing. Defaults to the regional endpoint if not provided. |
 | route53Params:<br/>&nbsp; healthCheckId |  | An optional id for a Route 53 health check. If it is failing, Route 53 will stop routing to it. Only relevant for `latency` and `weighted` routing. If it is not provided, no health check will be associated with the record. |
+| preserveExternalPathMappings | `false` | When `autoDomain` is set to true, and a deployment is removed, setting this to `true` checks for additional API Gateway base path mappings before automatically deleting the domain, and avoids doing so if they exist. |
 | tags | | The domain name Tags (key-value map of strings). The valid character set is [a-zA-Z+-=._:/]. The tag key can be up to 128 characters and must not start with `aws:`. The tag value can be up to 256 characters. |
 
 ## Running

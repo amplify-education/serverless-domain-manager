@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "5.5.0",
+  "version": "5.6.0",
   "engines": {
     "node": ">=12"
   },
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.10",
+    "@types/node": "^17.0.12",
     "aws-sdk-mock": "^5.6.0",
     "chai": "^4.3.4",
     "chai-spies": "^1.0.0",
@@ -57,7 +57,7 @@
     "randomstring": "^1.2.2",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
-    "serverless": "^2.72.1",
+    "serverless": "^2.72.2",
     "serverless-plugin-split-stacks": "^1.11.3",
     "shelljs": "^0.8.5",
     "ts-node": "^10.4.0",

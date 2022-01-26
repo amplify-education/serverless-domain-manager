@@ -28,6 +28,7 @@ class DomainConfig {
     public autoDomain: boolean | undefined;
     public autoDomainWaitFor: string | undefined;
     public route53Params: Route53Params;
+    public preserveExternalPathMappings: boolean | undefined;
 
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
@@ -50,6 +51,7 @@ class DomainConfig {
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
+        this.preserveExternalPathMappings = this.evaluateBoolean(config.preserveExternalPathMappings, false);
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {

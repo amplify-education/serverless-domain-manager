@@ -301,7 +301,13 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             try {
                 domain.apiId = await this.getApiId(domain);
-                domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
+                const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+                const filteredMappings = mappings.filter((mapping) => {
+                    return mapping.ApiId === domain.apiId || (
+                        mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                    )
+                });
+                domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                 domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
 
                 if (!domain.apiMapping) {
@@ -328,6 +334,7 @@ class ServerlessCustomDomain {
      */
     public async removeBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
+            let externalBasePathExists = false;
             try {
                 domain.apiId = await this.getApiId(domain);
 
@@ -336,7 +343,17 @@ class ServerlessCustomDomain {
                     Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
                         API Mappings may need to be manually removed.`);
                 } else {
-                    domain.apiMapping = await this.apiGatewayWrapper.getBasePathMapping(domain);
+                    const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+                    const filteredMappings = mappings.filter((mapping) => {
+                        return mapping.ApiId === domain.apiId || (
+                            mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                        )
+                    });
+                    if (domain.preserveExternalPathMappings) {
+                        externalBasePathExists = mappings.length > filteredMappings.length;
+                    }
+
+                    domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                     await this.apiGatewayWrapper.deleteBasePathMapping(domain);
                 }
             } catch (err) {
@@ -351,8 +368,7 @@ class ServerlessCustomDomain {
                 }
             }
 
-            const autoDomain = domain.autoDomain;
-            if (autoDomain === true) {
+            if (domain.autoDomain === true && !externalBasePathExists) {
                 Globals.logInfo("Deleting domain name after removing base path mapping.");
                 await this.deleteDomain(domain);
             }

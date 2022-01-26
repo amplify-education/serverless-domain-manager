@@ -26,7 +26,6 @@ class APIGatewayWrapper {
         const tags = {
             ...Globals.serverless.service.provider.stackTags, ...Globals.serverless.service.provider.tags
         };
-        console.log(tags)
 
         // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
         if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {

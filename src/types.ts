@@ -95,3 +95,7 @@ export interface Route53Params {
     setIdentifier: string | undefined;
     healthCheckId: string | undefined;
 }
+
+export interface Tags {
+    [key: string]: string;
+}

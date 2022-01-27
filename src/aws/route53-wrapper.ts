@@ -60,11 +60,7 @@ class Route53Wrapper {
             }
         }
 
-        const recordsToCreate = ["A"];
-        if (domain.createRoute53IPv6Record) {
-            recordsToCreate.push("AAAA");
-        }
-
+        const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
         const changes = recordsToCreate.map((Type) => ({
             Action: action,
             ResourceRecordSet: {
@@ -78,7 +74,6 @@ class Route53Wrapper {
                 ...routingOptions,
             },
         }));
-
         const params = {
             ChangeBatch: {
                 Changes: changes,
@@ -88,8 +83,6 @@ class Route53Wrapper {
         };
         // Make API call
         try {
-            console.log(Object.entries(params.ChangeBatch.Changes));
-            console.log(Object.entries(params));
             return await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);

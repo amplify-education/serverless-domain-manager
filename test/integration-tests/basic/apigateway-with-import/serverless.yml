@@ -12,8 +12,6 @@ provider:
       Fn::ImportValue: api-${self:provider.stage}-${env:RANDOM_STRING}-restApiId
     restApiRootResourceId:
       Fn::ImportValue: api-${self:provider.stage}-${env:RANDOM_STRING}-RootResourceId
-  tags:
-    plugin: ${env:PLUGIN_IDENTIFIER}
 functions:
   helloWorld:
     handler: handler.helloWorld

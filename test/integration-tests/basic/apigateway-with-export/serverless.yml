@@ -8,8 +8,6 @@ provider:
   region: us-west-2
   endpointType: regional
   stage: test
-  tags:
-    plugin: ${env:PLUGIN_IDENTIFIER}
 functions:
   helloWorld:
     handler: handler.helloWorld

@@ -656,7 +656,6 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({domainName: "test_domain"});
             plugin.initializeVariables();
             plugin.initAWSResources();
-            plugin.serverless.service.provider.tags = {foo: "bar"};
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.certificateArn = "fake_cert";

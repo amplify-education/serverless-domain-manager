@@ -2,13 +2,19 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "rootDir": "src",
+    "rootDir": ".",
     "target": "es6",
     "sourceMap": false,
     "outDir": "dist",
-    "types": ["node"]
+    "types": [
+      "mocha",
+      "node"
+    ]
   },
   "include": [
     "src/**/*.ts"
+  ],
+  "exclude": [
+    "test/**/*.ts"
   ]
 }

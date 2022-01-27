@@ -1,0 +1,25 @@
+service: ${env:PLUGIN_IDENTIFIER}-web-socket-${env:RANDOM_STRING}
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  stage: test
+functions:
+  connect:
+    handler: handler.connect
+    events:
+      - websocket:
+          route: $connect
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    websocket:
+      domainName: ${env:PLUGIN_IDENTIFIER}-web-socket-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      basePath: ''
+      endpointType: 'regional'
+
+package:
+  exclude:
+    - node_modules/**

@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added tagging of apiGateway custom domain. Thank you @mooniker ([254](https://github.com/amplify-education/serverless-domain-manager/pull/254))
 
 ### Changed
-- Updated CHANGELOG.md
 - Refactoring of the code
 
 ## [5.6.0] - 2021-01-26

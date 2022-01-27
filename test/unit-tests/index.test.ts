@@ -50,7 +50,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         certificateArn: customDomainOptions.certificateArn,
         certificateName: customDomainOptions.certificateName,
         createRoute53Record: customDomainOptions.createRoute53Record,
-      createRoute53IPv6Record: customDomainOptions.createRoute53IPv6Record,
+        createRoute53IPv6Record: customDomainOptions.createRoute53IPv6Record,
         domainName: customDomainOptions.domainName,
         enabled: customDomainOptions.enabled,
         endpointType: customDomainOptions.endpointType,
@@ -742,7 +742,64 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
+                },
+                HostedZoneId: "test_host_id",
+            };
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Create new A Alias Record Only", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+                // @ts-ignore
+                callback(null, {
+                    HostedZones: [{
+                        Name: "test_domain",
+                        Id: "test_host_id",
+                        Config: {PrivateZone: false}
+                    }]
+                });
+            });
+
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+                // @ts-ignore
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                basePath: "test_basepath",
+                createRoute53IPv6Record: false,
+                domainName: "test_domain",
+            });
+            const route53Wrapper = new Route53Wrapper();
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            dc.domainInfo = new DomainInfo({
+                distributionDomainName: "test_distribution_name",
+                distributionHostedZoneId: "test_id",
+            });
+
+            const spy = chai.spy.on(route53Wrapper.route53, "changeResourceRecordSets");
+
+            await route53Wrapper.changeResourceRecordSet("UPSERT", dc);
+
+            const expectedParams = {
+                ChangeBatch: {
+                    Changes: [
+                        {
+                            Action: "UPSERT",
+                            ResourceRecordSet: {
+                                AliasTarget: {
+                                    DNSName: "test_distribution_name",
+                                    EvaluateTargetHealth: false,
+                                    HostedZoneId: "test_id",
+                                },
+                                Name: "test_domain",
+                                Type: "A",
+                            },
+                        },
+                    ],
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id",
             };
@@ -1077,7 +1134,7 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id"
             };
@@ -2132,7 +2189,7 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id"
             };
@@ -2214,7 +2271,7 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id"
             };
@@ -2293,7 +2350,7 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id"
             };
@@ -2368,7 +2425,7 @@ describe("Custom Domain Plugin", () => {
                             },
                         },
                     ],
-                    Comment: "Record created by serverless-domain-manager",
+                    Comment: `Record created by "${Globals.pluginName}"`
                 },
                 HostedZoneId: "test_host_id"
             };

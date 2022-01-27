@@ -7,6 +7,7 @@ export interface CustomDomain { // tslint:disable-line
     certificateName: string | undefined;
     certificateArn: string | undefined;
     createRoute53Record: boolean | undefined;
+    createRoute53IPv6Record: boolean | undefined;
     route53Profile: string | undefined;
     route53Region: string | undefined;
     endpointType: string | undefined;

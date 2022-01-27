@@ -60,7 +60,12 @@ class Route53Wrapper {
             }
         }
 
-        const changes = ["A", "AAAA"].map((Type) => ({
+        const recordsToCreate = ["A"];
+        if (domain.createRoute53IPv6Record) {
+            recordsToCreate.push("AAAA");
+        }
+
+        const changes = recordsToCreate.map((Type) => ({
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
@@ -77,12 +82,14 @@ class Route53Wrapper {
         const params = {
             ChangeBatch: {
                 Changes: changes,
-                Comment: "Record created by serverless-domain-manager",
+                Comment: `Record created by "${Globals.pluginName}"`,
             },
             HostedZoneId: route53HostedZoneId,
         };
         // Make API call
         try {
+            console.log(Object.entries(params.ChangeBatch.Changes));
+            console.log(Object.entries(params));
             return await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
             Globals.logError(err, domain.givenDomainName);

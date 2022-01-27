@@ -15,6 +15,7 @@ class DomainConfig {
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
     public createRoute53Record: boolean | undefined;
+    public createRoute53IPv6Record: boolean | undefined;
     public route53Profile: string | undefined;
     public route53Region: string | undefined;
     public endpointType: string | undefined;
@@ -40,6 +41,7 @@ class DomainConfig {
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
         this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
+        this.createRoute53IPv6Record = this.evaluateBoolean(config.createRoute53IPv6Record, true);
         this.route53Profile = config.route53Profile;
         this.route53Region = config.route53Region;
         this.hostedZoneId = config.hostedZoneId;

@@ -4,7 +4,7 @@
 import DomainConfig = require("../domain-config");
 import DomainInfo = require("../domain-info");
 import Globals from "../globals";
-import {APIGateway, ApiGatewayV2} from "aws-sdk"; // tslint:disable-line
+import {APIGateway, ApiGatewayV2} from "aws-sdk";
 import {getAWSPagedResults, throttledCall} from "../utils";
 
 class APIGatewayWrapper {
@@ -23,6 +23,10 @@ class APIGatewayWrapper {
     public async createCustomDomain(domain: DomainConfig): Promise<void> {
 
         let createdDomain = {};
+        const tags = {
+            ...Globals.serverless.service.provider.stackTags,
+            ...Globals.serverless.service.provider.tags
+        };
 
         // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
         if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
@@ -33,6 +37,7 @@ class APIGatewayWrapper {
                     types: [domain.endpointType],
                 },
                 securityPolicy: domain.securityPolicy,
+                tags
             };
 
             /* tslint:disable:no-string-literal */
@@ -61,6 +66,7 @@ class APIGatewayWrapper {
                     EndpointType: domain.endpointType,
                     SecurityPolicy: domain.securityPolicy,
                 }],
+                Tags: tags
             };
 
             // Make API call to create domain

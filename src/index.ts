@@ -1,19 +1,18 @@
 "use strict";
 
+import ACMWrapper = require("./aws/acm-wrapper");
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
+import Route53Wrapper = require("./aws/route53-wrapper");
 import DomainConfig = require("./domain-config");
 import Globals from "./globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
-import {getAWSPagedResults, sleep, throttledCall} from "./utils";
-
-const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
+import {sleep} from "./utils";
 
 class ServerlessCustomDomain {
 
     // AWS SDK resources
     public apiGatewayWrapper: APIGatewayWrapper;
-    public acm: any;
     public cloudFormationWrapper: CloudFormationWrapper;
 
     // Serverless specific properties
@@ -173,26 +172,6 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Setup route53 resource
-     */
-    public createRoute53Resource(domain: DomainConfig): any {
-        const route53Region = this.serverless.providers.aws.getRegion();
-        if (domain.route53Profile) {
-            return new this.serverless.providers.aws.sdk.Route53({
-                credentials: new this.serverless.providers.aws.sdk.SharedIniFileCredentials({
-                    profile: domain.route53Profile
-                }),
-                region: domain.route53Region || route53Region,
-                httpOptions: this.serverless.providers.aws.sdk.config.httpOptions
-            });
-        }
-        const credentials = this.serverless.providers.aws.getCredentials();
-        credentials.region = route53Region;
-        credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
-        return new this.serverless.providers.aws.sdk.Route53(credentials);
-    }
-
-    /**
      * Lifecycle function to create a domain
      * Wraps creating a domain and resource record set
      */
@@ -209,14 +188,16 @@ class ServerlessCustomDomain {
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         const creationProgress = Globals.log && Globals.progress.get(`create-${domain.givenDomainName}`);
+        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+        const acm = new ACMWrapper(domain.endpointType);
         try {
             if (!domain.domainInfo) {
-                domain.certificateArn = await this.getCertArn(domain);
+                domain.certificateArn = await acm.getCertArn(domain);
                 await this.apiGatewayWrapper.createCustomDomain(domain);
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
             }
-            await this.changeResourceRecordSet("UPSERT", domain);
+            await route53.changeResourceRecordSet("UPSERT", domain);
             Globals.logInfo(
                 `Custom domain ${domain.givenDomainName} was created.
                  New domains may take up to 40 minutes to be initialized.`
@@ -247,10 +228,11 @@ class ServerlessCustomDomain {
      */
     public async deleteDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
         try {
             if (domain.domainInfo) {
                 await this.apiGatewayWrapper.deleteCustomDomain(domain);
-                await this.changeResourceRecordSet("DELETE", domain);
+                await route53.changeResourceRecordSet("DELETE", domain);
                 domain.domainInfo = undefined;
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
             } else {
@@ -389,182 +371,6 @@ class ServerlessCustomDomain {
                     `Unable to print ${Globals.pluginName} Summary for ${domain.givenDomainName}`,
                 );
             }
-        }
-    }
-
-    /**
-     * Gets Certificate ARN that most closely matches domain name OR given Cert ARN if provided
-     */
-    public async getCertArn(domain: DomainConfig): Promise<string> {
-        if (domain.certificateArn) {
-            Globals.logInfo(`Selected specific certificateArn ${domain.certificateArn}`);
-            return domain.certificateArn;
-        }
-
-        let certificateArn; // The arn of the selected certificate
-
-        let certificateName = domain.certificateName; // The certificate name
-
-        try {
-            const certificates = await getAWSPagedResults(
-                domain.acm,
-                "listCertificates",
-                "CertificateSummaryList",
-                "NextToken",
-                "NextToken",
-                {CertificateStatuses: certStatuses},
-            );
-
-            // The more specific name will be the longest
-            let nameLength = 0;
-
-            // Checks if a certificate name is given
-            if (certificateName != null) {
-                const foundCertificate = certificates
-                    .find((certificate) => (certificate.DomainName === certificateName));
-                if (foundCertificate != null) {
-                    certificateArn = foundCertificate.CertificateArn;
-                }
-            } else {
-                certificateName = domain.givenDomainName;
-                certificates.forEach((certificate) => {
-                    let certificateListName = certificate.DomainName;
-                    // Looks for wild card and takes it out when checking
-                    if (certificateListName[0] === "*") {
-                        certificateListName = certificateListName.substr(1);
-                    }
-                    // Looks to see if the name in the list is within the given domain
-                    // Also checks if the name is more specific than previous ones
-                    if (certificateName.includes(certificateListName)
-                        && certificateListName.length > nameLength) {
-                        nameLength = certificateListName.length;
-                        certificateArn = certificate.CertificateArn;
-                    }
-                });
-            }
-        } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw Error(`Could not list certificates in Certificate Manager.\n${err}`);
-        }
-        if (certificateArn == null) {
-            throw Error(`Could not find the certificate ${certificateName}.`);
-        }
-        return certificateArn;
-    }
-
-    /**
-     * Change A Alias record through Route53 based on given action
-     * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
-     * @param domain: DomainInfo object containing info about custom domain
-     */
-    public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
-        if (action !== "UPSERT" && action !== "DELETE") {
-            throw new Error(`Invalid action "${action}" when changing Route53 Record.
-                Action must be either UPSERT or DELETE.\n`);
-        }
-
-        if (domain.createRoute53Record === false) {
-            Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
-            return;
-        }
-
-        // Set up parameters
-        const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
-        const route53Params = domain.route53Params;
-        const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
-        const domainInfo = domain.domainInfo ?? {
-            domainName: domain.givenDomainName,
-            hostedZoneId: route53HostedZoneId,
-        }
-
-        let routingOptions = {}
-        if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
-            routingOptions = {
-                Region: domain.region,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
-                ...route53healthCheck,
-            }
-        }
-
-        if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
-            routingOptions = {
-                Weight: domain.route53Params.weight,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
-                ...route53healthCheck,
-            }
-        }
-
-        const changes = ["A", "AAAA"].map((Type) => ({
-            Action: action,
-            ResourceRecordSet: {
-                AliasTarget: {
-                    DNSName: domainInfo.domainName,
-                    EvaluateTargetHealth: false,
-                    HostedZoneId: domainInfo.hostedZoneId,
-                },
-                Name: domain.givenDomainName,
-                Type,
-                ...routingOptions,
-            },
-        }));
-
-        const params = {
-            ChangeBatch: {
-                Changes: changes,
-                Comment: "Record created by serverless-domain-manager",
-            },
-            HostedZoneId: route53HostedZoneId,
-        };
-        // Make API call
-        try {
-            await throttledCall(this.createRoute53Resource(domain), "changeResourceRecordSets", params);
-        } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
-        }
-    }
-
-    /**
-     * Gets Route53 HostedZoneId from user or from AWS
-     */
-    public async getRoute53HostedZoneId(domain: DomainConfig): Promise<string> {
-        if (domain.hostedZoneId) {
-            Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
-            return domain.hostedZoneId;
-        }
-
-        const filterZone = domain.hostedZonePrivate !== undefined;
-        if (filterZone) {
-            const zoneTypeString = domain.hostedZonePrivate ? "private" : "public";
-            Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
-        }
-
-        let hostedZones = [];
-        try {
-            const hostedZoneData = await throttledCall(
-                this.createRoute53Resource(domain), "listHostedZones", {}
-            );
-            hostedZones = hostedZoneData.HostedZones;
-        } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
-        }
-
-        const targetHostedZone = hostedZones
-            .filter((hostedZone) => {
-                return !filterZone || domain.hostedZonePrivate === hostedZone.Config.PrivateZone;
-            })
-            .filter((hostedZone) => {
-                const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
-                return domain.givenDomainName.endsWith(hostedZoneName);
-            })
-            .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-            .shift();
-
-        if (targetHostedZone) {
-            return targetHostedZone.Id.replace("/hostedzone/", "");
-        } else {
-            throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
         }
     }
 

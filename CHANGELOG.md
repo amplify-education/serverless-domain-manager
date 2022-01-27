@@ -4,65 +4,115 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.7.0] - 2021-01-27
+
+### Added
+- Added tagging of apiGateway custom domain. Thank you @mooniker ([254](https://github.com/amplify-education/serverless-domain-manager/pull/254))
+
+### Changed
+- Refactoring of the code
+
 ## [5.6.0] - 2021-01-26
+
+### Added
 - Added config option to avoid automatically deleting an APIGW domain when other base path mappings exist. Thank you @straticJeff ([389](https://github.com/amplify-education/serverless-domain-manager/pull/389))  
 
 ## [5.5.0] - 2021-01-24
+
+### Added
 - Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
-- Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))
-- Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
 - Enabled dependabot
 
+### Fixed
+- Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))
+
+### Changed
+- Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
+
 ## [5.4.1] - 2021-01-21
+
+### Fixed
 - Fixed route53 resource creation.
 
 ## [5.4.0] - 2021-01-20
+
+### Added
 - Added custom route53 profile options. Thank you @CodeVision ([393](https://github.com/amplify-education/serverless-domain-manager/pull/393))
 
 ## [5.3.2] - 2021-01-19
+
+### Added
 - Added logs for Serverless Framework v3. Thank you @medikoo ([448](https://github.com/amplify-education/serverless-domain-manager/pull/448))
 
 ## [5.3.1] - 2021-01-18
+
+### Changed
 - Updated output for `compiledCloudFormationTemplate`. Thank you @nalbion ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
+
+### Fixed
 - Fixed Route53 creation for `create_domain` action.
 
 ## [5.3.0] - 2021-01-14
+
+### Added
 - Added support of Serverless version 3. Thank you @medikoo ([449](https://github.com/amplify-education/serverless-domain-manager/pull/449))
+
+### Changed
 - Integration test refactoring
 
 ## [5.2.0] - 2021-11-10
+
+### Added
 - Added support latency and weighted routing. Thank you @clintadams-sg ([#439](https://github.com/amplify-education/serverless-domain-manager/pull/439))
 
 ## [5.1.5] - 2021-08-03
+
+### Changed
 - Updated CHANGELOG.md and README files
 
 ## [5.1.4] - 2021-07-19
+
+### Added
 - Added error logging for getDomainName API fail. Thank you @adamrhunter ([#434](https://github.com/amplify-education/serverless-domain-manager/pull/434))
 
 ## [5.1.3] - 2021-07-19
+
+### Fixed
 - Fixed filtering of stacks by the given stackName and check by the nested stack RootId. Thank you @matteobattista ([#427](https://github.com/amplify-education/serverless-domain-manager/pull/427))
+
+### Changed
 - Refactoring. Packages updating 
 
 ## [5.1.2] - 2021-07-16
+
+### Fixed
 - Fixed package publishing
 
 ## [5.1.1] - 2021-07-16
+
+### Added
 - Registered serverless as peer dependency. Thank you @medikoo ([#424](https://github.com/amplify-education/serverless-domain-manager/pull/424))
+
+### Changed
 - Replaced Travis with Github Actions
 
 ## [5.1.0] - 2020-11-04
+
+### Changed
 - Disabled insensitive error logging for SLS_DEBUG off
+
+### Fixed
 - Fixed getting an api id for different types of the API gateway ([#366](https://github.com/amplify-education/serverless-domain-manager/issues/366))
 
 ## [5.0.0] - 2020-09-23
-- Added support for multiple domains which led to lots of refactoring. Releasing a new major version in case there are any issues that weren't caught in our testing.
 
-### Changed
-- Added support for Multiple domains. Thank you @ConradKurth ([#327](https://github.com/amplify-education/serverless-domain-manager/pull/327))
+### Added
+- Added support for Multiple domains. Thank you @ConradKurth ([#327](https://github.com/amplify-education/serverless-domain-manager/pull/327)). 
+Support for multiple domains led to lots of refactoring. Releasing a new major version in case there are any issues that weren't caught in our testing.
 
 ## [4.2.3] - 2020-09-18
 
-### Changed
+### Added
 - Added support for using CloudFormation nested stacks. Thank you @Katafalkas ([#235](https://github.com/amplify-education/serverless-domain-manager/pull/235))
 
 ## [4.2.2] - 2020-09-16
@@ -72,12 +122,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.2.1] - 2020-09-16
 
-### Changed
+### Added
 - Added support for using CloudFormation Fn::ImportValue. Thank you @sampsasaarela ([#220](https://github.com/amplify-education/serverless-domain-manager/pull/220))
 
 ## [4.2.0] - 2020-07-14
 
-### Changed
+### Added
 - Added support for automatically creating/destroying custom domains on deploy/remove via the autoDomain option. Thank you @bryan-hunter ([#356](https://github.com/amplify-education/serverless-domain-manager/pull/356))
 
 ## [4.1.1] - 2020-05-25

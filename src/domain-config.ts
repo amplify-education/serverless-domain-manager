@@ -9,8 +9,6 @@ import {CustomDomain, Route53Params} from "./types";
 
 class DomainConfig {
 
-    public acm: any;
-
     public givenDomainName: string;
     public basePath: string | undefined;
     public stage: string | undefined;
@@ -29,12 +27,10 @@ class DomainConfig {
     public autoDomainWaitFor: string | undefined;
     public route53Params: Route53Params;
     public preserveExternalPathMappings: boolean | undefined;
-
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
-    public region: string;
 
     constructor(config: CustomDomain) {
 
@@ -85,15 +81,6 @@ class DomainConfig {
             throw new Error(`${securityPolicyDefault} is not a supported securityPolicy, use tls_1_0 or tls_1_2.`);
         }
         this.securityPolicy = tlsVersionToUse;
-
-        this.region = Globals.defaultRegion;
-        if (this.endpointType === Globals.endpointTypes.regional) {
-            this.region = Globals.serverless.providers.aws.getRegion();
-        }
-        const acmCredentials = Object.assign(
-            {}, Globals.serverless.providers.aws.getCredentials(), {region: this.region}
-        );
-        this.acm = new Globals.serverless.providers.aws.sdk.ACM(acmCredentials);
 
         const defaultRoutingPolicy = Globals.routingPolicies.simple;
         const routingPolicy = config.route53Params?.routingPolicy?.toLowerCase() ?? defaultRoutingPolicy;

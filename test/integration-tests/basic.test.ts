@@ -6,7 +6,7 @@ import {
     RANDOM_STRING,
     TEMP_DIR,
     TEST_DOMAIN,
-} from "./base"; // tslint:disable-line
+} from "./base";
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";

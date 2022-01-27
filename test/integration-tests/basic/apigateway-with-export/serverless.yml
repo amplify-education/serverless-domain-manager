@@ -1,4 +1,5 @@
 # APIGateway with export outputs
+frameworkVersion: ^2.72.2
 service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
 
 provider:
@@ -8,7 +9,6 @@ provider:
   region: us-west-2
   endpointType: regional
   stage: test
-
 functions:
   helloWorld:
     handler: handler.helloWorld

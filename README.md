@@ -162,8 +162,6 @@ allowPathMatching | false | When updating an existing api mapping this will matc
 | route53Params:<br/>&nbsp; healthCheckId |  | An optional id for a Route 53 health check. If it is failing, Route 53 will stop routing to it. Only relevant for `latency` and `weighted` routing. If it is not provided, no health check will be associated with the record. |
 | preserveExternalPathMappings | `false` | When `autoDomain` is set to true, and a deployment is removed, setting this to `true` checks for additional API Gateway base path mappings before automatically deleting the domain, and avoids doing so if they exist. |
 
-
-
 ## Running
 
 To create the custom domain:

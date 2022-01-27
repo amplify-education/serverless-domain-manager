@@ -106,7 +106,13 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     Outputs: null,
                 },
                 stackName: "custom-stage-name",
-                stage: "test"
+                stage: "test",
+                stackTags: {
+                    test: "test"
+                },
+                tags: {
+                    test2: "test2"
+                }
             },
             service: "test",
         },
@@ -643,6 +649,35 @@ describe("Custom Domain Plugin", () => {
 
             expect(dc.domainInfo.domainName).to.equal("foo");
             expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
+        });
+
+        it("Create a domain name with tags", async () => {
+            AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+                callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
+            });
+
+            const plugin = constructPlugin({domainName: "test_domain"});
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            dc.certificateArn = "fake_cert";
+
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createDomainName");
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const expectedParams = {
+                domainName: dc.givenDomainName,
+                endpointConfiguration: {
+                    types: [dc.endpointType],
+                },
+                securityPolicy: dc.securityPolicy,
+                tags: {
+                    ...plugin.serverless.service.provider.stackTags,
+                    ...plugin.serverless.service.provider.tags,
+                },
+                certificateArn: dc.certificateArn
+            }
+            expect(spy).to.have.been.called.with(expectedParams);
         });
 
         it("Create a new A Alias Record", async () => {

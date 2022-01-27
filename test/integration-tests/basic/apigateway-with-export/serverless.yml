@@ -1,4 +1,5 @@
 # APIGateway with export outputs
+frameworkVersion: ^2.72.2
 service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
 
 provider:

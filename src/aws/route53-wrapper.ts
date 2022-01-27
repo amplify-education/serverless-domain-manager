@@ -60,7 +60,8 @@ class Route53Wrapper {
             }
         }
 
-        const changes = ["A", "AAAA"].map((Type) => ({
+        const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
+        const changes = recordsToCreate.map((Type) => ({
             Action: action,
             ResourceRecordSet: {
                 AliasTarget: {
@@ -73,11 +74,10 @@ class Route53Wrapper {
                 ...routingOptions,
             },
         }));
-
         const params = {
             ChangeBatch: {
                 Changes: changes,
-                Comment: "Record created by serverless-domain-manager",
+                Comment: `Record created by "${Globals.pluginName}"`,
             },
             HostedZoneId: route53HostedZoneId,
         };

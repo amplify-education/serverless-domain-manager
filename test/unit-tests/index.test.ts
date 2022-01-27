@@ -60,8 +60,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
         securityPolicy: customDomainOptions.securityPolicy,
         stage: customDomainOptions.stage,
-        route53Params: customDomainOptions.route53Params,
-        tags: customDomainOptions.tags,
+        route53Params: customDomainOptions.route53Params
     };
 
     const serverless = {
@@ -107,9 +106,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     Outputs: null,
                 },
                 stackName: "custom-stage-name",
-                stage: "test",
-                tags: undefined,
-                stackTags: undefined
+                stage: "test"
             },
             service: "test",
         },
@@ -640,24 +637,6 @@ describe("Custom Domain Plugin", () => {
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            dc.certificateArn = "fake_cert";
-
-            await plugin.apiGatewayWrapper.createCustomDomain(dc);
-
-            expect(dc.domainInfo.domainName).to.equal("foo");
-            expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
-        });
-
-        it("Create a domain name with tags", async () => {
-            AWS.mock("APIGateway", "createDomainName", (params, callback) => {
-                callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_2"});
-            });
-
-            const plugin = constructPlugin({domainName: "test_domain"});
-            plugin.initializeVariables();
-            plugin.initAWSResources();
-
-            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.certificateArn = "fake_cert";
 
             await plugin.apiGatewayWrapper.createCustomDomain(dc);

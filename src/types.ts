@@ -34,13 +34,11 @@ export interface ServerlessInstance { // tslint:disable-line
             apiGateway: {
                 restApiId: string,
                 websocketApiId: string,
-            },
-            tags: Tags,
-            stackTags: Tags,
+            }
         }
         custom: {
-            customDomain?: CustomDomain | undefined,
-            customDomains?: CustomDomain[] | undefined,
+            customDomain?: CustomDomain,
+            customDomains?: CustomDomain[],
         },
     };
     providers: {
@@ -96,8 +94,4 @@ export interface Route53Params {
     weight: number | undefined;
     setIdentifier: string | undefined;
     healthCheckId: string | undefined;
-}
-
-export interface Tags {
-    [key: string]: string;
 }

@@ -602,11 +602,9 @@ describe("Custom Domain Plugin", () => {
                 domainName: '*.test_domain'
             }
             const plugin = constructPlugin(options);
-            plugin.acm = new aws.ACM();
-
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-
-            const result = await plugin.getCertArn(dc);
+            const acm = new ACMWrapper(dc.endpointType);
+            const result = await acm.getCertArn(dc);
 
             expect(result).to.equal("test_arn");
         });

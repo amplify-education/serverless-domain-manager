@@ -68,9 +68,11 @@ custom:
     basePath: api
     certificateName: '*.foo.com'
     createRoute53Record: true
+    createRoute53IPv6Record: true
     endpointType: 'regional'
     securityPolicy: tls_1_2
     apiType: rest
+    autoDomain: false
 ```
 
 Multiple API types mapped to different domains can also be supported with the following structure. The key is the API Gateway API type.
@@ -84,6 +86,7 @@ custom:
       basePath: api
       certificateName: '*.foo.com'
       createRoute53Record: true
+      createRoute53IPv6Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
     http:
@@ -92,6 +95,7 @@ custom:
       basePath: api
       certificateName: '*.foo.com'
       createRoute53Record: true
+      createRoute53IPv6Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
     websocket:
@@ -100,8 +104,40 @@ custom:
       basePath: api
       certificateName: '*.foo.com'
       createRoute53Record: true
+      createRoute53IPv6Record: true
       endpointType: 'regional'
       securityPolicy: tls_1_2
+```
+
+Or for multiple domains
+
+```yaml
+custom:
+  customDomains:
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+        basePath: ''
+        endpointType: 'regional'
+    - http:
+        domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}.foo
+        basePath: ''
+        endpointType: 'regional'
+```
+
+For multi-region deployments, a `route53Params` structure can be used to support latency or weighted routing policies
+
+```yaml
+custom:
+  customDomain:
+    domainName: serverless.foo.com
+    stage: ci
+    basePath: api
+    certificateName: '*.foo.com'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    route53Params:
+      routingPolicy: latency
 ```
 
 | Parameter Name | Default Value | Description |
@@ -111,15 +147,25 @@ custom:
 | stage | Value of `--stage`, or `provider.stage` (serverless will default to `dev` if unset) | The stage to create the domain name for. This parameter allows you to specify a different stage for the domain name than the stage specified for the serverless deployment. |
 | certificateName | Closest match | The name of a specific certificate from Certificate Manager to use with this API. If not specified, the closest match will be used (i.e. for a given domain name `api.example.com`, a certificate for `api.example.com` will take precedence over a `*.example.com` certificate). <br><br> Note: Edge-optimized endpoints require that the certificate be located in `us-east-1` to be used with the CloudFront distribution. |
 | certificateArn | `(none)` | The arn of a specific certificate from Certificate Manager to use with this API. |
-| createRoute53Record | `true` | Toggles whether or not the plugin will create an A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
+| createRoute53Record | `true` | Toggles whether or not the plugin will create A Alias and AAAA Alias records in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
+| createRoute53IPv6Record | `true` | Toggles whether or not the plugin will create an AAAA Alias record in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
+| route53Profile | `(none)` | Profile to use for accessing Route53 resources when Route53 records are in a different account |
+| route53Region | `(none)` | Region to send Route53 services requests to (only applicable if also using route53Profile option) |
 | endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
 | apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |
 securityPolicy | tls_1_2 | The security policy to apply to the custom domain name.  Accepts `tls_1_0` or `tls_1_2`|
-allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an upsate. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
-
+allowPathMatching | false | When updating an existing api mapping this will match on the basePath instead of the API ID to find existing mappings for an update. This should only be used when changing API types. For example, migrating a REST API to an HTTP API. See Changing API Types for more information.  |
+| autoDomain | `false` | Toggles whether or not the plugin will run `create_domain/delete_domain` as part of `sls deploy/remove` so that multiple commands are not required. |
+| autoDomainWaitFor | `120` | How long to wait for create_domain to finish before starting deployment if domain does not exist immediately. |
+| route53Params |  | A set of options to customize Route 53 record creation. If left empty, A and AAAA records with simple routing will be created. If `createRoute53Record` is `false`, anything passed here will be ignored.  |
+| route53Params:<br/>&nbsp; routingPolicy | simple | Defines the Route 53 routing policy, accepts `simple`, `latency` or `weighted`. |
+| route53Params:<br/>&nbsp; weight | `200` | Sets the weight for weighted routing. Ignored for `simple` and `latency` routing. |
+| route53Params:<br/>&nbsp; setIdentifier |  | A unique identifier for records in a set of Route 53 records with the same domain name. Only relevant for `latency` and `weighted` routing. Defaults to the regional endpoint if not provided. |
+| route53Params:<br/>&nbsp; healthCheckId |  | An optional id for a Route 53 health check. If it is failing, Route 53 will stop routing to it. Only relevant for `latency` and `weighted` routing. If it is not provided, no health check will be associated with the record. |
+| preserveExternalPathMappings | `false` | When `autoDomain` is set to true, and a deployment is removed, setting this to `true` checks for additional API Gateway base path mappings before automatically deleting the domain, and avoids doing so if they exist. |
 
 ## Running
 
@@ -156,9 +202,12 @@ To run unit tests:
 npm test
 ```
 
-To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). Then,
+To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). 
+And `ROUTE53_PROFILE` for creating route53 record in one AWS account and deploy in another. Then,
 ```
 export TEST_DOMAIN=example.com
+export ROUTE53_PROFILE=default
+npm run build
 npm run integration-test
 ```
 
@@ -170,7 +219,7 @@ npm install
 ```
 
 ## Writing Integration Tests
-Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `integration.test.ts`.
+Unit tests are found in `test/unit-tests`. Integration tests are found in `test/integration-tests`. Each folder in `tests/integration-tests` contains the serverless-domain-manager configuration being tested. To create a new integration test, create a new folder for the `handler.js` and `serverless.yml` with the same naming convention and update `deploy.test.ts` or create a separate one with the `test.ts` ending.
 
 ## Changing API Types
 AWS API Gateway has three different API types: REST, HTTP, and WebSocket. Special steps need to be taken when migrating from one api type to another. A common migration will be from a REST API to an HTTP API given the potential cost savings. Below are the steps required to change from REST to HTTP. A similar process can be applied for other API type migrations.
@@ -197,6 +246,7 @@ NOTE: Always test this process in a lower level staging or development environme
 * (1/17/2018) The `create_domain` command provided by this plugin does not currently update an existing Custom Domain's configuration. Instead, it only supports updating the Route 53 record pointing to the Custom Domain. For example, one must delete and recreate a Custom Domain to migrate it from regional to edge or vice versa, or to modify the certificate.
 * (8/22/2018) Creating a custom domain creates a CloudFront Distribution behind the scenes for fronting your API Gateway. This CloudFront Distribution is managed by AWS and cannot be viewed/managed by you. This is not a bug, but a quirk of how the Custom Domain feature works in API Gateway.
 * (2/12/2019) Users who upgraded from 2.x.x to version 3.0.4 (now unpublished) and then reverted back to 2.x.x will be unable to deploy because of a bug that will be fixed in 3.1.0. The workaround is to delete the basepath mapping manually, which will let them successfully revert back to 2.x.x.
+* (1/20/2022) Using `route53Profile` option requires having hosted zone for the domain in this profile and ACM certificate in the main profile (where functions are deployed).  
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

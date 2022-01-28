@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [5.8.1] - 2021-01-28
 
 ### Changed
-Fixed get certificate arn wildcard. Thank you @aaalexliu ([357](https://github.com/amplify-education/serverless-domain-manager/pull/357))
+Included wild card for ACM searching in case `domain.certificateName` specified. Thank you @aaalexliu ([357](https://github.com/amplify-education/serverless-domain-manager/pull/357))
 
 ## [5.8.0] - 2021-01-27
 

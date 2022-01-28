@@ -43,10 +43,10 @@ class ACMWrapper {
         let nameLength = 0;
         // Checks if a certificate name is given
         if (certificateName) {
+            // Include wild card 'example.tld' => '*.example.tld' search
             const checkNames = certificateName.startsWith("*.") ? [certificateName]
                 : [certificateName, `*.${certificateName}`]
             const foundCertificate = certificates.find((certificate) => {
-                // Looks for wild card 'example.tld' => '*.example.tld'
                 return checkNames.includes(certificate.DomainName)
             });
             if (foundCertificate != null) {

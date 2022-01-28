@@ -566,10 +566,21 @@ describe("Custom Domain Plugin", () => {
 
     describe("Create a New Domain Name", () => {
         it("Get a given certificate arn", async () => {
-            AWS.mock("ACM", "listCertificates", certTestData);
+            AWS.mock("ACM", "listCertificates", {
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "dummy_arn",
+                        DomainName: "dummy_domain",
+                    },
+                    {
+                        CertificateArn: "test_given_arn",
+                        DomainName: "*.test_domain",
+                    }
+                ]
+            });
 
             const options = {
-                certificateArn: "test_given_arn",
+                certificateName: "test_domain",
                 endpointType: "REGIONAL",
             };
             const plugin = constructPlugin(options);

@@ -192,7 +192,9 @@ class ServerlessCustomDomain {
         const acm = new ACMWrapper(domain.endpointType);
         try {
             if (!domain.domainInfo) {
-                domain.certificateArn = await acm.getCertArn(domain);
+                if (!domain.certificateArn) {
+                    domain.certificateArn = await acm.getCertArn(domain);
+                }
                 await this.apiGatewayWrapper.createCustomDomain(domain);
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);

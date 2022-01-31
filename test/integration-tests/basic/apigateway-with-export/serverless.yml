@@ -1,0 +1,52 @@
+# APIGateway with export outputs
+frameworkVersion: ^2.72.2
+service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
+
+provider:
+  lambdaHashingVersion: 20201221
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+
+resources:
+  Outputs:
+    RestApi:
+      Description: Main service's API Gateway REST API ID
+      Value:
+        Ref: ApiGatewayRestApi # Logical ID
+      Export:
+        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-restApiId
+    RootResource:
+      Description: Main service's API Gateway Root Resource ID
+      Value:
+        Fn::GetAtt:
+          - ApiGatewayRestApi # Logical ID
+          - RootResourceId # Logical ID
+      Export:
+        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-RootResourceId
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    stage: ${self:provider.stage}
+    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    autoDomain: true
+    basePath: hello-world
+    endpointType: regional
+    createRoute53Record: false
+
+package:
+  exclude:
+    - node_modules/**

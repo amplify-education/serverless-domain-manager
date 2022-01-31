@@ -49,20 +49,20 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         basePath: customDomainOptions.basePath,
         certificateArn: customDomainOptions.certificateArn,
         certificateName: customDomainOptions.certificateName,
-        createRoute53Record: customDomainOptions.createRoute53Record,
         createRoute53IPv6Record: customDomainOptions.createRoute53IPv6Record,
+        createRoute53Record: customDomainOptions.createRoute53Record,
         domainName: customDomainOptions.domainName,
         enabled: customDomainOptions.enabled,
         endpointType: customDomainOptions.endpointType,
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+        preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
+        route53Params: customDomainOptions.route53Params,
         route53Profile: customDomainOptions.route53Profile,
         route53Region: customDomainOptions.route53Region,
-        route53Params: customDomainOptions.route53Params,
-        preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
         securityPolicy: customDomainOptions.securityPolicy,
         setupOnPackaging: customDomainOptions.setupOnPackaging,
-        stage: customDomainOptions.stage
+        stage: customDomainOptions.stage,
     };
 
     const serverless = {

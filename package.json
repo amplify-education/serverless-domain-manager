@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "5.8.0",
+  "version": "5.8.2",
   "engines": {
     "node": ">=12"
   },
@@ -65,7 +65,7 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.1064.0",
+    "aws-sdk": "^2.1066.0",
     "chalk": "^4.1.2"
   },
   "peerDependencies": {

@@ -1,26 +1,27 @@
 import {HTTPOptions} from "aws-sdk";
 
 export interface CustomDomain { // tslint:disable-line
-    domainName: string;
-    basePath: string | undefined;
-    stage: string | undefined;
-    certificateName: string | undefined;
-    certificateArn: string | undefined;
-    createRoute53Record: boolean | undefined;
-    createRoute53IPv6Record: boolean | undefined;
-    route53Profile: string | undefined;
-    route53Region: string | undefined;
-    endpointType: string | undefined;
+    allowPathMatching: boolean | undefined;
     apiType: string | undefined;
-    hostedZoneId: string | undefined;
-    hostedZonePrivate: boolean | undefined;
-    enabled: boolean | string | undefined;
-    securityPolicy: string | undefined;
     autoDomain: boolean | undefined;
     autoDomainWaitFor: string | undefined;
-    allowPathMatching: boolean | undefined;
-    route53Params: Route53Params | undefined;
+    basePath: string | undefined;
+    certificateArn: string | undefined;
+    certificateName: string | undefined;
+    createRoute53IPv6Record: boolean | undefined;
+    createRoute53Record: boolean | undefined;
+    domainName: string;
+    enabled: boolean | string | undefined;
+    endpointType: string | undefined;
+    hostedZoneId: string | undefined;
+    hostedZonePrivate: boolean | undefined;
     preserveExternalPathMappings: boolean | undefined;
+    route53Params: Route53Params | undefined;
+    route53Profile: string | undefined;
+    route53Region: string | undefined;
+    securityPolicy: string | undefined;
+    setupOnPackaging: boolean | undefined;
+    stage: string | undefined;
 }
 
 export interface ServerlessInstance { // tslint:disable-line
@@ -66,6 +67,7 @@ export interface ServerlessInstance { // tslint:disable-line
         log(str: string, entity?: string),
         consoleLog(str: any),
     };
+
     addServiceOutputSection?(name: string, data: string[]);
 }
 
@@ -75,6 +77,7 @@ export interface ServerlessOptions { // tslint:disable-line
 
 interface ServerlessProgress {
     update(message: string): void
+
     remove(): void
 }
 
@@ -90,7 +93,6 @@ export interface ServerlessUtils {
     }
     progress: ServerlessProgressFactory
 }
-
 
 export interface Route53Params {
     routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;

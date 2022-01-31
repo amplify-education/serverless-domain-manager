@@ -8,48 +8,48 @@ import Globals from "./globals";
 import {CustomDomain, Route53Params} from "./types";
 
 class DomainConfig {
-
-    public givenDomainName: string;
-    public basePath: string | undefined;
-    public stage: string | undefined;
-    public certificateName: string | undefined;
-    public certificateArn: string | undefined;
-    public createRoute53Record: boolean | undefined;
-    public createRoute53IPv6Record: boolean | undefined;
-    public route53Profile: string | undefined;
-    public route53Region: string | undefined;
-    public endpointType: string | undefined;
-    public apiType: string | undefined;
-    public hostedZoneId: string | undefined;
-    public hostedZonePrivate: boolean | undefined;
-    public enabled: boolean | string | undefined;
-    public securityPolicy: string | undefined;
-    public autoDomain: boolean | undefined;
-    public autoDomainWaitFor: string | undefined;
-    public route53Params: Route53Params;
-    public preserveExternalPathMappings: boolean | undefined;
-    public domainInfo: DomainInfo | undefined;
+    public allowPathMatching: boolean | false;
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
-    public allowPathMatching: boolean | false;
+    public apiType: string | undefined;
+    public autoDomain: boolean | undefined;
+    public autoDomainWaitFor: string | undefined;
+    public basePath: string | undefined;
+    public certificateArn: string | undefined;
+    public certificateName: string | undefined;
+    public createRoute53IPv6Record: boolean | undefined;
+    public createRoute53Record: boolean | undefined;
+    public domainInfo: DomainInfo | undefined;
+    public enabled: boolean | string | undefined;
+    public endpointType: string | undefined;
+    public givenDomainName: string;
+    public hostedZoneId: string | undefined;
+    public hostedZonePrivate: boolean | undefined;
+    public preserveExternalPathMappings: boolean | undefined;
+    public route53Params: Route53Params;
+    public route53Profile: string | undefined;
+    public route53Region: string | undefined;
+    public securityPolicy: string | undefined;
+    public setupOnPackaging: boolean | undefined;
+    public stage: string | undefined;
 
     constructor(config: CustomDomain) {
-
-        this.enabled = this.evaluateBoolean(config.enabled, true);
-        this.givenDomainName = config.domainName;
-        this.hostedZonePrivate = config.hostedZonePrivate;
-        this.certificateArn = config.certificateArn;
-        this.certificateName = config.certificateName;
-        this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
-        this.createRoute53IPv6Record = this.evaluateBoolean(config.createRoute53IPv6Record, true);
-        this.route53Profile = config.route53Profile;
-        this.route53Region = config.route53Region;
-        this.hostedZoneId = config.hostedZoneId;
-        this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;
         this.autoDomain = config.autoDomain;
         this.autoDomainWaitFor = config.autoDomainWaitFor;
+        this.certificateArn = config.certificateArn;
+        this.certificateName = config.certificateName;
+        this.createRoute53IPv6Record = this.evaluateBoolean(config.createRoute53IPv6Record, true);
+        this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
+        this.enabled = this.evaluateBoolean(config.enabled, true);
+        this.givenDomainName = config.domainName;
+        this.hostedZoneId = config.hostedZoneId;
+        this.hostedZonePrivate = config.hostedZonePrivate;
+        this.hostedZonePrivate = config.hostedZonePrivate;
         this.preserveExternalPathMappings = this.evaluateBoolean(config.preserveExternalPathMappings, false);
+        this.route53Profile = config.route53Profile;
+        this.route53Region = config.route53Region;
+        this.setupOnPackaging = this.evaluateBoolean(config.setupOnPackaging, false);
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {

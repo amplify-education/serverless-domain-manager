@@ -1,5 +1,5 @@
 import DomainConfig = require("./domain-config");
-import {ServerlessInstance, ServerlessOptions, ServerlessProgressFactory, ServerlessUtils} from "./types";
+import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 
 export default class Globals {
 
@@ -87,18 +87,23 @@ export default class Globals {
     /**
      * Prints out a summary of all domain manager related info
      */
-    public static printDomainSummary(domain: DomainConfig): void {
+    public static printDomainSummary(domains: DomainConfig[]): void {
+        const summaryList = [];
+        domains.forEach((domain) => {
+            if (domain.domainInfo) {
+                summaryList.push(`Domain Name: ${domain.givenDomainName}`);
+                summaryList.push(`Target Domain: ${domain.domainInfo.domainName}`);
+                summaryList.push(`Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+                summaryList.push(`----------------------------------------`);
+            }
+        })
         if (Globals.v3Utils) {
-            Globals.serverless.addServiceOutputSection(Globals.pluginName, [
-                `domain name: ${domain.givenDomainName}`,
-                `target domain: ${domain.domainInfo.domainName}`,
-                `hosted zone id: ${domain.domainInfo.hostedZoneId}`
-            ]);
+            Globals.serverless.addServiceOutputSection(Globals.pluginName, summaryList);
         } else {
             Globals.cliLog("[Summary]", "Distribution Domain Name");
-            Globals.cliLog("", `  Domain Name: ${domain.givenDomainName}`);
-            Globals.cliLog("", `  Target Domain: ${domain.domainInfo.domainName}`);
-            Globals.cliLog("", `  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+            summaryList.forEach((item) => {
+                Globals.cliLog("", `${item}`);
+            })
         }
     }
 

@@ -63,7 +63,7 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.1064.0"
+    "aws-sdk": "^2.1067.0"
   },
   "peerDependencies": {
     "serverless": "<4"

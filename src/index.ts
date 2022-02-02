@@ -293,17 +293,12 @@ class ServerlessCustomDomain {
                     await this.apiGatewayWrapper.updateBasePathMapping(domain);
                 }
             } catch (err) {
-                Globals.logInfo(`Error: ${err.message}`);
                 throw new Error(
                     `Unable to setup base domain mappings for '${domain.givenDomainName}':\n${err.message}`
                 );
             }
-        })).then(() => {
-            Globals.logInfo("Print summary upon completion");
-            // Print summary upon completion
-            this.domains.forEach((domain) => {
-                Globals.printDomainSummary(domain);
-            });
+        })).finally(() => {
+            Globals.printDomainSummary(this.domains);
         });
     }
 
@@ -363,16 +358,12 @@ class ServerlessCustomDomain {
      * Wraps printing of all domain manager related info
      */
     public async domainSummaries(): Promise<void> {
-        for (const domain of this.domains) {
-            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
-            if (domain.domainInfo) {
-                Globals.printDomainSummary(domain);
-            } else {
-                Globals.logInfo(
-                    `Unable to print ${Globals.pluginName} Summary for ${domain.givenDomainName}`,
-                );
-            }
-        }
+        await Promise.all(this.domains.map(async (domain) => {
+            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain)
+        })).finally(() => {
+            Globals.printDomainSummary(this.domains);
+        });
+
     }
 
     /**

@@ -4,8 +4,6 @@ provider:
   runtime: nodejs12.x
   region: us-west-2
   stage: test
-  httpApi:
-    useProviderTags: true
   stackTags:
     plugin: dummy
     stage: test

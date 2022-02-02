@@ -175,7 +175,6 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomains(): Promise<void> {
-        Globals.logInfo("createDomains")
         await Promise.all(this.domains.map(async (domain) => {
             await this.createDomain(domain);
         }));
@@ -215,7 +214,6 @@ class ServerlessCustomDomain {
      * Wraps deleting a domain and resource record set
      */
     public async deleteDomains(): Promise<void> {
-        Globals.logInfo("deleteDomains")
         await Promise.all(this.domains.map(async (domain) => {
             await this.deleteDomain(domain);
         }));
@@ -245,7 +243,6 @@ class ServerlessCustomDomain {
      * Lifecycle function to createDomain before deploy and add domain info to the CloudFormation stack's Outputs
      */
     public async createOrGetDomainForCfOutputs(): Promise<void> {
-        Globals.logInfo("createOrGetDomainForCfOutputs")
         await Promise.all(this.domains.map(async (domain) => {
             const autoDomain = domain.autoDomain;
             if (autoDomain === true) {
@@ -278,7 +275,6 @@ class ServerlessCustomDomain {
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
     public async setupBasePathMappings(): Promise<void> {
-        Globals.logInfo("setupBasePathMappings")
         await Promise.all(this.domains.map(async (domain) => {
             try {
                 domain.apiId = await this.getApiId(domain);
@@ -316,7 +312,6 @@ class ServerlessCustomDomain {
      * Wraps deletion of basepath mapping
      */
     public async removeBasePathMappings(): Promise<void> {
-        Globals.logInfo("removeBasePathMappings")
         await Promise.all(this.domains.map(async (domain) => {
             let externalBasePathExists = false;
             try {
@@ -368,7 +363,6 @@ class ServerlessCustomDomain {
      * Wraps printing of all domain manager related info
      */
     public async domainSummaries(): Promise<void> {
-        Globals.logInfo("domainSummaries")
         for (const domain of this.domains) {
             domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
             if (domain.domainInfo) {

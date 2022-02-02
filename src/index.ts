@@ -32,8 +32,7 @@ class ServerlessCustomDomain {
         Globals.options = options;
 
         if (v3Utils) {
-            Globals.log = v3Utils.log
-            Globals.progress = v3Utils.progress
+            Globals.v3Utils = v3Utils;
         }
 
         this.commands = {
@@ -176,6 +175,7 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomains(): Promise<void> {
+        Globals.logInfo("createDomains")
         await Promise.all(this.domains.map(async (domain) => {
             await this.createDomain(domain);
         }));
@@ -187,30 +187,27 @@ class ServerlessCustomDomain {
      */
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
-        const creationProgress = Globals.log && Globals.progress.get(`create-${domain.givenDomainName}`);
+        const creationProgress = Globals.v3Utils && Globals.v3Utils.progress.get(`create-${domain.givenDomainName}`);
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
         const acm = new ACMWrapper(domain.endpointType);
         try {
             if (!domain.domainInfo) {
                 domain.certificateArn = await acm.getCertArn(domain);
                 await this.apiGatewayWrapper.createCustomDomain(domain);
+                Globals.logInfo(`Custom domain '${domain.givenDomainName}' was created.
+                 New domains may take up to 40 minutes to be initialized.`);
             } else {
-                Globals.logInfo(`Custom domain ${domain.givenDomainName} already exists.`);
+                Globals.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
             }
+            Globals.logInfo(`Creating/updating route53 record for '${domain.givenDomainName}'.`)
             await route53.changeResourceRecordSet("UPSERT", domain);
-            Globals.logInfo(
-                `Custom domain ${domain.givenDomainName} was created.
-                 New domains may take up to 40 minutes to be initialized.`
-            );
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to create domain ${domain.givenDomainName}: ${err.message}`);
+            throw new Error(`Unable to create domain '${domain.givenDomainName}':\n${err.message}`);
         } finally {
             if (creationProgress) {
                 creationProgress.remove();
             }
         }
-
     }
 
     /**
@@ -218,6 +215,7 @@ class ServerlessCustomDomain {
      * Wraps deleting a domain and resource record set
      */
     public async deleteDomains(): Promise<void> {
+        Globals.logInfo("deleteDomains")
         await Promise.all(this.domains.map(async (domain) => {
             await this.deleteDomain(domain);
         }));
@@ -239,8 +237,7 @@ class ServerlessCustomDomain {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} does not exist.`);
             }
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to delete domain ${domain.givenDomainName}`);
+            throw new Error(`Unable to delete domain '${domain.givenDomainName}':\n${err.message}`);
         }
     }
 
@@ -248,6 +245,7 @@ class ServerlessCustomDomain {
      * Lifecycle function to createDomain before deploy and add domain info to the CloudFormation stack's Outputs
      */
     public async createOrGetDomainForCfOutputs(): Promise<void> {
+        Globals.logInfo("createOrGetDomainForCfOutputs")
         await Promise.all(this.domains.map(async (domain) => {
             const autoDomain = domain.autoDomain;
             if (autoDomain === true) {
@@ -280,6 +278,7 @@ class ServerlessCustomDomain {
      * Wraps creation of basepath mapping and adds domain name info as output to cloudformation stack
      */
     public async setupBasePathMappings(): Promise<void> {
+        Globals.logInfo("setupBasePathMappings")
         await Promise.all(this.domains.map(async (domain) => {
             try {
                 domain.apiId = await this.getApiId(domain);
@@ -297,12 +296,14 @@ class ServerlessCustomDomain {
                 } else {
                     await this.apiGatewayWrapper.updateBasePathMapping(domain);
                 }
-
             } catch (err) {
-                Globals.logError(err, domain.givenDomainName);
-                throw new Error(`Unable to setup base domain mappings for ${domain.givenDomainName}`);
+                Globals.logInfo(`Error: ${err.message}`);
+                throw new Error(
+                    `Unable to setup base domain mappings for '${domain.givenDomainName}':\n${err.message}`
+                );
             }
         })).then(() => {
+            Globals.logInfo("Print summary upon completion");
             // Print summary upon completion
             this.domains.forEach((domain) => {
                 Globals.printDomainSummary(domain);
@@ -315,14 +316,14 @@ class ServerlessCustomDomain {
      * Wraps deletion of basepath mapping
      */
     public async removeBasePathMappings(): Promise<void> {
+        Globals.logInfo("removeBasePathMappings")
         await Promise.all(this.domains.map(async (domain) => {
             let externalBasePathExists = false;
             try {
                 domain.apiId = await this.getApiId(domain);
-
                 // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
-                    Globals.logInfo(`Unable to find corresponding API for ${domain.givenDomainName},
+                    Globals.logInfo(`Unable to find corresponding API for '${domain.givenDomainName}',
                         API Mappings may need to be manually removed.`);
                 } else {
                     const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
@@ -334,18 +335,23 @@ class ServerlessCustomDomain {
                     if (domain.preserveExternalPathMappings) {
                         externalBasePathExists = mappings.length > filteredMappings.length;
                     }
-
                     domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
-                    await this.apiGatewayWrapper.deleteBasePathMapping(domain);
+                    if (domain.apiMapping) {
+                        Globals.logInfo(`Removing API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+                        await this.apiGatewayWrapper.deleteBasePathMapping(domain);
+                    } else {
+                        Globals.logWarning(
+                            `Api mapping was not found for '${domain.givenDomainName}'. Skipping base path deletion.`
+                        );
+                    }
                 }
             } catch (err) {
                 if (err.message.indexOf("Failed to find CloudFormation") > -1) {
-                    Globals.logInfo(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
+                    Globals.logWarning(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
                         API Mappings may need to be manually removed.`);
                 } else {
-                    Globals.logError(err, domain.givenDomainName);
-                    Globals.logError(
-                        `Unable to remove base path mappings`, domain.givenDomainName, false,
+                    Globals.logWarning(
+                        `Unable to remove base path mappings for '${domain.givenDomainName}':\n${err.message}`
                     );
                 }
             }
@@ -362,6 +368,7 @@ class ServerlessCustomDomain {
      * Wraps printing of all domain manager related info
      */
     public async domainSummaries(): Promise<void> {
+        Globals.logInfo("domainSummaries")
         for (const domain of this.domains) {
             domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
             if (domain.domainInfo) {
@@ -378,13 +385,14 @@ class ServerlessCustomDomain {
      * Gets rest API id from existing config or CloudFormation stack
      */
     public async getApiId(domain: DomainConfig): Promise<string> {
-        const apiGateway = this.serverless.service.provider.apiGateway || {};
+        const slsService = this.serverless.service;
+        const apiGateway = slsService.provider.apiGateway || {};
         const apiIdKey = Globals.gatewayAPIIdKeys[domain.apiType];
         const apiId = apiGateway[apiIdKey];
         if (apiId) {
             // if string value exists return the value
             if (typeof apiId === "string") {
-                Globals.logInfo(`Mapping custom domain to existing API  ${apiId}.`);
+                Globals.logInfo(`Mapping custom domain to existing API '${apiId}'.`);
                 return apiId;
             }
             // in case object and Fn::ImportValue try to get restApiId from the CloudFormation exports
@@ -394,11 +402,10 @@ class ServerlessCustomDomain {
                 try {
                     importValues = await this.cloudFormationWrapper.getImportValues([importName]);
                 } catch (err) {
-                    Globals.logError(err, domain.givenDomainName);
-                    throw new Error(`Failed to find CloudFormation ImportValue by ${importName}\n`);
+                    throw new Error(`Failed to find CloudFormation ImportValue by '${importName}':\n${err.message}`);
                 }
                 if (!importValues[importName]) {
-                    throw new Error(`CloudFormation ImportValue not found by ${importName}\n`);
+                    throw new Error(`CloudFormation ImportValue not found by '${importName}'`);
                 }
                 return importValues[importName];
             }
@@ -406,14 +413,11 @@ class ServerlessCustomDomain {
             throw new Error("Unsupported apiGateway.restApiId object");
         }
 
-        const stackName = this.serverless.service.provider.stackName ||
-            `${this.serverless.service.service}-${domain.stage}`;
-
+        const stackName = slsService.provider.stackName || `${slsService.service}-${domain.stage}`;
         try {
             return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Failed to find CloudFormation resources for ${domain.givenDomainName}\n`);
+            throw new Error(`Failed to find CloudFormation resources for '${domain.givenDomainName}':\n${err.message}`);
         }
     }
 

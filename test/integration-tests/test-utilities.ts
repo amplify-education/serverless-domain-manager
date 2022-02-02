@@ -170,13 +170,15 @@ async function createResources(folderName, url) {
  */
 async function destroyResources(url?) {
   try {
-    console.debug(`\tCleaning Up Resources for ${url}`);
+    console.log(`\tCleaning Up Resources for ${url}`);
     await slsRemove(TEMP_DIR);
+    console.log("\tslsDeleteDomain");
     await slsDeleteDomain(TEMP_DIR);
+    console.log("\trm -rf");
     await exec(`rm -rf ${TEMP_DIR}`);
-    console.debug("\tResources Cleaned Up");
+    console.log("\tResources Cleaned Up");
   } catch (e) {
-    console.debug("\tFailed to Clean Up Resources");
+    console.log(`\tFailed to Clean Up Resources: ${e}`);
   }
 }
 

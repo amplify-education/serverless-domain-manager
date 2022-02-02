@@ -66,6 +66,7 @@ export interface ServerlessInstance { // tslint:disable-line
         log(str: string, entity?: string),
         consoleLog(str: any),
     };
+
     addServiceOutputSection?(name: string, data: string[]);
 }
 
@@ -75,6 +76,7 @@ export interface ServerlessOptions { // tslint:disable-line
 
 interface ServerlessProgress {
     update(message: string): void
+
     remove(): void
 }
 
@@ -83,6 +85,7 @@ export interface ServerlessProgressFactory {
 }
 
 export interface ServerlessUtils {
+    writeText: (message: string) => void,
     log: ((message: string) => void) & {
         error(message: string): void
         verbose(message: string): void
@@ -90,7 +93,6 @@ export interface ServerlessUtils {
     }
     progress: ServerlessProgressFactory
 }
-
 
 export interface Route53Params {
     routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;

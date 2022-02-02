@@ -1,7 +1,6 @@
 # Enabled with regional endpoint, custom basePath
 service: ${env:PLUGIN_IDENTIFIER}-regional-basepath-${env:RANDOM_STRING}
 provider:
-  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -24,5 +23,5 @@ custom:
     endpointType: regional
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - '!node_modules/**'

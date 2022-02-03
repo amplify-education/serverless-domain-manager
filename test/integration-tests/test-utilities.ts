@@ -20,9 +20,9 @@ const apiGateway = new aws.APIGateway({
 async function exec(cmd) {
     console.debug(`\tRunning command: ${cmd}`);
     return new Promise((resolve, reject) => {
-        shell.exec(cmd, {silent: false}, (err, stdout) => {
-            if (err) {
-                return reject(err);
+        shell.exec(cmd, {silent: false}, (errCode, stdout, stderr) => {
+            if (errCode) {
+                return reject(stderr);
             }
             return resolve(stdout);
         });

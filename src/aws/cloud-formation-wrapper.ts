@@ -72,7 +72,7 @@ class CloudFormationWrapper {
                 StackName: stackName,
             });
         } catch (err) {
-            throw new Error(`Failed to find CloudFormation resources with an error: ${err}\n`);
+            throw new Error(`Failed to find CloudFormation resources with an error: ${err.message}\n`);
         }
     }
 

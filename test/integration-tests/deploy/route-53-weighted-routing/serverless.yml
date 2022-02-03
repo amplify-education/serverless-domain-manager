@@ -1,6 +1,5 @@
 service: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}
 provider:
-  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -25,5 +24,5 @@ custom:
       weight: 100
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - '!node_modules/**'

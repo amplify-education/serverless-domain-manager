@@ -1,9 +1,7 @@
 # APIGateway with export outputs
-frameworkVersion: ^2.72.2
 service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
 
 provider:
-  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -48,5 +46,5 @@ custom:
     createRoute53Record: false
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - '!node_modules/**'

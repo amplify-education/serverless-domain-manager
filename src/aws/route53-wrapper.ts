@@ -85,8 +85,7 @@ class Route53Wrapper {
         try {
             return await throttledCall(this.route53, "changeResourceRecordSets", params);
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Failed to ${action} A Alias for ${domain.givenDomainName}\n`);
+            throw new Error(`Failed to ${action} A Alias for '${domain.givenDomainName}':\n${err.message}`);
         }
     }
 
@@ -110,8 +109,7 @@ class Route53Wrapper {
             const hostedZoneData = await throttledCall(this.route53, "listHostedZones", {});
             hostedZones = hostedZoneData.HostedZones;
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw new Error(`Unable to list hosted zones in Route53.\n${err}`);
+            throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
         }
 
         const targetHostedZone = hostedZones
@@ -128,7 +126,7 @@ class Route53Wrapper {
         if (targetHostedZone) {
             return targetHostedZone.Id.replace("/hostedzone/", "");
         } else {
-            throw new Error(`Could not find hosted zone "${domain.givenDomainName}"`);
+            throw new Error(`Could not find hosted zone '${domain.givenDomainName}'`);
         }
     }
 }

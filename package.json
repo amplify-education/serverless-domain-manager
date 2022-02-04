@@ -55,7 +55,7 @@
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
     "randomstring": "^1.2.2",
-    "serverless": "^3.1.0",
+    "serverless": "^3.1.1",
     "serverless-plugin-split-stacks": "^1.11.3",
     "shelljs": "^0.8.5",
     "ts-node": "^10.4.0",

@@ -118,7 +118,7 @@ const testCases = [
     },
 ];
 
-describe("Integration Tests", function() {
+describe("Integration Tests", function () {
     this.timeout(TIMEOUT_MINUTES);
 
     describe("Configuration Tests", () => {

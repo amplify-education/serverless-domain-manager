@@ -4,17 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [5.8.2] - 2021-01-31
+## [6.1.0] - 2022-02-04
 
 ### Added
 - Added an option for configuration of setupBasePathMapping hook. Thank you @Rapol ([225](https://github.com/amplify-education/serverless-domain-manager/pull/225))
 
-## [5.8.0] - 2021-01-27
+## [6.0.0] - 2022-02-03
+
+### Changed
+- Updated dependency to work with Serverless V3. Releasing a new major version in case there are any issues that weren't caught in our testing.
+- Logging improvements
+
+## [5.8.0] - 2022-01-27
 
 ### Added
 - Added an option to disable IPv6. Thank you @davehensley ([365](https://github.com/amplify-education/serverless-domain-manager/pull/365))
 
-## [5.7.0] - 2021-01-27
+## [5.7.0] - 2022-01-27
 
 ### Added
 - Added tagging of apiGateway custom domain. Thank you @fdobrovolny ([328](https://github.com/amplify-education/serverless-domain-manager/pull/328))
@@ -22,12 +28,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Refactoring of the code
 
-## [5.6.0] - 2021-01-26
+## [5.6.0] - 2022-01-26
 
 ### Added
 - Added config option to avoid automatically deleting an APIGW domain when other base path mappings exist. Thank you @straticJeff ([389](https://github.com/amplify-education/serverless-domain-manager/pull/389))  
 
-## [5.5.0] - 2021-01-24
+## [5.5.0] - 2022-01-24
 
 ### Added
 - Added proxy support. Thank you @mscharp ([405](https://github.com/amplify-education/serverless-domain-manager/pull/405))
@@ -39,22 +45,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
 
-## [5.4.1] - 2021-01-21
+## [5.4.1] - 2022-01-21
 
 ### Fixed
 - Fixed route53 resource creation.
 
-## [5.4.0] - 2021-01-20
+## [5.4.0] - 2022-01-20
 
 ### Added
 - Added custom route53 profile options. Thank you @CodeVision ([393](https://github.com/amplify-education/serverless-domain-manager/pull/393))
 
-## [5.3.2] - 2021-01-19
+## [5.3.2] - 2022-01-19
 
 ### Added
 - Added logs for Serverless Framework v3. Thank you @medikoo ([448](https://github.com/amplify-education/serverless-domain-manager/pull/448))
 
-## [5.3.1] - 2021-01-18
+## [5.3.1] - 2022-01-18
 
 ### Changed
 - Updated output for `compiledCloudFormationTemplate`. Thank you @nalbion ([442](https://github.com/amplify-education/serverless-domain-manager/pull/442))
@@ -62,7 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed Route53 creation for `create_domain` action.
 
-## [5.3.0] - 2021-01-14
+## [5.3.0] - 2022-01-14
 
 ### Added
 - Added support of Serverless version 3. Thank you @medikoo ([449](https://github.com/amplify-education/serverless-domain-manager/pull/449))

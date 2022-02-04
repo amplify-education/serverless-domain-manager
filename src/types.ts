@@ -86,6 +86,7 @@ export interface ServerlessProgressFactory {
 }
 
 export interface ServerlessUtils {
+    writeText: (message: string) => void,
     log: ((message: string) => void) & {
         error(message: string): void
         verbose(message: string): void

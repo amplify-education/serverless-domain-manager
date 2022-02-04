@@ -22,12 +22,11 @@ class ACMWrapper {
      */
     public async getCertArn(domain: DomainConfig): Promise<string> {
         if (domain.certificateArn) {
-            Globals.logInfo(`Selected specific certificateArn ${domain.certificateArn}`);
+            Globals.logInfo(`Selected specific certificateArn '${domain.certificateArn}'`);
             return domain.certificateArn;
         }
 
         let certificateArn; // The arn of the selected certificate
-
         let certificateName = domain.certificateName; // The certificate name
 
         try {
@@ -42,7 +41,6 @@ class ACMWrapper {
 
             // The more specific name will be the longest
             let nameLength = 0;
-
             // Checks if a certificate name is given
             if (certificateName != null) {
                 const foundCertificate = certificates
@@ -68,11 +66,10 @@ class ACMWrapper {
                 });
             }
         } catch (err) {
-            Globals.logError(err, domain.givenDomainName);
-            throw Error(`Could not list certificates in Certificate Manager.\n${err}`);
+            throw Error(`Could not list certificates in Certificate Manager.\n${err.message}`);
         }
         if (certificateArn == null) {
-            throw Error(`Could not find the certificate ${certificateName}.`);
+            throw Error(`Could not find the certificate '${certificateName}'.`);
         }
         return certificateArn;
     }

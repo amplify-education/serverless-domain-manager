@@ -1,7 +1,6 @@
 # Creating a domain should be idempotent
 service: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}
 provider:
-  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -23,5 +22,5 @@ custom:
     route53Profile: ${env:ROUTE53_PROFILE}
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - '!node_modules/**'

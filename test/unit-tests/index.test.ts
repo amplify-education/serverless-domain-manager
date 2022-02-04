@@ -1274,9 +1274,9 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             await plugin.createDomains();
-            expect(consoleOutput[0]).to.contains("test_domain does not exist")
+            expect(consoleOutput[0]).to.contains("'test_domain' does not exist")
             expect(consoleOutput[1]).to.contains(
-                `Custom domain ${plugin.domains[0].givenDomainName} was created.`
+                `Custom domain '${plugin.domains[0].givenDomainName}' was created.`
             );
         });
 
@@ -1302,8 +1302,8 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
             plugin.initializeVariables();
             await plugin.createDomains();
-            expect(consoleOutput[0]).to.equal(`Custom domain test_domain already exists.`);
-            expect(consoleOutput[1]).to.contains(`Custom domain test_domain was created.`);
+            expect(consoleOutput[0]).to.equal(`Custom domain 'test_domain' already exists.`);
+            expect(consoleOutput[1]).to.contains(`Creating/updating route53 record for 'test_domain'.`);
         });
 
         afterEach(() => {
@@ -1545,7 +1545,7 @@ describe("Custom Domain Plugin", () => {
             return acm.getCertArn(domain).then(() => {
                 throw new Error("Test has failed. getCertArn did not catch errors.");
             }).catch((err) => {
-                const expectedErrorMessage = "Could not find the certificate does_not_exist.";
+                const expectedErrorMessage = "Could not find the certificate 'does_not_exist'.";
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });
@@ -1564,7 +1564,7 @@ describe("Custom Domain Plugin", () => {
             return route53Wrapper.getRoute53HostedZoneId(plugin.domains[0]).then(() => {
                 throw new Error("Test has failed, getHostedZone did not catch errors.");
             }).catch((err) => {
-                const expectedErrorMessage = "Could not find hosted zone \"test_domain\"";
+                const expectedErrorMessage = "Could not find hosted zone 'test_domain'";
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });
@@ -1580,7 +1580,7 @@ describe("Custom Domain Plugin", () => {
             return plugin.domainSummaries().then(() => {
                 // check if distribution domain name is printed
             }).catch((err) => {
-                const expectedErrorMessage = `Unable to fetch information about test_domain`;
+                const expectedErrorMessage = `Unable to fetch information about 'test_domain'`;
                 expect(err.message).to.contains(expectedErrorMessage);
             });
         });
@@ -1593,14 +1593,6 @@ describe("Custom Domain Plugin", () => {
             process.env.SLS_DEBUG = "True";
             Globals.logError("test message");
             expect(consoleOutput[0]).to.contain("test message");
-        });
-
-        it("Should not log if SLS_DEBUG is not set", async () => {
-            const plugin = constructPlugin({domainName: "test_domain"});
-            plugin.initializeVariables();
-
-            Globals.logError("test message");
-            expect(consoleOutput).to.not.contain("test message");
         });
 
         afterEach(() => {

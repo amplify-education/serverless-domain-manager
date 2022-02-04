@@ -1,7 +1,6 @@
 # Enabled and testing basepath mapping
 service: ${env:PLUGIN_IDENTIFIER}-basepath-mapping-${env:RANDOM_STRING}
 provider:
-  lambdaHashingVersion: 20201221
   name: aws
   runtime: nodejs12.x
   region: us-west-2
@@ -27,5 +26,5 @@ custom:
     basePath: 'api'
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - '!node_modules/**'

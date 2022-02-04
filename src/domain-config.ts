@@ -53,7 +53,7 @@ class DomainConfig {
 
         let basePath = config.basePath;
         if (basePath == null || basePath.trim() === "") {
-            basePath = "(none)";
+            basePath = Globals.defaultBasePath;
         }
         this.basePath = basePath;
 

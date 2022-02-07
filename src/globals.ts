@@ -97,6 +97,10 @@ export default class Globals {
                 summaryList.push(`----------------------------------------`);
             }
         })
+        // don't print summary if summaryList is empty
+        if (!summaryList.length) {
+            return;
+        }
         if (Globals.v3Utils) {
             Globals.serverless.addServiceOutputSection(Globals.pluginName, summaryList);
         } else {

@@ -431,13 +431,6 @@ class ServerlessCustomDomain {
             hostedZoneIdOutputKey += "Websocket";
         }
 
-        service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
-            Value: domain.domainInfo.domainName,
-            Export: {
-                Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
-            },
-        };
-
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
             Export: {
@@ -445,7 +438,13 @@ class ServerlessCustomDomain {
             },
         };
 
-        if (domain.domainInfo.hostedZoneId) {
+        if (domain.domainInfo) {
+            service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
+                Value: domain.domainInfo.domainName,
+                Export: {
+                    Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
+                },
+            };
             service.provider.compiledCloudFormationTemplate.Outputs[hostedZoneIdOutputKey] = {
                 Value: domain.domainInfo.hostedZoneId,
                 Export: {

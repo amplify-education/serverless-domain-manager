@@ -1,4 +1,5 @@
 import {Service} from "aws-sdk";
+import Globals from "./globals";
 
 const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
@@ -75,8 +76,34 @@ async function sleep(seconds) {
     return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
+/**
+ * Determines whether this boolean config is configured to true or false.
+ *
+ * This method evaluates a customDomain property to see if it's true or false.
+ * If the property's value is undefined, the default value is returned.
+ * If the property's value is provided, this should be boolean, or a string parseable as boolean,
+ * otherwise an exception is thrown.
+ * @param {boolean|string} booleanConfig the config value provided
+ * @param {boolean} defaultValue the default value to return, if config value is undefined
+ * @returns {boolean} the parsed boolean from the config value, or the default value
+ */
+function evaluateBoolean(booleanConfig: any, defaultValue: boolean): boolean {
+    if (booleanConfig === undefined) {
+        return defaultValue;
+    }
+    if (typeof booleanConfig === "boolean") {
+        return booleanConfig;
+    } else if (typeof booleanConfig === "string" && booleanConfig === "true") {
+        return true;
+    } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
+        return false;
+    }
+    throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${booleanConfig}"`);
+}
+
 export {
-    sleep,
+    evaluateBoolean,
     getAWSPagedResults,
+    sleep,
     throttledCall,
 };

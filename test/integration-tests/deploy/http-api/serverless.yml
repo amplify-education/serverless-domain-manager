@@ -15,10 +15,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    http:
-      domainName: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-      basePath: ''
-      endpointType: 'regional'
+    domainName: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    endpointType: regional
+    apiType: http
 
 package:
   patterns:

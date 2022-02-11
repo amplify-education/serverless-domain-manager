@@ -83,22 +83,25 @@ async function sleep(seconds) {
  * If the property's value is undefined, the default value is returned.
  * If the property's value is provided, this should be boolean, or a string parseable as boolean,
  * otherwise an exception is thrown.
- * @param {boolean|string} booleanConfig the config value provided
+ * @param {boolean|string} value the config value provided
  * @param {boolean} defaultValue the default value to return, if config value is undefined
  * @returns {boolean} the parsed boolean from the config value, or the default value
  */
-function evaluateBoolean(booleanConfig: any, defaultValue: boolean): boolean {
-    if (booleanConfig === undefined) {
+function evaluateBoolean(value: any, defaultValue: boolean): boolean {
+    if (value === undefined) {
         return defaultValue;
     }
-    if (typeof booleanConfig === "boolean") {
-        return booleanConfig;
-    } else if (typeof booleanConfig === "string" && booleanConfig === "true") {
+
+    const s = value && value.toString().toLowerCase().trim();
+    const trueValues = ["true", "1"]
+    const falseValues = ["false", "0"]
+    if (trueValues.indexOf(s) >= 0) {
         return true;
-    } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
+    }
+    if (falseValues.indexOf(s) >= 0) {
         return false;
     }
-    throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${booleanConfig}"`);
+    throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
 }
 
 export {

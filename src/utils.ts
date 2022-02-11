@@ -92,9 +92,9 @@ function evaluateBoolean(value: any, defaultValue: boolean): boolean {
         return defaultValue;
     }
 
-    const s = value && value.toString().toLowerCase().trim();
-    const trueValues = ["true", "1"]
-    const falseValues = ["false", "0"]
+    const s = value.toString().toLowerCase().trim();
+    const trueValues = ["true", "1"];
+    const falseValues = ["false", "0"];
     if (trueValues.indexOf(s) >= 0) {
         return true;
     }

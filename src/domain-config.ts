@@ -6,6 +6,7 @@ import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
 import Globals from "./globals";
 import {CustomDomain, Route53Params} from "./types";
+import {evaluateBoolean} from "./utils";
 
 class DomainConfig {
 
@@ -35,30 +36,30 @@ class DomainConfig {
 
     constructor(config: CustomDomain) {
 
-        this.enabled = this.evaluateBoolean(config.enabled, true);
+        this.enabled = evaluateBoolean(config.enabled, true);
         this.givenDomainName = config.domainName;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
-        this.createRoute53Record = this.evaluateBoolean(config.createRoute53Record, true);
-        this.createRoute53IPv6Record = this.evaluateBoolean(config.createRoute53IPv6Record, true);
+        this.createRoute53Record = evaluateBoolean(config.createRoute53Record, true);
+        this.createRoute53IPv6Record = evaluateBoolean(config.createRoute53IPv6Record, true);
         this.route53Profile = config.route53Profile;
         this.route53Region = config.route53Region;
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;
         this.allowPathMatching = config.allowPathMatching;
-        this.autoDomain = config.autoDomain;
+        this.autoDomain = evaluateBoolean(config.autoDomain, false);
         this.autoDomainWaitFor = config.autoDomainWaitFor;
-        this.preserveExternalPathMappings = this.evaluateBoolean(config.preserveExternalPathMappings, false);
+        this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
 
         let basePath = config.basePath;
-        if (basePath == null || basePath.trim() === "") {
+        if (!basePath || basePath.trim() === "") {
             basePath = Globals.defaultBasePath;
         }
         this.basePath = basePath;
 
         let stage = config.stage;
-        if (typeof stage === "undefined") {
+        if (!stage) {
             stage = Globals.options.stage || Globals.serverless.service.provider.stage;
         }
         this.stage = stage;
@@ -104,31 +105,6 @@ class DomainConfig {
             weight: config.route53Params?.weight ?? 200,
             healthCheckId: config.route53Params?.healthCheckId
         }
-    }
-
-    /**
-     * Determines whether this boolean config is configured to true or false.
-     *
-     * This method evaluates a customDomain property to see if it's true or false.
-     * If the property's value is undefined, the default value is returned.
-     * If the property's value is provided, this should be boolean, or a string parseable as boolean,
-     * otherwise an exception is thrown.
-     * @param {boolean|string} booleanConfig the config value provided
-     * @param {boolean} defaultValue the default value to return, if config value is undefined
-     * @returns {boolean} the parsed boolean from the config value, or the default value
-     */
-    private evaluateBoolean(booleanConfig: any, defaultValue: boolean): boolean {
-        if (booleanConfig === undefined) {
-            return defaultValue;
-        }
-        if (typeof booleanConfig === "boolean") {
-            return booleanConfig;
-        } else if (typeof booleanConfig === "string" && booleanConfig === "true") {
-            return true;
-        } else if (typeof booleanConfig === "string" && booleanConfig === "false") {
-            return false;
-        }
-        throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${booleanConfig}"`);
     }
 }
 

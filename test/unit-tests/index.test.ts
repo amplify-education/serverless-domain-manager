@@ -1726,14 +1726,14 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Should throw an Error when passing a parameter that is not boolean", async () => {
-            const plugin = constructPlugin({enabled: 0});
+            const plugin = constructPlugin({enabled: "11"});
 
             let errored = false;
             try {
                 await plugin.hookWrapper(null);
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous boolean config: \"0\"`);
+                expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous boolean config: \"11\"`);
             }
             expect(errored).to.equal(true);
         });

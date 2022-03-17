@@ -1,6 +1,6 @@
 import {ACM} from "aws-sdk";
 import Globals from "../globals";
-import {getAWSPagedResults} from "../utils";
+import {getAWSPagedResults, throttledCall} from "../utils";
 import DomainConfig = require("../domain-config");
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
@@ -43,10 +43,26 @@ class ACMWrapper {
             let nameLength = 0;
             // Checks if a certificate name is given
             if (certificateName != null) {
-                const foundCertificate = certificates
-                    .find((certificate) => (certificate.DomainName === certificateName));
-                if (foundCertificate != null) {
-                    certificateArn = foundCertificate.CertificateArn;
+                // note: we only check DomainName, but a future enhancement could
+                // be to also check SubjectAlternativeNames
+                const matches = certificates
+                    .filter((certificate) => (certificate.DomainName === certificateName));
+                for (const curr of matches) {
+                  const currArn = curr.CertificateArn;
+                  const details = await throttledCall(
+                      this.acm,
+                      "describeCertificate",
+                      {CertificateArn: currArn},
+                  );
+                  const currNotAfter = details.Certificate.NotAfter;
+                  if (Date.now() < currNotAfter) {
+                    Globals.logInfo(`Selecting cert with ARN=${
+                      currArn} with future expiry (${currNotAfter})`);
+                    certificateArn = currArn;
+                    break;
+                  }
+                  Globals.logInfo(`Ignoring cert with ARN=${
+                    currArn} that is expired (${currNotAfter})`);
                 }
             } else {
                 certificateName = domain.givenDomainName;
@@ -66,10 +82,10 @@ class ACMWrapper {
                 });
             }
         } catch (err) {
-            throw Error(`Could not list certificates in Certificate Manager.\n${err.message}`);
+            throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
         }
         if (certificateArn == null) {
-            throw Error(`Could not find the certificate '${certificateName}'.`);
+            throw Error(`Could not find an in-date certificate for '${certificateName}'.`);
         }
         return certificateArn;
     }

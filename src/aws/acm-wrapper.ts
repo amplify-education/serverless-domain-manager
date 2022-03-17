@@ -57,7 +57,7 @@ class ACMWrapper {
                   const currNotAfter = details.Certificate.NotAfter;
                   if (Date.now() < currNotAfter) {
                     Globals.logInfo(`Selecting cert with ARN=${
-                      currArn} with future expiry (${currNotAfter})`);
+                      currArn} with future expiry (${currNotAfter.toISOString()})`);
                     certificateArn = currArn;
                     break;
                   }

@@ -8,3 +8,4 @@ npm-debug.log
 **/.serverless
 dist/
 .nyc_output/
+*.tgz

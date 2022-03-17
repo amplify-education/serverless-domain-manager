@@ -62,7 +62,7 @@ class ACMWrapper {
                     break;
                   }
                   Globals.logInfo(`Ignoring cert with ARN=${
-                    currArn} that is expired (${currNotAfter})`);
+                    currArn} that is expired (${currNotAfter.toISOString()})`);
                 }
             } else {
                 certificateName = domain.givenDomainName;

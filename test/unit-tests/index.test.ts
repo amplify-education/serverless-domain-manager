@@ -21,6 +21,10 @@ const certTestData = {
             DomainName: "test_domain",
         },
         {
+            CertificateArn: "expired_cert_name",
+            DomainName: "cert_name",
+        },
+        {
             CertificateArn: "test_given_cert_name",
             DomainName: "cert_name",
         },
@@ -584,6 +588,30 @@ describe("Custom Domain Plugin", () => {
 
         it("Get a given certificate name", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
+            AWS.mock("ACM", "describeCertificate", (params, callback) => {
+              const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
+              const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
+              const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
+                if (params.CertificateArn === "expired_cert_name") {
+                  callback(null, {
+                    Certificate: {
+                      CertificateArn: "doesnt_matter_wont_be_used",
+                      NotAfter: fifteenDaysInPast,
+                    }
+                  });
+                  return;
+                }
+                if (params.CertificateArn === "test_given_cert_name") {
+                  callback(null, {
+                    Certificate: {
+                      CertificateArn: params.CertificateArn,
+                      NotAfter: fifteenDaysInFuture,
+                    }
+                  });
+                  return;
+                }
+                throw new Error("Programmer error: didn't add new test mock data");
+            });
 
             const plugin = constructPlugin({certificateName: "cert_name"});
             plugin.initializeVariables();
@@ -1544,7 +1572,7 @@ describe("Custom Domain Plugin", () => {
             return acm.getCertArn(domain).then(() => {
                 throw new Error("Test has failed. getCertArn did not catch errors.");
             }).catch((err) => {
-                const expectedErrorMessage = "Could not find the certificate 'does_not_exist'.";
+                const expectedErrorMessage = "Could not find an in-date certificate for 'does_not_exist'.";
                 expect(err.message).to.equal(expectedErrorMessage);
             });
         });

@@ -35,10 +35,10 @@ class ACMWrapper {
             );
 
             if (certificateName != null) {
-                certificateArn = await this.getCertArnByCertName(certificates, certificateName)
+                certificateArn = await this.getCertArnByCertName(certificates, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
-                certificateArn = this.getCertArnByDomainName(certificates, certificateName)
+                certificateArn = this.getCertArnByDomainName(certificates, certificateName);
             }
         } catch (err) {
             throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);

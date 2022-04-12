@@ -569,11 +569,11 @@ describe("Custom Domain Plugin", () => {
     });
 
     describe("Create a New Domain Name", () => {
-        it("Get a given certificate arn", async () => {
+        it("Get a given certificate by given domain name ", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
 
             const options = {
-                certificateArn: "test_given_arn",
+                domainName: "test_domain",
                 endpointType: "REGIONAL",
             };
             const plugin = constructPlugin(options);
@@ -583,7 +583,7 @@ describe("Custom Domain Plugin", () => {
             const acm = new ACMWrapper(dc.endpointType);
             const result = await acm.getCertArn(dc);
 
-            expect(result).to.equal("test_given_arn");
+            expect(result).to.equal("test_arn");
         });
 
         it("Get a given certificate name", async () => {
@@ -1302,7 +1302,8 @@ describe("Custom Domain Plugin", () => {
 
             await plugin.createDomains();
             expect(consoleOutput[0]).to.contains("'test_domain' does not exist")
-            expect(consoleOutput[1]).to.contains(
+            expect(consoleOutput[1]).to.contains("Searching a certificate for the domain 'test_domain'")
+            expect(consoleOutput[2]).to.contains(
                 `Custom domain '${plugin.domains[0].givenDomainName}' was created.`
             );
         });

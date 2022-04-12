@@ -191,7 +191,12 @@ class ServerlessCustomDomain {
         const acm = new ACMWrapper(domain.endpointType);
         try {
             if (!domain.domainInfo) {
-                domain.certificateArn = await acm.getCertArn(domain);
+                if (!domain.certificateArn) {
+                    Globals.logInfo(
+                        `Searching a certificate for the '${domain.certificateName || domain.givenDomainName}'`
+                    );
+                    domain.certificateArn = await acm.getCertArn(domain);
+                }
                 await this.apiGatewayWrapper.createCustomDomain(domain);
                 Globals.logInfo(`Custom domain '${domain.givenDomainName}' was created.
                  New domains may take up to 40 minutes to be initialized.`);

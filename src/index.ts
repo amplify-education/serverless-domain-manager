@@ -192,7 +192,7 @@ class ServerlessCustomDomain {
         try {
             if (!domain.domainInfo) {
                 if (!domain.certificateArn) {
-                    const searchName = domain.certificateName || domain.givenDomainName
+                    const searchName = domain.certificateName || domain.givenDomainName;
                     Globals.logInfo(`Searching for a certificate with the '${searchName}' domain`);
                     domain.certificateArn = await acm.getCertArn(domain);
                 }

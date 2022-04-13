@@ -21,11 +21,6 @@ class ACMWrapper {
      * * Gets Certificate ARN that most closely matches domain name OR given Cert ARN if provided
      */
     public async getCertArn(domain: DomainConfig): Promise<string> {
-        if (domain.certificateArn) {
-            Globals.logInfo(`Selected specific certificateArn '${domain.certificateArn}'`);
-            return domain.certificateArn;
-        }
-
         let certificateArn; // The arn of the selected certificate
         let certificateName = domain.certificateName; // The certificate name
 
@@ -39,47 +34,11 @@ class ACMWrapper {
                 {CertificateStatuses: certStatuses},
             );
 
-            // The more specific name will be the longest
-            let nameLength = 0;
-            // Checks if a certificate name is given
             if (certificateName != null) {
-                // note: we only check DomainName, but a future enhancement could
-                // be to also check SubjectAlternativeNames
-                const matches = certificates
-                    .filter((certificate) => (certificate.DomainName === certificateName));
-                for (const curr of matches) {
-                  const currArn = curr.CertificateArn;
-                  const details = await throttledCall(
-                      this.acm,
-                      "describeCertificate",
-                      {CertificateArn: currArn},
-                  );
-                  const currNotAfter = details.Certificate.NotAfter;
-                  if (Date.now() < currNotAfter) {
-                    Globals.logInfo(`Selecting cert with ARN=${
-                      currArn} with future expiry (${currNotAfter.toISOString()})`);
-                    certificateArn = currArn;
-                    break;
-                  }
-                  Globals.logInfo(`Ignoring cert with ARN=${
-                    currArn} that is expired (${currNotAfter.toISOString()})`);
-                }
+                certificateArn = await this.getCertArnByCertName(certificates, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
-                certificates.forEach((certificate) => {
-                    let certificateListName = certificate.DomainName;
-                    // Looks for wild card and takes it out when checking
-                    if (certificateListName[0] === "*") {
-                        certificateListName = certificateListName.substring(1);
-                    }
-                    // Looks to see if the name in the list is within the given domain
-                    // Also checks if the name is more specific than previous ones
-                    if (certificateName.includes(certificateListName)
-                        && certificateListName.length > nameLength) {
-                        nameLength = certificateListName.length;
-                        certificateArn = certificate.CertificateArn;
-                    }
-                });
+                certificateArn = this.getCertArnByDomainName(certificates, certificateName);
             }
         } catch (err) {
             throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
@@ -87,6 +46,56 @@ class ACMWrapper {
         if (certificateArn == null) {
             throw Error(`Could not find an in-date certificate for '${certificateName}'.`);
         }
+        return certificateArn;
+    }
+
+    /**
+     * * Gets Certificate ARN that most closely matches Cert ARN and not expired
+     */
+    private async getCertArnByCertName(certificates, certName): Promise<string> {
+        // note: we only check DomainName, but a future enhancement could
+        // be to also check SubjectAlternativeNames
+        const matches = certificates.filter((certificate) => (certificate.DomainName === certName));
+        for (const certificate of matches) {
+            const certificateArn = certificate.CertificateArn;
+            const details = await throttledCall(
+                this.acm,
+                "describeCertificate",
+                {CertificateArn: certificateArn},
+            );
+            const currNotAfter = details.Certificate.NotAfter;
+            if (Date.now() < currNotAfter) {
+                Globals.logInfo(
+                    `Selecting cert with ARN=${certificateArn} with future expiry (${currNotAfter.toISOString()})`
+                );
+                return certificateArn;
+            }
+            Globals.logInfo(
+                `Ignoring cert with ARN=${certificateArn} that is expired (${currNotAfter.toISOString()})`
+            );
+        }
+    }
+
+    /**
+     * * Gets Certificate ARN that most closely matches domain name
+     */
+    private getCertArnByDomainName(certificates, domainName): Promise<string> {
+        // The more specific name will be the longest
+        let nameLength = 0;
+        let certificateArn;
+        certificates.forEach((certificate) => {
+            let certificateListName = certificate.DomainName;
+            // Looks for wild card and takes it out when checking
+            if (certificateListName[0] === "*") {
+                certificateListName = certificateListName.substring(1);
+            }
+            // Looks to see if the name in the list is within the given domain
+            // Also checks if the name is more specific than previous ones
+            if (domainName.includes(certificateListName) && certificateListName.length > nameLength) {
+                nameLength = certificateListName.length;
+                certificateArn = certificate.CertificateArn;
+            }
+        });
         return certificateArn;
     }
 }

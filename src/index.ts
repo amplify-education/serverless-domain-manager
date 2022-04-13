@@ -192,9 +192,8 @@ class ServerlessCustomDomain {
         try {
             if (!domain.domainInfo) {
                 if (!domain.certificateArn) {
-                    Globals.logInfo(
-                        `Searching a certificate for the '${domain.certificateName || domain.givenDomainName}'`
-                    );
+                    const searchName = domain.certificateName || domain.givenDomainName
+                    Globals.logInfo(`Searching for a certificate with the '${searchName}' domain`);
                     domain.certificateArn = await acm.getCertArn(domain);
                 }
                 await this.apiGatewayWrapper.createCustomDomain(domain);

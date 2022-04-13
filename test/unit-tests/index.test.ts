@@ -1302,7 +1302,7 @@ describe("Custom Domain Plugin", () => {
 
             await plugin.createDomains();
             expect(consoleOutput[0]).to.contains("'test_domain' does not exist")
-            expect(consoleOutput[1]).to.contains("Searching a certificate for the 'test_domain'")
+            expect(consoleOutput[1]).to.contains("Searching for a certificate with the 'test_domain' domain")
             expect(consoleOutput[2]).to.contains(
                 `Custom domain '${plugin.domains[0].givenDomainName}' was created.`
             );

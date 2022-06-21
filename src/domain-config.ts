@@ -21,6 +21,8 @@ class DomainConfig {
     public route53Region: string | undefined;
     public endpointType: string | undefined;
     public apiType: string | undefined;
+    public tlsTruststoreUri: string | undefined;
+    public tlsTruststoreVersion: string | undefined;
     public hostedZoneId: string | undefined;
     public hostedZonePrivate: boolean | undefined;
     public enabled: boolean | string | undefined;
@@ -77,6 +79,14 @@ class DomainConfig {
             throw new Error(`${apiTypeWithDefault} is not supported api type, use REST, HTTP or WEBSOCKET.`);
         }
         this.apiType = apiTypeToUse;
+
+        const isEdgeType = this.endpointType === Globals.endpointTypes.edge;
+        const hasMutualTls = !!config.tlsTruststoreUri;
+        if (isEdgeType && hasMutualTls) {
+            throw new Error(`${this.endpointType} APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
+        }
+        this.tlsTruststoreUri = config.tlsTruststoreUri;
+        this.tlsTruststoreVersion = config.tlsTruststoreVersion;
 
         const securityPolicyDefault = config.securityPolicy || Globals.tlsVersions.tls_1_2;
         const tlsVersionToUse = Globals.tlsVersions[securityPolicyDefault.toLowerCase()];

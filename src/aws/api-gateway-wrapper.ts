@@ -29,6 +29,7 @@ class APIGatewayWrapper {
 
         // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
+        const hasMutualTls = !!domain.tlsTruststoreUri;
         if (isEdgeType || domain.securityPolicy === "TLS_1_0") {
             // Set up parameters
             const params = {
@@ -41,6 +42,13 @@ class APIGatewayWrapper {
                 tags: providerTags,
             };
 
+            if (!isEdgeType && hasMutualTls) {
+                params.mutualTlsAuthentication = {
+                    truststoreUri: domain.tlsTruststoreUri,
+                    ...(domain.tlsTruststoreVersion ? {truststoreVersion: domain.tlsTruststoreVersion} : undefined)
+                };
+            }
+
             // Make API call to create domain
             try {
                 // Creating EDGE domain so use APIGateway (v1) service
@@ -51,7 +59,7 @@ class APIGatewayWrapper {
             }
 
         } else { // For Regional domain name create with ApiGatewayV2
-            const params = {
+            const params: any = {
                 DomainName: domain.givenDomainName,
                 DomainNameConfigurations: [{
                     CertificateArn: domain.certificateArn,
@@ -60,6 +68,13 @@ class APIGatewayWrapper {
                 }],
                 Tags: providerTags
             };
+
+            if (!isEdgeType && hasMutualTls) {
+                params.MutualTlsAuthentication = {
+                    TruststoreUri: domain.tlsTruststoreUri,
+                    ...(domain.tlsTruststoreVersion ? {TruststoreVersion: domain.tlsTruststoreVersion} : undefined)
+                };
+            }
 
             // Make API call to create domain
             try {

@@ -58,6 +58,8 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         domainName: customDomainOptions.domainName,
         enabled: customDomainOptions.enabled,
         endpointType: customDomainOptions.endpointType,
+        tlsTruststoreUri: customDomainOptions.tlsTruststoreUri,
+        tlsTruststoreVersion: customDomainOptions.tlsTruststoreVersion,
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
         route53Profile: customDomainOptions.route53Profile,
@@ -705,6 +707,80 @@ describe("Custom Domain Plugin", () => {
                     ...plugin.serverless.service.provider.tags,
                 },
                 certificateArn: dc.certificateArn
+            }
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Create a domain name with mutual TLS authentication", async () => {
+            AWS.mock("APIGateway", "createDomainName", (params, callback) => {
+                callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_0"});
+            });
+
+            const plugin = constructPlugin({
+                domainName: "test_domain",
+                endpointType: "regional",
+                securityPolicy: "tls_1_0",
+                tlsTruststoreUri: "s3://bucket-name/key-name"
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            dc.certificateArn = "fake_cert";
+
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "createDomainName");
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const expectedParams = {
+                domainName: dc.givenDomainName,
+                endpointConfiguration: {
+                    types: [dc.endpointType],
+                },
+                mutualTlsAuthentication: {
+                    truststoreUri: dc.tlsTruststoreUri
+                },
+                securityPolicy: dc.securityPolicy,
+                tags: {
+                    ...plugin.serverless.service.provider.stackTags,
+                    ...plugin.serverless.service.provider.tags,
+                },
+                regionalCertificateArn: dc.certificateArn
+            }
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Create an HTTP domain name with mutual TLS authentication", async () => {
+            AWS.mock("ApiGatewayV2", "createDomainName", (params, callback) => {
+                callback(null, params);
+            });
+
+            const plugin = constructPlugin({
+                domainName: "test_domain",
+                endpointType: "regional",
+                apiType: "http",
+                tlsTruststoreUri: "s3://bucket-name/key-name"
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            dc.certificateArn = "fake_cert";
+
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "createDomainName");
+            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const expectedParams = {
+                DomainName: dc.givenDomainName,
+                DomainNameConfigurations: [{
+                    CertificateArn: dc.certificateArn,
+                    EndpointType: dc.endpointType,
+                    SecurityPolicy: dc.securityPolicy
+                }],
+                MutualTlsAuthentication: {
+                    TruststoreUri: dc.tlsTruststoreUri
+                },
+                Tags: {
+                    ...plugin.serverless.service.provider.stackTags,
+                    ...plugin.serverless.service.provider.tags,
+                }
             }
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -1776,6 +1852,19 @@ describe("Custom Domain Plugin", () => {
             } catch (err) {
                 errored = true;
                 expect(err.message).to.equal(`${Globals.pluginName}: Ambiguous boolean config: \"yes\"`);
+            }
+            expect(errored).to.equal(true);
+        });
+
+        it("Should throw an Error when mutual TLS is enabled for edge APIs", async () => {
+            const plugin = constructPlugin({endpointType: "edge", tlsTruststoreUri: "s3://bucket-name/key-name"});
+
+            let errored = false;
+            try {
+                await plugin.hookWrapper(null);
+            } catch (err) {
+                errored = true;
+                expect(err.message).to.equal(`EDGE APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
             }
             expect(errored).to.equal(true);
         });

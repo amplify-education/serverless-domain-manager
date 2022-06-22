@@ -87,6 +87,10 @@ class DomainConfig {
         }
         this.tlsTruststoreUri = config.tlsTruststoreUri;
         this.tlsTruststoreVersion = config.tlsTruststoreVersion;
+        const isS3UriRegExp = /^s3:\/\/[\w-_.]+(\/[\w-_.]+)+$/;
+        if (this.tlsTruststoreUri && !isS3UriRegExp.test(this.tlsTruststoreUri)) {
+            throw new Error(`${this.tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`);
+        }
 
         const securityPolicyDefault = config.securityPolicy || Globals.tlsVersions.tls_1_2;
         const tlsVersionToUse = Globals.tlsVersions[securityPolicyDefault.toLowerCase()];

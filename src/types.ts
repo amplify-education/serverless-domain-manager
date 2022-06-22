@@ -54,6 +54,7 @@ export interface ServerlessInstance { // tslint:disable-line
                 Route53: any,
                 CloudFormation: any,
                 ACM: any,
+                S3: any,
                 config: {
                     httpOptions: HTTPOptions,
                     update(toUpdate: object): void,

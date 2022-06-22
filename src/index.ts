@@ -4,6 +4,7 @@ import ACMWrapper = require("./aws/acm-wrapper");
 import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import Route53Wrapper = require("./aws/route53-wrapper");
+import S3Wrapper = require("./aws/s3-wrapper");
 import DomainConfig = require("./domain-config");
 import Globals from "./globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
@@ -14,6 +15,7 @@ class ServerlessCustomDomain {
     // AWS SDK resources
     public apiGatewayWrapper: APIGatewayWrapper;
     public cloudFormationWrapper: CloudFormationWrapper;
+    public s3Wrapper: S3Wrapper;
 
     // Serverless specific properties
     public serverless: ServerlessInstance;
@@ -168,6 +170,7 @@ class ServerlessCustomDomain {
 
         this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
         this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
+        this.s3Wrapper = new S3Wrapper(credentials);
     }
 
     /**
@@ -190,6 +193,10 @@ class ServerlessCustomDomain {
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
         const acm = new ACMWrapper(domain.endpointType);
         try {
+            if (domain.tlsTruststoreUri) {
+                await this.s3Wrapper.assertTlsCertObjectExists(domain);
+            }
+
             if (!domain.domainInfo) {
                 if (!domain.certificateArn) {
                     const searchName = domain.certificateName || domain.givenDomainName;

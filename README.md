@@ -37,6 +37,8 @@ route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
 route53:GetHostedZone               *
 route53:ListResourceRecordSets      *
 iam:CreateServiceLinkedRole         arn:aws:iam::${AWS::AccountId}: role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway
+s3:ListBucket                       *
+s3:GetObject                        *
 ```
 ### CloudFormation
 Alternatively you can generate an least privileged IAM Managed Policy for deployment with this:

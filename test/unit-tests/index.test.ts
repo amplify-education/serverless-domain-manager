@@ -10,6 +10,7 @@ import ServerlessCustomDomain = require("../../src/index");
 import {getAWSPagedResults} from "../../src/utils";
 import Route53Wrapper = require("../../src/aws/route53-wrapper");
 import ACMWrapper = require("../../src/aws/acm-wrapper");
+import S3Wrapper = require("../../src/aws/s3-wrapper");
 
 const expect = chai.expect;
 chai.use(spies);
@@ -90,6 +91,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     CloudFormation: aws.CloudFormation,
                     Route53: aws.Route53,
                     SharedIniFileCredentials: aws.SharedIniFileCredentials,
+                    S3: aws.S3,
                     config: {
                         httpOptions: {
                             timeout: 5000,
@@ -567,6 +569,107 @@ describe("Custom Domain Plugin", () => {
         afterEach(() => {
             AWS.restore();
             consoleOutput = [];
+        });
+    });
+
+    describe("Check Mutual TLS certificate existance in S3", () => {
+        it("Should check existance of certificate in S3", async () => {
+            AWS.mock("S3", "headObject", (params, callback) => {
+                callback(null, params);
+            });
+            const options = {
+                domainName: "test_domain",
+                endpointType: "regional",
+                tlsTruststoreUri: 's3://test_bucket/test_key'
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const s3Wrapper = new S3Wrapper({});
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            const spy = chai.spy.on(s3Wrapper.s3, "headObject");
+            await s3Wrapper.assertTlsCertObjectExists(dc);
+            const expectedParams = {
+                Bucket: 'test_bucket',
+                Key: 'test_key'
+            }
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it("Should check existance of a concrete certificate version in S3", async () => {
+            AWS.mock("S3", "headObject", (params, callback) => {
+                callback(null, params);
+            });
+            const options = {
+                domainName: "test_domain",
+                endpointType: "regional",
+                tlsTruststoreUri: 's3://test_bucket/test_key',
+                tlsTruststoreVersion: 'test_version'
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const s3Wrapper = new S3Wrapper({});
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            const spy = chai.spy.on(s3Wrapper.s3, "headObject");
+            await s3Wrapper.assertTlsCertObjectExists(dc);
+            const expectedParams = {
+                Bucket: 'test_bucket',
+                Key: 'test_key',
+                VersionId: 'test_version'
+            }
+            expect(spy).to.have.been.called.with(expectedParams);
+        });
+
+        it('should fail when the mutual TLS certificate is not stored in S3', async () => {
+            AWS.mock("S3", "headObject", (params, callback) => {
+                // @ts-ignore
+                callback({code: 'NotFound'}, null);
+            });
+            const options = {
+                domainName: "test_domain",
+                endpointType: "regional",
+                tlsTruststoreUri: 's3://test_bucket/test_key'
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const s3Wrapper = new S3Wrapper({});
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            try {
+                await s3Wrapper.assertTlsCertObjectExists(dc);
+            } catch(e) {
+                expect(e.message).to.contain('Could not head S3 object');
+            }
+        });
+
+        it("Should not fail due to lack of S3 permissions", async () => {
+            AWS.mock("S3", "headObject", (params, callback) => {
+                // @ts-ignore
+                callback({code: 'AccessDenied'}, null);
+            });
+            const options = {
+                domainName: "test_domain",
+                endpointType: "regional",
+                tlsTruststoreUri: 's3://test_bucket/test_key'
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const s3Wrapper = new S3Wrapper({});
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+
+            let err;
+            try {
+                await s3Wrapper.assertTlsCertObjectExists(dc);
+            } catch(e) {
+                err = e;
+            } finally {
+                expect(err).to.be.undefined;
+            }
         });
     });
 
@@ -1699,6 +1802,29 @@ describe("Custom Domain Plugin", () => {
             expect(consoleOutput[0]).to.contain("test message");
         });
 
+        it('should fail when the mutual TLS certificate is not stored in S3', async () => {
+            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+                callback(null, {DomainName: "test_domain", DomainNameConfigurations: [{HostedZoneId: "test_id"}]});
+            });
+            AWS.mock("S3", "headObject", (params, callback) => {
+                // @ts-ignore
+                callback({code: 'NotFound'}, null);
+            });
+            const plugin = constructPlugin({
+                domainName: "test_domain",
+                endpointType: "regional",
+                tlsTruststoreUri: 's3://test_bucket/test_key'
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            try {
+                await plugin.createDomains();
+            } catch(e) {
+                expect(e.message).to.contain('Could not head S3 object');
+            }
+        });
+
         afterEach(() => {
             AWS.restore();
             consoleOutput = [];
@@ -1865,6 +1991,19 @@ describe("Custom Domain Plugin", () => {
             } catch (err) {
                 errored = true;
                 expect(err.message).to.equal(`EDGE APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
+            }
+            expect(errored).to.equal(true);
+        });
+
+        it("Should throw an Error when mutual TLS uri is not an S3 uri", async () => {
+            const plugin = constructPlugin({endpointType: "regional", tlsTruststoreUri: "http://example.com"});
+
+            let errored = false;
+            try {
+                await plugin.hookWrapper(null);
+            } catch (err) {
+                errored = true;
+                expect(err.message).to.equal(`http://example.com is not a valid s3 uri, try something like s3://bucket-name/key-name.`);
             }
             expect(errored).to.equal(true);
         });

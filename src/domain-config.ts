@@ -85,12 +85,11 @@ class DomainConfig {
         if (isEdgeType && hasMutualTls) {
             throw new Error(`${this.endpointType} APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
         }
+        if (config.tlsTruststoreUri) {
+            this.validateS3Uri(config.tlsTruststoreUri);
+        }
         this.tlsTruststoreUri = config.tlsTruststoreUri;
         this.tlsTruststoreVersion = config.tlsTruststoreVersion;
-        const isS3UriRegExp = /^s3:\/\/[\w-_.]+(\/[\w-_.]+)+$/;
-        if (this.tlsTruststoreUri && !isS3UriRegExp.test(this.tlsTruststoreUri)) {
-            throw new Error(`${this.tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`);
-        }
 
         const securityPolicyDefault = config.securityPolicy || Globals.tlsVersions.tls_1_2;
         const tlsVersionToUse = Globals.tlsVersions[securityPolicyDefault.toLowerCase()];
@@ -118,6 +117,14 @@ class DomainConfig {
             setIdentifier: config.route53Params?.setIdentifier,
             weight: config.route53Params?.weight ?? 200,
             healthCheckId: config.route53Params?.healthCheckId
+        }
+    }
+
+    private validateS3Uri(uri: string): void {
+        const { protocol, pathname } = new URL(uri);
+
+        if (protocol !== "s3:" && !pathname.substring(1).includes("/")) {
+            throw new Error(`${uri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`);
         }
     }
 }

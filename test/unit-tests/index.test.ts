@@ -668,7 +668,7 @@ describe("Custom Domain Plugin", () => {
             } catch(e) {
                 err = e;
             } finally {
-                expect(err).to.be.undefined;
+                expect(err).to.equal(undefined);
             }
         });
     });

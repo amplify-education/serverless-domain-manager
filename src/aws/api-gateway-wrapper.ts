@@ -44,9 +44,12 @@ class APIGatewayWrapper {
 
             if (!isEdgeType && hasMutualTls) {
                 params.mutualTlsAuthentication = {
-                    truststoreUri: domain.tlsTruststoreUri,
-                    ...(domain.tlsTruststoreVersion ? {truststoreVersion: domain.tlsTruststoreVersion} : undefined)
+                    truststoreUri: domain.tlsTruststoreUri
                 };
+
+                if (domain.tlsTruststoreVersion) {
+                    params.truststoreVersion = domain.tlsTruststoreVersion;
+                }
             }
 
             // Make API call to create domain
@@ -71,9 +74,12 @@ class APIGatewayWrapper {
 
             if (!isEdgeType && hasMutualTls) {
                 params.MutualTlsAuthentication = {
-                    TruststoreUri: domain.tlsTruststoreUri,
-                    ...(domain.tlsTruststoreVersion ? {TruststoreVersion: domain.tlsTruststoreVersion} : undefined)
+                    TruststoreUri: domain.tlsTruststoreUri
                 };
+
+                if (domain.tlsTruststoreVersion) {
+                    params.TruststoreVersion = domain.tlsTruststoreVersion;
+                }
             }
 
             // Make API call to create domain

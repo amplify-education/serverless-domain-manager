@@ -69,7 +69,7 @@ custom:
     certificateName: '*.foo.com'
     createRoute53Record: true
     createRoute53IPv6Record: true
-    endpointType: 'regional'
+    endpointType: REGIONAL
     securityPolicy: tls_1_2
     apiType: rest
     autoDomain: false
@@ -87,7 +87,7 @@ custom:
       certificateName: '*.foo.com'
       createRoute53Record: true
       createRoute53IPv6Record: true
-      endpointType: 'regional'
+      endpointType: REGIONAL
       securityPolicy: tls_1_2
     http:
       domainName: http.serverless.foo.com
@@ -96,7 +96,7 @@ custom:
       certificateName: '*.foo.com'
       createRoute53Record: true
       createRoute53IPv6Record: true
-      endpointType: 'regional'
+      endpointType: REGIONAL
       securityPolicy: tls_1_2
     websocket:
       domainName: ws.serverless.foo.com
@@ -105,7 +105,7 @@ custom:
       certificateName: '*.foo.com'
       createRoute53Record: true
       createRoute53IPv6Record: true
-      endpointType: 'regional'
+      endpointType: REGIONAL
       securityPolicy: tls_1_2
 ```
 
@@ -117,11 +117,11 @@ custom:
     - http:
         domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
-        endpointType: 'regional'
+        endpointType: REGIONAL
     - http:
         domainName: http-api-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}.foo
         basePath: ''
-        endpointType: 'regional'
+        endpointType: REGIONAL
 ```
 
 For multi-region deployments, a `route53Params` structure can be used to support latency or weighted routing policies
@@ -134,7 +134,7 @@ custom:
     basePath: api
     certificateName: '*.foo.com'
     createRoute53Record: true
-    endpointType: 'regional'
+    endpointType: REGIONAL
     securityPolicy: tls_1_2
     route53Params:
       routingPolicy: latency
@@ -151,7 +151,7 @@ custom:
 | createRoute53IPv6Record | `true` | Toggles whether or not the plugin will create an AAAA Alias record in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record. |
 | route53Profile | `(none)` | Profile to use for accessing Route53 resources when Route53 records are in a different account |
 | route53Region | `(none)` | Region to send Route53 services requests to (only applicable if also using route53Profile option) |
-| endpointType | edge | Defines the endpoint type, accepts `regional` or `edge`. |
+| endpointType | `EDGE` | Defines the endpoint type, accepts `REGIONAL` or `EDGE`. |
 | apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
@@ -231,7 +231,7 @@ https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-regional
 3) Make sure you have setup new or modified existing routes to use [httpApi event](https://serverless.com/framework/docs/providers/aws/events/http-api) in your serverless.yml file.
 4) Make the following changes to the `customDomain` properties in the serverless.yml confg:
     ```yaml
-    endpointType: regional
+    endpointType: REGIONAL
     apiType: http
     allowPathMatching: true # Only for one deploy
     ```

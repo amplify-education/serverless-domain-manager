@@ -5,7 +5,7 @@ provider:
   runtime: nodejs12.x
   region: us-west-2
   stage: test
-  endpointType: regional
+  endpointType: REGIONAL
 
 functions:
   helloWorld:
@@ -21,7 +21,7 @@ custom:
   customDomain:
     domainName: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     securityPolicy: tls_1_0
-    endpointType: regional
+    endpointType: REGIONAL
 
 package:
   patterns:

@@ -67,7 +67,7 @@ class DomainConfig {
         const endpointTypeWithDefault = config.endpointType || Globals.endpointTypes.edge;
         const endpointTypeToUse = Globals.endpointTypes[endpointTypeWithDefault.toLowerCase()];
         if (!endpointTypeToUse) {
-            throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use edge or regional.`);
+            throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use EDGE or REGIONAL.`);
         }
         this.endpointType = endpointTypeToUse;
 

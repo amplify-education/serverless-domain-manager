@@ -24,6 +24,7 @@ Make sure you have the following installed before starting:
 The IAM role that is deploying the lambda will need the following permissions:
 ```
 acm:ListCertificates                *
+acm:DescribeCertificate             *
 apigateway:GET                      /domainnames/*
 apigateway:GET                      /domainnames/*/basepathmappings
 apigateway:DELETE                   /domainnames/*

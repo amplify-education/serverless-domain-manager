@@ -216,6 +216,21 @@ describe("Custom Domain Plugin", () => {
             expect(errored).to.equal(true);
         });
 
+        it("Lowercase edge endpoint type without errors", () => {
+            const plugin = constructPlugin({
+                endpointType: "edge",
+            });
+
+            let errored = false;
+            try {
+                plugin.initializeVariables();
+                plugin.validateDomainConfigs();
+            } catch (err) {
+                errored = true;
+            }
+            expect(errored).to.equal(false);
+        });
+
     });
 
     describe("Set Domain Name and Base Path", () => {
@@ -589,26 +604,26 @@ describe("Custom Domain Plugin", () => {
         it("Get a given certificate name", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
             AWS.mock("ACM", "describeCertificate", (params, callback) => {
-              const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
-              const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
-              const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
+                const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
+                const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
+                const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
                 if (params.CertificateArn === "expired_cert_name") {
-                  callback(null, {
-                    Certificate: {
-                      CertificateArn: "doesnt_matter_wont_be_used",
-                      NotAfter: fifteenDaysInPast,
-                    }
-                  });
-                  return;
+                    callback(null, {
+                        Certificate: {
+                            CertificateArn: "doesnt_matter_wont_be_used",
+                            NotAfter: fifteenDaysInPast,
+                        }
+                    });
+                    return;
                 }
                 if (params.CertificateArn === "test_given_cert_name") {
-                  callback(null, {
-                    Certificate: {
-                      CertificateArn: params.CertificateArn,
-                      NotAfter: fifteenDaysInFuture,
-                    }
-                  });
-                  return;
+                    callback(null, {
+                        Certificate: {
+                            CertificateArn: params.CertificateArn,
+                            NotAfter: fifteenDaysInFuture,
+                        }
+                    });
+                    return;
                 }
                 throw new Error("Programmer error: didn't add new test mock data");
             });

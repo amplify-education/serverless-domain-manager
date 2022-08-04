@@ -146,13 +146,13 @@ class ServerlessCustomDomain {
             } else if (domain.apiType === Globals.apiTypes.http) { // Validation for http apis
                 // HTTP Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`'edge' endpointType is not compatible with HTTP APIs`);
+                    throw Error(`'EDGE' endpointType is not compatible with HTTP APIs`);
                 }
 
             } else if (domain.apiType === Globals.apiTypes.websocket) { // Validation for WebSocket apis
                 // Websocket Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`'edge' endpointType is not compatible with WebSocket APIs`);
+                    throw Error(`'EDGE' endpointType is not compatible with WebSocket APIs`);
                 }
             }
         });

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Enabled `declaration` option in tsconfig.json. Thank you @estahn ([506](https://github.com/amplify-education/serverless-domain-manager/pull/506))
+- Use uppercase consistently for endpoint type. Thank you @dnicolson ([511](https://github.com/amplify-education/serverless-domain-manager/pull/511))
 
 ### Fixed
 - ACM permission. Thank you @kevinle-1 ([508](https://github.com/amplify-education/serverless-domain-manager/pull/508))

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.0.4] - 2022-08-04
+
+### Fixed
+- Enabled `declaration` option in tsconfig.json. Thank you @estahn ([506](https://github.com/amplify-education/serverless-domain-manager/pull/506))
+- Use uppercase consistently for endpoint type. Thank you @dnicolson ([511](https://github.com/amplify-education/serverless-domain-manager/pull/511))
+- ACM permission. Thank you @kevinle-1 ([508](https://github.com/amplify-education/serverless-domain-manager/pull/508))
+- Removed `peerDependencies`
+- Replaced `-` with `\n` for the printing summary
+
 ## [6.0.3] - 2022-04-13
 
 ### Fixed

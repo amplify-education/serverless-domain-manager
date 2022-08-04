@@ -94,7 +94,6 @@ export default class Globals {
                 summaryList.push(`Domain Name: ${domain.givenDomainName}`);
                 summaryList.push(`Target Domain: ${domain.domainInfo.domainName}`);
                 summaryList.push(`Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
-                summaryList.push(`----------------------------------------`);
             }
         })
         // don't print summary if summaryList is empty

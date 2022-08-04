@@ -197,7 +197,7 @@ describe("Custom Domain Plugin", () => {
                 plugin.validateDomainConfigs();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("'edge' endpointType is not compatible with HTTP APIs");
+                expect(err.message).to.equal("'EDGE' endpointType is not compatible with HTTP APIs");
             }
             expect(errored).to.equal(true);
         });
@@ -211,9 +211,24 @@ describe("Custom Domain Plugin", () => {
                 plugin.validateDomainConfigs();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("'edge' endpointType is not compatible with WebSocket APIs");
+                expect(err.message).to.equal("'EDGE' endpointType is not compatible with WebSocket APIs");
             }
             expect(errored).to.equal(true);
+        });
+
+        it("Lowercase edge endpoint type without errors", () => {
+            const plugin = constructPlugin({
+                endpointType: "edge",
+            });
+
+            let errored = false;
+            try {
+                plugin.initializeVariables();
+                plugin.validateDomainConfigs();
+            } catch (err) {
+                errored = true;
+            }
+            expect(errored).to.equal(false);
         });
 
     });
@@ -589,26 +604,26 @@ describe("Custom Domain Plugin", () => {
         it("Get a given certificate name", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
             AWS.mock("ACM", "describeCertificate", (params, callback) => {
-              const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
-              const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
-              const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
+                const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
+                const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
+                const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
                 if (params.CertificateArn === "expired_cert_name") {
-                  callback(null, {
-                    Certificate: {
-                      CertificateArn: "doesnt_matter_wont_be_used",
-                      NotAfter: fifteenDaysInPast,
-                    }
-                  });
-                  return;
+                    callback(null, {
+                        Certificate: {
+                            CertificateArn: "doesnt_matter_wont_be_used",
+                            NotAfter: fifteenDaysInPast,
+                        }
+                    });
+                    return;
                 }
                 if (params.CertificateArn === "test_given_cert_name") {
-                  callback(null, {
-                    Certificate: {
-                      CertificateArn: params.CertificateArn,
-                      NotAfter: fifteenDaysInFuture,
-                    }
-                  });
-                  return;
+                    callback(null, {
+                        Certificate: {
+                            CertificateArn: params.CertificateArn,
+                            NotAfter: fifteenDaysInFuture,
+                        }
+                    });
+                    return;
                 }
                 throw new Error("Programmer error: didn't add new test mock data");
             });

@@ -3,7 +3,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  endpointType: REGIONAL
   stage: test
 functions:
   helloWorld:
@@ -18,7 +18,7 @@ plugins:
 custom:
   customDomain:
     domainName: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-    endpointType: regional
+    endpointType: REGIONAL
     route53Params:
       routingPolicy: weighted
       weight: 100

@@ -23,12 +23,12 @@ custom:
     - http:
         domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
-        endpointType: 'regional'
+        endpointType: REGIONAL
         autoDomain: true
     - http:
         domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
-        endpointType: 'regional'
+        endpointType: REGIONAL
         autoDomain: true
 
 package:

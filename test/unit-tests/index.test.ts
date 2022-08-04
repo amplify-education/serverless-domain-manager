@@ -170,7 +170,7 @@ describe("Custom Domain Plugin", () => {
                 plugin.initializeVariables();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("notSupported is not supported endpointType, use edge or regional.");
+                expect(err.message).to.equal("notSupported is not supported endpointType, use EDGE or REGIONAL.");
             }
             expect(errored).to.equal(true);
         });
@@ -226,7 +226,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "edge",
+                endpointType: "EDGE",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -253,7 +253,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
                 securityPolicy: "tls_1_0",
             });
             plugin.initializeVariables();
@@ -281,7 +281,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -309,7 +309,7 @@ describe("Custom Domain Plugin", () => {
                 apiType: "http",
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -368,7 +368,7 @@ describe("Custom Domain Plugin", () => {
                 apiType: "http",
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -647,7 +647,7 @@ describe("Custom Domain Plugin", () => {
                 callback(null, {DomainName: "foo", DomainNameConfigurations: [{SecurityPolicy: "TLS_1_2"}]});
             });
 
-            const plugin = constructPlugin({domainName: "test_domain", apiType: "http", endpointType: "regional"});
+            const plugin = constructPlugin({domainName: "test_domain", apiType: "http", endpointType: "REGIONAL"});
             plugin.initializeVariables();
             plugin.initAWSResources();
 
@@ -981,7 +981,7 @@ describe("Custom Domain Plugin", () => {
                 apiType: "http",
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -1036,7 +1036,7 @@ describe("Custom Domain Plugin", () => {
                 apiType: "websocket",
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -2159,7 +2159,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
                 route53Params: {
                     routingPolicy: 'latency'
                 }
@@ -2237,7 +2237,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
                 route53Params: {
                     routingPolicy: 'weighted',
                     weight: 100,
@@ -2319,7 +2319,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
                 route53Params: {
                     routingPolicy: 'latency',
                     weight: 100,
@@ -2398,7 +2398,7 @@ describe("Custom Domain Plugin", () => {
             const plugin = constructPlugin({
                 basePath: "test_basepath",
                 domainName: "test_domain",
-                endpointType: "regional",
+                endpointType: "REGIONAL",
                 route53Params: {
                     setIdentifier: "test_identifier",
                     weight: 100,

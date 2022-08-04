@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  endpointType: REGIONAL
   stage: test
 functions:
   helloWorld:
@@ -20,7 +20,7 @@ custom:
   customDomain:
     domainName: ${env:PLUGIN_IDENTIFIER}-regional-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
-    endpointType: regional
+    endpointType: REGIONAL
 
 package:
   patterns:

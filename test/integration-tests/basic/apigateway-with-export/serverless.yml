@@ -5,7 +5,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   region: us-west-2
-  endpointType: regional
+  endpointType: REGIONAL
   stage: test
 functions:
   helloWorld:
@@ -42,7 +42,7 @@ custom:
     domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world
-    endpointType: regional
+    endpointType: REGIONAL
     createRoute53Record: false
 
 package:

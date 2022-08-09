@@ -38,6 +38,8 @@ route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
 route53:GetHostedZone               *
 route53:ListResourceRecordSets      *
 iam:CreateServiceLinkedRole         arn:aws:iam::${AWS::AccountId}: role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway
+s3:ListBucket                       *
+s3:GetObject                        *
 ```
 ### CloudFormation
 Alternatively you can generate an least privileged IAM Managed Policy for deployment with this:
@@ -154,6 +156,8 @@ custom:
 | route53Region | `(none)` | Region to send Route53 services requests to (only applicable if also using route53Profile option) |
 | endpointType | `EDGE` | Defines the endpoint type, accepts `REGIONAL` or `EDGE`. |
 | apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`. |
+| tlsTruststoreUri | `undefined` | An Amazon S3 url that specifies the truststore for mutual TLS authentication, for example `s3://bucket-name/key-name`. The truststore can contain certificates from public or private certificate authorities. Be aware mutual TLS is only available for `regional` APIs. |
+| tlsTruststoreVersion | `undefined` | The version of the S3 object that contains your truststore. To specify a version, you must have versioning enabled for the S3 bucket. |
 | hostedZoneId | | If hostedZoneId is set the route53 record set will be created in the matching zone, otherwise the hosted zone will be figured out from the domainName (hosted zone with matching domain). |
 | hostedZonePrivate | | If hostedZonePrivate is set to `true` then only private hosted zones will be used for route 53 records. If it is set to `false` then only public hosted zones will be used for route53 records. Setting this parameter is specially useful if you have multiple hosted zones with the same domain name (e.g. a public and a private one) |
 | enabled | true | Sometimes there are stages for which is not desired to have custom domain names. This flag allows the developer to disable the plugin for such cases. Accepts either `boolean` or `string` values and defaults to `true` for backwards compatibility. |

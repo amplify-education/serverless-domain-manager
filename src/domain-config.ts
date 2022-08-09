@@ -21,6 +21,8 @@ class DomainConfig {
     public route53Region: string | undefined;
     public endpointType: string | undefined;
     public apiType: string | undefined;
+    public tlsTruststoreUri: string | undefined;
+    public tlsTruststoreVersion: string | undefined;
     public hostedZoneId: string | undefined;
     public hostedZonePrivate: boolean | undefined;
     public enabled: boolean | string | undefined;
@@ -78,6 +80,17 @@ class DomainConfig {
         }
         this.apiType = apiTypeToUse;
 
+        const isEdgeType = this.endpointType === Globals.endpointTypes.edge;
+        const hasMutualTls = !!config.tlsTruststoreUri;
+        if (isEdgeType && hasMutualTls) {
+            throw new Error(`${this.endpointType} APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
+        }
+        if (config.tlsTruststoreUri) {
+            this.validateS3Uri(config.tlsTruststoreUri);
+        }
+        this.tlsTruststoreUri = config.tlsTruststoreUri;
+        this.tlsTruststoreVersion = config.tlsTruststoreVersion;
+
         const securityPolicyDefault = config.securityPolicy || Globals.tlsVersions.tls_1_2;
         const tlsVersionToUse = Globals.tlsVersions[securityPolicyDefault.toLowerCase()];
         if (!tlsVersionToUse) {
@@ -104,6 +117,14 @@ class DomainConfig {
             setIdentifier: config.route53Params?.setIdentifier,
             weight: config.route53Params?.weight ?? 200,
             healthCheckId: config.route53Params?.healthCheckId
+        }
+    }
+
+    private validateS3Uri(uri: string): void {
+        const { protocol, pathname } = new URL(uri);
+
+        if (protocol !== "s3:" && !pathname.substring(1).includes("/")) {
+            throw new Error(`${uri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`);
         }
     }
 }

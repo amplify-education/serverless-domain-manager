@@ -56,12 +56,12 @@ class APIGatewayWrapper {
         } else {
             params.regionalCertificateArn = domain.certificateArn;
 
-            if (!!domain.tlsTruststoreUri) {
+            if (domain.tlsTruststoreUri) {
                 params.mutualTlsAuthentication = {
                     truststoreUri: domain.tlsTruststoreUri
                 };
 
-                if (!!domain.tlsTruststoreVersion) {
+                if (domain.tlsTruststoreVersion) {
                     params.mutualTlsAuthentication.truststoreVersion = domain.tlsTruststoreVersion;
                 }
             }
@@ -97,12 +97,12 @@ class APIGatewayWrapper {
         };
 
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-        if (!isEdgeType && !!domain.tlsTruststoreUri) {
+        if (!isEdgeType && domain.tlsTruststoreUri) {
             params.MutualTlsAuthentication = {
                 TruststoreUri: domain.tlsTruststoreUri
             };
 
-            if (!!domain.tlsTruststoreVersion) {
+            if (domain.tlsTruststoreVersion) {
                 params.MutualTlsAuthentication.TruststoreVersion = domain.tlsTruststoreVersion;
             }
         }

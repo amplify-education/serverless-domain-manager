@@ -20,8 +20,8 @@ custom:
     domainName: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     endpointType: REGIONAL
-    tlsTruststoreUri: ${TLS_TRUSTSTORE_URI}
-    tlsTruststoreVersion: ${TLS_TRUSTSTORE_VERSION}
+    tlsTruststoreUri: ${env:TLS_TRUSTSTORE_URI}
+    tlsTruststoreVersion: ${env:TLS_TRUSTSTORE_VERSION}
 
 package:
   patterns:

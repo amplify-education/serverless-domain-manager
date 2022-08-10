@@ -20,8 +20,8 @@ custom:
     domainName: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     endpointType: REGIONAL
-    tlsTruststoreUri: s3://amplify-playground-uw2-sls-domain-manager/integration-tests/mutual-tls/server.pem
-    tlsTruststoreVersion: tAJEC4JJVKdhgwgqx4_Of6E3V9Zs1t.5
+    tlsTruststoreUri: ${TLS_TRUSTSTORE_URI}
+    tlsTruststoreVersion: ${TLS_TRUSTSTORE_VERSION}
 
 package:
   patterns:

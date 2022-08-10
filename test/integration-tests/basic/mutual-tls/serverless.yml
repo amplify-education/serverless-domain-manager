@@ -1,9 +1,8 @@
-service: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}
 provider:
   name: aws
   runtime: nodejs14.x
   region: us-west-2
-  endpointType: REGIONAL
   stage: test
 functions:
   helloWorld:
@@ -15,13 +14,14 @@ functions:
           cors: true
 plugins:
   - serverless-domain-manager
+
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    autoDomain: true
     endpointType: REGIONAL
-    route53Params:
-      routingPolicy: weighted
-      weight: 100
+    tlsTruststoreUri: s3://amplify-playground-uw2-sls-domain-manager/integration-tests/mutual-tls/server.pem
+    tlsTruststoreVersion: tAJEC4JJVKdhgwgqx4_Of6E3V9Zs1t.5
 
 package:
   patterns:

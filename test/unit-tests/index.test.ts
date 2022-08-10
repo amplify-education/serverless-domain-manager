@@ -756,10 +756,10 @@ describe("Custom Domain Plugin", () => {
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const domainInfo = await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
-            expect(dc.domainInfo.domainName).to.equal("foo");
-            expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
+            expect(domainInfo.domainName).to.equal("foo");
+            expect(domainInfo.securityPolicy).to.equal("TLS_1_2");
         });
 
         it("Create an HTTP domain name", async () => {
@@ -775,10 +775,10 @@ describe("Custom Domain Plugin", () => {
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const domainInfo = await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
-            expect(dc.domainInfo.domainName).to.equal("foo");
-            expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
+            expect(domainInfo.domainName).to.equal("foo");
+            expect(domainInfo.securityPolicy).to.equal("TLS_1_2");
         });
 
         it("Create a domain name with specific TLS version", async () => {
@@ -794,10 +794,10 @@ describe("Custom Domain Plugin", () => {
 
             dc.certificateArn = "fake_cert";
 
-            await plugin.apiGatewayWrapper.createCustomDomain(dc);
+            const domainInfo = await plugin.apiGatewayWrapper.createCustomDomain(dc);
 
-            expect(dc.domainInfo.domainName).to.equal("foo");
-            expect(dc.domainInfo.securityPolicy).to.equal("TLS_1_2");
+            expect(domainInfo.domainName).to.equal("foo");
+            expect(domainInfo.securityPolicy).to.equal("TLS_1_2");
         });
 
         it("Create a domain name with tags", async () => {

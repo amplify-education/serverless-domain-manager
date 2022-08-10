@@ -1,5 +1,5 @@
 import Globals from "../globals";
-import {throttledCall} from "../utils";
+import {getAWSPagedResults, throttledCall} from "../utils";
 import DomainConfig = require("../domain-config");
 import {Route53} from "aws-sdk";
 
@@ -106,8 +106,14 @@ class Route53Wrapper {
 
         let hostedZones = [];
         try {
-            const hostedZoneData = await throttledCall(this.route53, "listHostedZones", {});
-            hostedZones = hostedZoneData.HostedZones;
+            hostedZones = await getAWSPagedResults(
+                this.route53,
+                "listHostedZones",
+                "HostedZones",
+                "Marker",
+                "NextMarker",
+                {}
+            );
         } catch (err) {
             throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
         }

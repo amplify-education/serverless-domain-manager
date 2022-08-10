@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Dropped Node v12 support
+- Fixed get paged result for listHostedZones
 - Refactoring
 
 ## [6.0.4] - 2022-08-04

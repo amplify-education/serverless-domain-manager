@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports.connect = (event, context, callback) => {
+module.exports.connect = (_event, _context, callback) => {
   const response = {
     statusCode: 200,
   };

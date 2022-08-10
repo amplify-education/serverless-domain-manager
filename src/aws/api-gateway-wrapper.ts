@@ -20,76 +20,99 @@ class APIGatewayWrapper {
      * Creates Custom Domain Name through API Gateway
      * @param domain: DomainConfig
      */
-    public async createCustomDomain(domain: DomainConfig): Promise<void> {
-        let createdDomain = {};
+    public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
+        const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
+        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
+            // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
+            return new DomainInfo(await this.createCustomDomainV1(domain));
+        } else {
+            // For Regional domain name create with ApiGatewayV2
+            return new DomainInfo(await this.createCustomDomainV2(domain));
+        }
+    }
+
+    /**
+     * Creates Custom Domain Name through API Gateway V1
+     * @param domain: DomainConfig
+     */
+    private async createCustomDomainV1(domain: DomainConfig): Promise<any> {
         const providerTags = {
             ...Globals.serverless.service.provider.stackTags,
             ...Globals.serverless.service.provider.tags
         };
 
-        // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
-        const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-        const hasMutualTls = !!domain.tlsTruststoreUri;
-        if (isEdgeType || domain.securityPolicy === "TLS_1_0") {
-            // Set up parameters
-            const params = {
-                domainName: domain.givenDomainName,
-                endpointConfiguration: {
-                    types: [domain.endpointType],
-                },
-                securityPolicy: domain.securityPolicy,
-                [isEdgeType ? "certificateArn" : "regionalCertificateArn"]: domain.certificateArn,
-                tags: providerTags,
-            };
+        const params: any = {
+            domainName: domain.givenDomainName,
+            endpointConfiguration: {
+                types: [domain.endpointType],
+            },
+            securityPolicy: domain.securityPolicy,
+            tags: providerTags,
+        };
 
-            if (!isEdgeType && hasMutualTls) {
+        const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
+        if (isEdgeType) {
+            params.certificateArn = domain.certificateArn;
+        } else {
+            params.regionalCertificateArn = domain.certificateArn;
+
+            if (domain.tlsTruststoreUri) {
                 params.mutualTlsAuthentication = {
                     truststoreUri: domain.tlsTruststoreUri
                 };
 
                 if (domain.tlsTruststoreVersion) {
-                    params.truststoreVersion = domain.tlsTruststoreVersion;
+                    params.mutualTlsAuthentication.truststoreVersion = domain.tlsTruststoreVersion;
                 }
             }
+        }
 
-            // Make API call to create domain
-            try {
-                // Creating EDGE domain so use APIGateway (v1) service
-                createdDomain = await throttledCall(this.apiGateway, "createDomainName", params);
-                domain.domainInfo = new DomainInfo(createdDomain);
-            } catch (err) {
-                throw new Error(`Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`);
-            }
+        try {
+            return await throttledCall(this.apiGateway, "createDomainName", params);
+        } catch (err) {
+            throw new Error(
+                `API Gateway V1 failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+            );
+        }
+    }
 
-        } else { // For Regional domain name create with ApiGatewayV2
-            const params: any = {
-                DomainName: domain.givenDomainName,
-                DomainNameConfigurations: [{
-                    CertificateArn: domain.certificateArn,
-                    EndpointType: domain.endpointType,
-                    SecurityPolicy: domain.securityPolicy,
-                }],
-                Tags: providerTags
+    /**
+     * Creates Custom Domain Name through API Gateway V2
+     * @param domain: DomainConfig
+     */
+    private async createCustomDomainV2(domain: DomainConfig): Promise<any> {
+        const providerTags = {
+            ...Globals.serverless.service.provider.stackTags,
+            ...Globals.serverless.service.provider.tags
+        };
+
+        const params: any = {
+            DomainName: domain.givenDomainName,
+            DomainNameConfigurations: [{
+                CertificateArn: domain.certificateArn,
+                EndpointType: domain.endpointType,
+                SecurityPolicy: domain.securityPolicy,
+            }],
+            Tags: providerTags
+        };
+
+        const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
+        if (!isEdgeType && domain.tlsTruststoreUri) {
+            params.MutualTlsAuthentication = {
+                TruststoreUri: domain.tlsTruststoreUri
             };
 
-            if (!isEdgeType && hasMutualTls) {
-                params.MutualTlsAuthentication = {
-                    TruststoreUri: domain.tlsTruststoreUri
-                };
-
-                if (domain.tlsTruststoreVersion) {
-                    params.TruststoreVersion = domain.tlsTruststoreVersion;
-                }
+            if (domain.tlsTruststoreVersion) {
+                params.MutualTlsAuthentication.TruststoreVersion = domain.tlsTruststoreVersion;
             }
+        }
 
-            // Make API call to create domain
-            try {
-                // Creating Regional domain so use ApiGatewayV2
-                createdDomain = await throttledCall(this.apiGatewayV2, "createDomainName", params);
-                domain.domainInfo = new DomainInfo(createdDomain);
-            } catch (err) {
-                throw new Error(`Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`);
-            }
+        try {
+            return await throttledCall(this.apiGatewayV2, "createDomainName", params);
+        } catch (err) {
+            throw new Error(
+                `API Gateway V2 failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 
@@ -143,7 +166,8 @@ class APIGatewayWrapper {
                 Globals.logInfo(`Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
             } catch (err) {
                 throw new Error(
-                    `Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+                    `Make sure the '${domain.givenDomainName}' exists.
+                     Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
                 );
             }
         } else { // Use ApiGatewayV2 for Regional domains
@@ -174,7 +198,9 @@ class APIGatewayWrapper {
                 {DomainName: domain.givenDomainName},
             );
         } catch (err) {
-            throw new Error(`Unable to get API Mappings for '${domain.givenDomainName}':\n${err.message}`);
+            throw new Error(
+                `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`
+            );
         }
     }
 

@@ -81,8 +81,7 @@ class DomainConfig {
         this.apiType = apiTypeToUse;
 
         const isEdgeType = this.endpointType === Globals.endpointTypes.edge;
-        const hasMutualTls = !!config.tlsTruststoreUri;
-        if (isEdgeType && hasMutualTls) {
+        if (isEdgeType && config.tlsTruststoreUri) {
             throw new Error(`${this.endpointType} APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.`);
         }
         if (config.tlsTruststoreUri) {

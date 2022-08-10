@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - 2022-08-10
+
+### Added
+- Add support for mutual TLS authentication for regional APIs. Thank you @cjuega ([505](https://github.com/amplify-education/serverless-domain-manager/pull/505))
+
+### Changed
+- Dropped Node v12 support
+- Fixed get paged result for listHostedZones
+- Refactoring
+
 ## [6.0.4] - 2022-08-04
 
 ### Fixed

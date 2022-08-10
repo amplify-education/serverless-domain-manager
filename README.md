@@ -212,6 +212,9 @@ And `ROUTE53_PROFILE` for creating route53 record in one AWS account and deploy 
 ```
 export TEST_DOMAIN=example.com
 export ROUTE53_PROFILE=default
+export TLS_TRUSTSTORE_URI=s3://bucket-name/key-name
+export TLS_TRUSTSTORE_VERSION=default
+
 npm run build
 npm run integration-test
 ```

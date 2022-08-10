@@ -1,7 +1,7 @@
 service: ${env:PLUGIN_IDENTIFIER}-route-53-latency-routing-${env:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   region: us-west-2
   endpointType: REGIONAL
   stage: test

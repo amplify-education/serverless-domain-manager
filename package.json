@@ -1,8 +1,8 @@
 {
   "name": "serverless-domain-manager",
-  "version": "6.0.4",
+  "version": "6.1.0",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "description": "Serverless plugin for managing custom domains with API Gateways.",
   "author": "Amplify Education Inc",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^9.1.1",
-    "@types/node": "^18.6.3",
+    "@types/node": "^18.6.5",
     "aws-sdk-mock": "^5.7.0",
     "chai": "^4.3.6",
     "chai-spies": "^1.0.0",
@@ -64,6 +64,6 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "aws-sdk": "^2.1186.0"
+    "aws-sdk": "^2.1191.0"
   }
 }

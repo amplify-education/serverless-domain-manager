@@ -2,7 +2,7 @@
 service: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   region: us-west-2
   stage: test
   endpointType: REGIONAL

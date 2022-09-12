@@ -1,7 +1,10 @@
 service: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}
 provider:
   name: aws
-  runtime: nodejs14.x
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/expeditor_api_v2_lambda
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
   region: us-west-2
   stage: test
 functions:

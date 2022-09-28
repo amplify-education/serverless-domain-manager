@@ -63,6 +63,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         tlsTruststoreVersion: customDomainOptions.tlsTruststoreVersion,
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
+        splitHorizonDns: customDomainOptions.splitHorizonDns,
         route53Profile: customDomainOptions.route53Profile,
         route53Region: customDomainOptions.route53Region,
         preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
@@ -1041,6 +1042,123 @@ describe("Custom Domain Plugin", () => {
             expect(result).to.equal(undefined);
         });
 
+        describe("When split-horizon DNS is requested", () => {
+          it("Create new A and AAAA Alias Records in each of the hosted zones with the same domain", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+              // @ts-ignore
+              callback(null, {
+                HostedZones: [
+                  {
+                    Config: { PrivateZone: false },
+                    Name: "test_domain",
+                    Id: "/hostedzone/test_host_id_0",
+                  },
+                  {
+                    Config: { PrivateZone: true },
+                    Name: "test_domain",
+                    Id: "/hostedzone/test_host_id_1",
+                  },
+                ],
+              });
+            });
+    
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+              // @ts-ignore
+              callback(null, params);
+            });
+    
+            const plugin = constructPlugin({
+              basePath: "test_basepath",
+              domainName: "test_domain",
+              splitHorizonDns: true,
+            });
+            const route53Wrapper = new Route53Wrapper();
+    
+            const dc: DomainConfig = new DomainConfig(
+              plugin.serverless.service.custom.customDomain
+            );
+    
+            dc.domainInfo = new DomainInfo({
+              distributionDomainName: "test_distribution_name",
+            });
+    
+            const spy = chai.spy.on(
+              route53Wrapper.route53,
+              "changeResourceRecordSets"
+            );
+    
+            await route53Wrapper.changeResourceRecordSet("UPSERT", dc);
+    
+            const expectedParams1 = {
+              ChangeBatch: {
+                Changes: [
+                  {
+                    Action: "UPSERT",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_0",
+                      },
+                      Name: "test_domain",
+                      Type: "A",
+                    },
+                  },
+                  {
+                    Action: "UPSERT",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_0",
+                      },
+                      Name: "test_domain",
+                      Type: "AAAA",
+                    },
+                  },
+                ],
+                Comment: `Record created by "${Globals.pluginName}"`,
+              },
+              HostedZoneId: "test_host_id_0",
+            };
+    
+            const expectedParams2 = {
+              ChangeBatch: {
+                Changes: [
+                  {
+                    Action: "UPSERT",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_1",
+                      },
+                      Name: "test_domain",
+                      Type: "A",
+                    },
+                  },
+                  {
+                    Action: "UPSERT",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_1",
+                      },
+                      Name: "test_domain",
+                      Type: "AAAA",
+                    },
+                  },
+                ],
+                Comment: `Record created by "${Globals.pluginName}"`,
+              },
+              HostedZoneId: "test_host_id_1",
+            };
+            expect(spy).to.have.been.called.nth(1).with(expectedParams1);
+            expect(spy).to.have.been.called.nth(2).with(expectedParams2);
+          });
+        });
+
         afterEach(() => {
             AWS.restore();
             consoleOutput = [];
@@ -1385,6 +1503,122 @@ describe("Custom Domain Plugin", () => {
             });
         });
 
+        describe("When split-horizon DNS is requested", () => {
+          it("Delete A and AAAA Alias Records in each of the hosted zones with the same domain", async () => {
+            AWS.mock("Route53", "listHostedZones", (params, callback) => {
+              // @ts-ignore
+              callback(null, {
+                HostedZones: [
+                  {
+                    Config: { PrivateZone: false },
+                    Name: "test_domain",
+                    Id: "/hostedzone/test_host_id_0",
+                  },
+                  {
+                    Config: { PrivateZone: true },
+                    Name: "test_domain",
+                    Id: "/hostedzone/test_host_id_1",
+                  },
+                ],
+              });
+            });
+    
+            AWS.mock("Route53", "changeResourceRecordSets", (params, callback) => {
+              // @ts-ignore
+              callback(null, params);
+            });
+    
+            const plugin = constructPlugin({
+              basePath: "test_basepath",
+              domainName: "test_domain",
+              splitHorizonDns: true,
+            });
+            const route53Wrapper = new Route53Wrapper();
+    
+            const dc: DomainConfig = new DomainConfig(
+              plugin.serverless.service.custom.customDomain
+            );
+    
+            dc.domainInfo = new DomainInfo({
+              distributionDomainName: "test_distribution_name",
+            });
+    
+            const spy = chai.spy.on(
+              route53Wrapper.route53,
+              "changeResourceRecordSets"
+            );
+    
+            await route53Wrapper.changeResourceRecordSet("DELETE", dc);
+    
+            const expectedParams1 = {
+              ChangeBatch: {
+                Changes: [
+                  {
+                    Action: "DELETE",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_0",
+                      },
+                      Name: "test_domain",
+                      Type: "A",
+                    },
+                  },
+                  {
+                    Action: "DELETE",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_0",
+                      },
+                      Name: "test_domain",
+                      Type: "AAAA",
+                    },
+                  },
+                ],
+                Comment: `Record created by "${Globals.pluginName}"`,
+              },
+              HostedZoneId: "test_host_id_0",
+            };
+    
+            const expectedParams2 = {
+              ChangeBatch: {
+                Changes: [
+                  {
+                    Action: "DELETE",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_1",
+                      },
+                      Name: "test_domain",
+                      Type: "A",
+                    },
+                  },
+                  {
+                    Action: "DELETE",
+                    ResourceRecordSet: {
+                      AliasTarget: {
+                        DNSName: "test_distribution_name",
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: "test_host_id_1",
+                      },
+                      Name: "test_domain",
+                      Type: "AAAA",
+                    },
+                  },
+                ],
+                Comment: `Record created by "${Globals.pluginName}"`,
+              },
+              HostedZoneId: "test_host_id_1",
+            };
+            expect(spy).to.have.been.called.nth(1).with(expectedParams1);
+            expect(spy).to.have.been.called.nth(2).with(expectedParams2);
+          })
+        });
         afterEach(() => {
             AWS.restore();
             consoleOutput = [];

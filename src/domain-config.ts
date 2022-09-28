@@ -25,6 +25,7 @@ class DomainConfig {
     public tlsTruststoreVersion: string | undefined;
     public hostedZoneId: string | undefined;
     public hostedZonePrivate: boolean | undefined;
+    public splitHorizonDns: boolean | undefined;
     public enabled: boolean | string | undefined;
     public securityPolicy: string | undefined;
     public autoDomain: boolean | undefined;
@@ -117,6 +118,8 @@ class DomainConfig {
             weight: config.route53Params?.weight ?? 200,
             healthCheckId: config.route53Params?.healthCheckId
         }
+
+        this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
     }
 
     private validateS3Uri(uri: string): void {

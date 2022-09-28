@@ -967,7 +967,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_id",
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -1024,7 +1024,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_id",
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -1476,7 +1476,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id"
+                HostedZoneId: "test_id"
             };
             expect(spy).to.be.called.with(expectedParams);
 
@@ -2689,7 +2689,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id"
+                HostedZoneId: "test_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2771,7 +2771,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id"
+                HostedZoneId: "test_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2850,7 +2850,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id"
+                HostedZoneId: "test_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2925,7 +2925,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_host_id"
+                HostedZoneId: "test_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });

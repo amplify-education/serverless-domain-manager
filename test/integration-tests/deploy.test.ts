@@ -116,6 +116,14 @@ const testCases = [
         testFolder: `${CONFIGS_FOLDER}/route-53-weighted-routing`,
         testStage: "test",
     },
+    {
+      testBasePath: "(none)",
+      testDescription: "Deploy with split horizon dns",
+      testDomain: `${PLUGIN_IDENTIFIER}-split-horizon-dns-${RANDOM_STRING}.${TEST_DOMAIN}`,
+      testEndpoint: "REGIONAL",
+      testFolder: `${CONFIGS_FOLDER}/split-horizon-dns`,
+      testStage: "test",
+  },
 ];
 
 describe("Integration Tests", function () {

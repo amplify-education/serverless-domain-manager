@@ -2,6 +2,8 @@
 service: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}
 provider:
   name: aws
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
   runtime: nodejs14.x
   region: us-west-2
   stage: test

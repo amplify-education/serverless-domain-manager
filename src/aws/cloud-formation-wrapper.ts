@@ -24,7 +24,7 @@ class CloudFormationWrapper {
             // trying to get information for specified stack name
             response = await this.getStack(logicalResourceId, stackName);
         } catch {
-            // in case error trying to get information from the some of nested stacks
+            // in case error trying to get information from some of nested stacks
             response = await this.getNestedStack(logicalResourceId, stackName);
         }
 

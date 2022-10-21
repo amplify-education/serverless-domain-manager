@@ -41,7 +41,6 @@ class DomainConfig {
 
         this.enabled = evaluateBoolean(config.enabled, true);
         this.givenDomainName = config.domainName;
-        this.hostedZonePrivate = config.hostedZonePrivate;
         this.certificateArn = config.certificateArn;
         this.certificateName = config.certificateName;
         this.createRoute53Record = evaluateBoolean(config.createRoute53Record, true);

@@ -93,8 +93,9 @@ class Route53Wrapper {
           };
           // Make API call
           try {
-              return await throttledCall(this.route53, "changeResourceRecordSets", params);
+            return await throttledCall(this.route53, "changeResourceRecordSets", params);
           } catch (err) {
+            throw new Error(`Failed to ${action} A Alias for '${domain.givenDomainName}':\n${err.message}`);
           }
         });
     }

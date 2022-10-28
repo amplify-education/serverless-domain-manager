@@ -33,13 +33,13 @@ class Route53Wrapper {
             Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
-
         // Set up parameters
+        const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
         const route53Params = domain.route53Params;
         const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
         const domainInfo = domain.domainInfo ?? {
             domainName: domain.givenDomainName,
-            hostedZoneId: await this.getRoute53HostedZoneId(domain),
+            hostedZoneId: route53HostedZoneId,
         }
 
         let routingOptions = {}
@@ -61,63 +61,59 @@ class Route53Wrapper {
 
         let hostedZoneIds: string[];
         if (domain.splitHorizonDns) {
-          hostedZoneIds = await Promise.all([
-            this.getRoute53HostedZoneId(domain, false),
-            this.getRoute53HostedZoneId(domain, true),
-          ]);
+            hostedZoneIds = await Promise.all([
+                this.getRoute53HostedZoneId(domain, false),
+                this.getRoute53HostedZoneId(domain, true),
+            ]);
         } else {
-          hostedZoneIds = [domainInfo.hostedZoneId];
+            hostedZoneIds = [route53HostedZoneId];
         }
 
         const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
-        hostedZoneIds.forEach(async (hostedZoneId) => {
-          const changes = recordsToCreate.map((Type) => ({
-              Action: action,
-              ResourceRecordSet: {
-                  AliasTarget: {
-                      DNSName: domainInfo.domainName,
-                      EvaluateTargetHealth: false,
-                      HostedZoneId: hostedZoneId,
-                  },
-                  Name: domain.givenDomainName,
-                  Type,
-                  ...routingOptions,
-              },
-          }));
-          const params = {
-              ChangeBatch: {
-                  Changes: changes,
-                  Comment: `Record created by "${Globals.pluginName}"`,
-              },
-              HostedZoneId: hostedZoneId,
-          };
-          // Make API call
-          try {
-            return await throttledCall(this.route53, "changeResourceRecordSets", params);
-          } catch (err) {
-            throw new Error(`Failed to ${action} A Alias for '${domain.givenDomainName}':\n${err.message}`);
-          }
-        });
+        for (const hostedZoneId of hostedZoneIds) {
+            const changes = recordsToCreate.map((Type) => ({
+                Action: action,
+                ResourceRecordSet: {
+                    AliasTarget: {
+                        DNSName: domainInfo.domainName,
+                        EvaluateTargetHealth: false,
+                        HostedZoneId: domainInfo.hostedZoneId,
+                    },
+                    Name: domain.givenDomainName,
+                    Type,
+                    ...routingOptions,
+                },
+            }));
+            const params = {
+                ChangeBatch: {
+                    Changes: changes,
+                    Comment: `Record created by "${Globals.pluginName}"`,
+                },
+                HostedZoneId: hostedZoneId,
+            };
+            // Make API call
+            try {
+                await throttledCall(this.route53, "changeResourceRecordSets", params);
+            } catch (err) {
+                throw new Error(
+                    `Failed to ${action} ${recordsToCreate.join(",")} Alias for '${domain.givenDomainName}':\n
+                    ${err.message}`
+                );
+            }
+        }
     }
 
     /**
      * Gets Route53 HostedZoneId from user or from AWS
      */
-    public async getRoute53HostedZoneId(domain: DomainConfig, overriddenHostedZonePrivate?: boolean) : Promise<string> {
+    public async getRoute53HostedZoneId(domain: DomainConfig, isHostedZonePrivate?: boolean): Promise<string> {
         if (domain.hostedZoneId) {
             Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
             return domain.hostedZoneId;
         }
-        let hostedZonePrivate = domain.hostedZonePrivate
 
-        const overrideFilterZone = overriddenHostedZonePrivate !== undefined;
-        if (overrideFilterZone) {
-          hostedZonePrivate = overriddenHostedZonePrivate;
-        }
-
-        const filterZone = hostedZonePrivate !== undefined;
-        if (filterZone) {
-            const zoneTypeString = hostedZonePrivate ? "private" : "public";
+        if (isHostedZonePrivate !== undefined) {
+            const zoneTypeString = isHostedZonePrivate ? "private" : "public";
             Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
         }
 
@@ -137,7 +133,7 @@ class Route53Wrapper {
 
         const targetHostedZone = hostedZones
             .filter((hostedZone) => {
-                return !filterZone || hostedZonePrivate === hostedZone.Config.PrivateZone;
+                return isHostedZonePrivate === undefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
             })
             .filter((hostedZone) => {
                 const hostedZoneName = hostedZone.Name.replace(/\.$/, "");

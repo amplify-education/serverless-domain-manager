@@ -16,6 +16,7 @@ export interface CustomDomain { // tslint:disable-line
     tlsTruststoreVersion: string | undefined;
     hostedZoneId: string | undefined;
     hostedZonePrivate: boolean | undefined;
+    splitHorizonDns: boolean | undefined;
     enabled: boolean | string | undefined;
     securityPolicy: string | undefined;
     autoDomain: boolean | undefined;

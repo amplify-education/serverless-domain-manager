@@ -1,0 +1,25 @@
+service: ${env:PLUGIN_IDENTIFIER}-split-horizon-dns-${env:RANDOM_STRING}
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-west-2
+  endpointType: REGIONAL
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: ${env:PLUGIN_IDENTIFIER}-split-horizon-dns-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    endpointType: REGIONAL
+    splitHorizonDns: true
+package:
+  patterns:
+    - "!node_modules/**"

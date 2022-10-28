@@ -34,11 +34,12 @@ class Route53Wrapper {
             return;
         }
         // Set up parameters
+        const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
         const route53Params = domain.route53Params;
         const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
         const domainInfo = domain.domainInfo ?? {
             domainName: domain.givenDomainName,
-            hostedZoneId: await this.getRoute53HostedZoneId(domain, domain.hostedZonePrivate),
+            hostedZoneId: route53HostedZoneId,
         }
 
         let routingOptions = {}
@@ -65,7 +66,7 @@ class Route53Wrapper {
                 this.getRoute53HostedZoneId(domain, true),
             ]);
         } else {
-            hostedZoneIds = [domainInfo.hostedZoneId];
+            hostedZoneIds = [route53HostedZoneId];
         }
 
         const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
@@ -76,7 +77,7 @@ class Route53Wrapper {
                     AliasTarget: {
                         DNSName: domainInfo.domainName,
                         EvaluateTargetHealth: false,
-                        HostedZoneId: hostedZoneId,
+                        HostedZoneId: domainInfo.hostedZoneId,
                     },
                     Name: domain.givenDomainName,
                     Type,

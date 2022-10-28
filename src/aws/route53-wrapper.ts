@@ -93,7 +93,7 @@ class Route53Wrapper {
             };
             // Make API call
             try {
-                return await throttledCall(this.route53, "changeResourceRecordSets", params);
+                await throttledCall(this.route53, "changeResourceRecordSets", params);
             } catch (err) {
                 throw new Error(
                     `Failed to ${action} ${recordsToCreate.join(",")} Alias for '${domain.givenDomainName}':\n

@@ -967,7 +967,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id",
+                HostedZoneId: "test_host_id",
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -1024,7 +1024,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id",
+                HostedZoneId: "test_host_id",
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -1098,7 +1098,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_0",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "A",
@@ -1110,7 +1110,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_0",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "AAAA",
@@ -1131,7 +1131,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_1",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "A",
@@ -1143,7 +1143,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_1",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "AAAA",
@@ -1476,7 +1476,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id"
+                HostedZoneId: "test_host_id"
             };
             expect(spy).to.be.called.with(expectedParams);
 
@@ -1559,7 +1559,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_0",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "A",
@@ -1571,7 +1571,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_0",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "AAAA",
@@ -1592,7 +1592,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_1",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "A",
@@ -1604,7 +1604,7 @@ describe("Custom Domain Plugin", () => {
                                     AliasTarget: {
                                         DNSName: "test_distribution_name",
                                         EvaluateTargetHealth: false,
-                                        HostedZoneId: "test_host_id_1",
+                                        HostedZoneId: "Z2FDTNDATAQYW2",
                                     },
                                     Name: "test_domain",
                                     Type: "AAAA",
@@ -2690,7 +2690,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id"
+                HostedZoneId: "test_host_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2772,7 +2772,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id"
+                HostedZoneId: "test_host_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2851,7 +2851,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id"
+                HostedZoneId: "test_host_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });
@@ -2926,7 +2926,7 @@ describe("Custom Domain Plugin", () => {
                     ],
                     Comment: `Record created by "${Globals.pluginName}"`
                 },
-                HostedZoneId: "test_id"
+                HostedZoneId: "test_host_id"
             };
             expect(spy).to.have.been.called.with(expectedParams);
         });

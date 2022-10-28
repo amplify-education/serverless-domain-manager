@@ -70,7 +70,7 @@ class Route53Wrapper {
         }
 
         const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
-        hostedZoneIds.map(async (hostedZoneId) => {
+        for (const hostedZoneId of hostedZoneIds) {
             const changes = recordsToCreate.map((Type) => ({
                 Action: action,
                 ResourceRecordSet: {
@@ -100,7 +100,7 @@ class Route53Wrapper {
                     ${err.message}`
                 );
             }
-        });
+        }
     }
 
     /**

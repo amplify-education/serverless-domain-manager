@@ -53,10 +53,21 @@ class ACMWrapper {
      * * Gets Certificate ARN that most closely matches Cert ARN and not expired
      */
     private async getCertArnByCertName(certificates, certName): Promise<string> {
-        const matches = certificates.filter((cert) => (
-          cert.DomainName === certName
-            || (cert.SubjectAlternativeNameSummaries || []).includes(certName)
-        ));
+        const matches = (() => {
+          const primaryNameMatches = certificates.filter((cert) => (
+            cert.DomainName === certName
+          ));
+          // enhancement idea: add flag so searching alt names is configurable
+          const altNameMatches = certificates.filter((cert) => (
+            (cert.SubjectAlternativeNameSummaries || []).includes(certName)
+          ));
+          return [
+            // Yes, there might be duplicates but it doesn't matter. Put primary
+            // name matches first so they're preferred.
+            ...primaryNameMatches,
+            ...altNameMatches,
+          ];
+        })();
         for (const certificate of matches) {
             const certificateArn = certificate.CertificateArn;
             const details = await throttledCall(

@@ -22,10 +22,6 @@ const certTestData = {
             DomainName: "test_domain",
         },
         {
-            CertificateArn: "expired_cert_name",
-            DomainName: "cert_name",
-        },
-        {
             CertificateArn: "test_given_cert_name",
             DomainName: "cert_name",
         },
@@ -710,30 +706,6 @@ describe("Custom Domain Plugin", () => {
 
         it("Get a given certificate name", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
-            AWS.mock("ACM", "describeCertificate", (params, callback) => {
-                const fifteenDaysAsMs = 15 * 24 * 60 * 60 * 1000;
-                const fifteenDaysInFuture = new Date(Date.now() + fifteenDaysAsMs);
-                const fifteenDaysInPast = new Date(Date.now() - fifteenDaysAsMs);
-                if (params.CertificateArn === "expired_cert_name") {
-                    callback(null, {
-                        Certificate: {
-                            CertificateArn: "doesnt_matter_wont_be_used",
-                            NotAfter: fifteenDaysInPast,
-                        }
-                    });
-                    return;
-                }
-                if (params.CertificateArn === "test_given_cert_name") {
-                    callback(null, {
-                        Certificate: {
-                            CertificateArn: params.CertificateArn,
-                            NotAfter: fifteenDaysInFuture,
-                        }
-                    });
-                    return;
-                }
-                throw new Error("Programmer error: didn't add new test mock data");
-            });
 
             const plugin = constructPlugin({certificateName: "cert_name"});
             plugin.initializeVariables();
@@ -743,6 +715,91 @@ describe("Custom Domain Plugin", () => {
             const result = await acm.getCertArn(dc);
 
             expect(result).to.equal("test_given_cert_name");
+        });
+
+        it("Get a given certificate by alt name with exact match", async () => {
+            AWS.mock("ACM", "listCertificates", {
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "test_nomatch",
+                        DomainName: "dontmatch.com",
+                    },
+                    {
+                        CertificateArn: "test_arn",
+                        DomainName: "test.com",
+                        SubjectAlternativeNameSummaries: [
+                          "example.com",
+                        ],
+                    },
+                ],
+            });
+
+            const options = {
+                domainName: "example.com",
+                endpointType: "REGIONAL",
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            const acm = new ACMWrapper(dc.endpointType);
+            const result = await acm.getCertArn(dc);
+
+            expect(result).to.equal("test_arn");
+        });
+
+        it("Get a given certificate by alt name with subdomain", async () => {
+            AWS.mock("ACM", "listCertificates", {
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "test_arn",
+                        DomainName: "test.com",
+                        SubjectAlternativeNameSummaries: [
+                          "example.com",
+                        ],
+                    },
+                ],
+            });
+
+            const options = {
+                domainName: "sub.example.com",
+                endpointType: "REGIONAL",
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            const acm = new ACMWrapper(dc.endpointType);
+            const result = await acm.getCertArn(dc);
+
+            expect(result).to.equal("test_arn");
+        });
+
+        it("Get a given certificate by alt name with wildcard", async () => {
+            AWS.mock("ACM", "listCertificates", {
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "test_arn",
+                        DomainName: "test.com",
+                        SubjectAlternativeNameSummaries: [
+                          "*.example.com",
+                        ],
+                    },
+                ],
+            });
+
+            const options = {
+                domainName: "sub.example.com",
+                endpointType: "REGIONAL",
+            };
+            const plugin = constructPlugin(options);
+            plugin.initializeVariables();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            const acm = new ACMWrapper(dc.endpointType);
+            const result = await acm.getCertArn(dc);
+
+            expect(result).to.equal("test_arn");
         });
 
         it("Create a domain name", async () => {

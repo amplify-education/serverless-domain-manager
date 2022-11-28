@@ -34,7 +34,7 @@ class Route53Wrapper {
             return;
         }
         // Set up parameters
-        const route53HostedZoneId = await this.getRoute53HostedZoneId(domain);
+        const route53HostedZoneId = await this.getRoute53HostedZoneId(domain, domain.hostedZonePrivate);
         const route53Params = domain.route53Params;
         const route53healthCheck = route53Params.healthCheckId ? {HealthCheckId: route53Params.healthCheckId} : {};
         const domainInfo = domain.domainInfo ?? {

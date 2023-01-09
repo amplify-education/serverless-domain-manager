@@ -4,6 +4,7 @@ import aws = require("aws-sdk");
 import shell = require("shelljs");
 import {TEMP_DIR} from "./base";
 
+// the us-west-2 is set in each test config
 const apiGateway = new aws.APIGateway({
     region: "us-west-2"
 });

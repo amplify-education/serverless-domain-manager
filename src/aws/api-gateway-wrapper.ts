@@ -134,6 +134,38 @@ class APIGatewayWrapper {
      * Get Custom Domain Info through API Gateway
      */
     public async getCustomDomainInfo(domain: DomainConfig): Promise<DomainInfo> {
+        const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
+        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
+            // For EDGE domain name or TLS 1.0, get info with APIGateway (v1)
+            return new DomainInfo(await this.createCustomDomainV1(domain));
+        } else {
+            /// For Regional domain name get info with ApiGatewayV2
+            return new DomainInfo(await this.createCustomDomainV2(domain));
+        }
+    }
+
+    /**
+     * Get Custom Domain Info through API Gateway (v1)
+     */
+    private async getCustomDomainInfoV1(domain: DomainConfig): Promise<DomainInfo> {
+        // Make API call
+        try {
+            const domainInfo = await throttledCall(this.apiGateway, "getDomainName", {
+                domainName: domain.givenDomainName,
+            });
+            return new DomainInfo(domainInfo);
+        } catch (err) {
+            if (err.code !== "NotFoundException") {
+                throw new Error(`Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`);
+            }
+            Globals.logInfo(`'${domain.givenDomainName}' does not exist.`);
+        }
+    }
+
+    /**
+     * Get Custom Domain Info through API Gateway (v2)
+     */
+    private async getCustomDomainInfoV2(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
             const domainInfo = await throttledCall(this.apiGatewayV2, "getDomainName", {

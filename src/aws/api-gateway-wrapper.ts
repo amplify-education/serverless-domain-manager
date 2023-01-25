@@ -137,10 +137,10 @@ class APIGatewayWrapper {
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
         if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
             // For EDGE domain name or TLS 1.0, get info with APIGateway (v1)
-            return new DomainInfo(await this.createCustomDomainV1(domain));
+            return new DomainInfo(await this.getCustomDomainInfoV1(domain));
         } else {
             /// For Regional domain name get info with ApiGatewayV2
-            return new DomainInfo(await this.createCustomDomainV2(domain));
+            return new DomainInfo(await this.getCustomDomainInfoV2(domain));
         }
     }
 

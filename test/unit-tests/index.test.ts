@@ -1627,6 +1627,11 @@ describe("Custom Domain Plugin", () => {
 
     describe("Hook Methods", () => {
         it("setupBasePathMapping", async () => {
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                callback(null, {
+                    domainName: "test_domain"
+                });
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, {
                     DomainName: "test_domain",
@@ -1680,6 +1685,12 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("deleteDomain", async () => {
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                callback(null, {
+                    domainName: "test_domain",
+                    regionalHostedZoneId: "test_id"
+                });
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, {DomainName: "test_domain", DomainNameConfigurations: [{HostedZoneId: "test_id"}]});
             });
@@ -1705,6 +1716,10 @@ describe("Custom Domain Plugin", () => {
 
         it("createDomain if one does not exist before", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                 // @ts-ignore
+                 callback({code: "NotFoundException"}, {});
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 // @ts-ignore
                 callback({code: "NotFoundException"}, {});
@@ -1738,6 +1753,10 @@ describe("Custom Domain Plugin", () => {
 
         it("Does not create domain if one existed before", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
+            AWS.mock("ACM", "listCertificates", certTestData);
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                 callback(null, {domainName: "test_domain", regionalHostedZoneId: "test_id"});
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, {DomainName: "test_domain", DomainNameConfigurations: [{HostedZoneId: "test_id"}]});
             });
@@ -2084,6 +2103,10 @@ describe("Custom Domain Plugin", () => {
 
     describe("Summary Printing", () => {
         it("Prints Summary", async () => {
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                // @ts-ignore
+                callback(null, {domainName: params, distributionDomainName: "test_distributed_domain_name"});
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 // @ts-ignore
                 callback(null, {domainName: params, distributionDomainName: "test_distributed_domain_name"});
@@ -2352,7 +2375,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("createOrGetDomainForCfOutputs should call createDomain when autoDomain is true", async () => {
-            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
                 callback(null, params);
             });
             const plugin = constructPlugin({
@@ -2367,7 +2390,7 @@ describe("Custom Domain Plugin", () => {
 
             plugin.domains[0].apiMapping = {ApiMappingId: "test_mapping_id"};
 
-            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGatewayV2, "getDomainName");
+            const spy = chai.spy.on(plugin.apiGatewayWrapper.apiGateway, "getDomainName");
 
             await plugin.createOrGetDomainForCfOutputs();
 
@@ -2376,6 +2399,9 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("createOrGetDomainForCfOutputs should not call createDomain when autoDomain is not true", async () => {
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                callback(null, params);
+            });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, params);
             });
@@ -2425,6 +2451,9 @@ describe("Custom Domain Plugin", () => {
                 callback(null, params);
             });
             AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
                 callback(null, params);
             });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
@@ -2582,6 +2611,9 @@ describe("Custom Domain Plugin", () => {
                 callback(null, params);
             });
             AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+                callback(null, params);
+            });
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
                 callback(null, params);
             });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {

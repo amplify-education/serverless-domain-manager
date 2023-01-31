@@ -21,7 +21,8 @@ class DomainInfo {
         this.domainName = data.distributionDomainName
             || data.regionalDomainName
             || data.DomainNameConfigurations && data.DomainNameConfigurations[0].ApiGatewayDomainName
-            || data.DomainName;
+            || data.DomainName
+            || data.domainName;
 
         this.hostedZoneId = data.distributionHostedZoneId
             || data.regionalHostedZoneId

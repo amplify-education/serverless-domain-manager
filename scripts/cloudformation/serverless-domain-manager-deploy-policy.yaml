@@ -31,6 +31,10 @@ Resources:
             Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
           - Effect: Allow
             Action:
+              - apigateway:POST
+            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/restapis
+          - Effect: Allow
+            Action:
               - apigateway:PATCH
               - apigateway:POST
             Resource:

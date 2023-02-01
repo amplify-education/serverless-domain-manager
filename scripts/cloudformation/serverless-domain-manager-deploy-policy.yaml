@@ -32,7 +32,9 @@ Resources:
           - Effect: Allow
             Action:
               - apigateway:POST
-            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/restapis
+            Resource: 
+              - !Sub arn:aws:apigateway:${AWS::Region}::/restapis
+              - !Sub arn:aws:apigateway:${AWS::Region}::/restapis/*
           - Effect: Allow
             Action:
               - apigateway:PATCH

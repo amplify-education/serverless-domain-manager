@@ -31,6 +31,7 @@ apigateway:DELETE                   /domainnames/*
 apigateway:POST                     /domainnames
 apigateway:POST                     /domainnames/*/basepathmappings
 apigateway:POST                     /restapis
+apigateway:POST                     /restapis/*
 apigateway:PATCH                    /domainnames/*/basepathmapping
 cloudformation:GET                  *
 cloudfront:UpdateDistribution       *

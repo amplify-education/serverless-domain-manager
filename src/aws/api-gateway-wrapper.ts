@@ -224,7 +224,7 @@ class APIGatewayWrapper {
             }
         }
     }
-
+    // TODO: change any to ApiGatewayV2.GetApiMappingResponse 
     public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse[] | APIGateway.BasePathMapping[] | any[]> {
         try {
             if( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){

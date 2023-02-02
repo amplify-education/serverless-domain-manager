@@ -21,32 +21,25 @@ Make sure you have the following installed before starting:
 * [npm](https://www.npmjs.com/get-npm?utm_source=house&utm_medium=homepage&utm_campaign=free%20orgs&utm_term=Install%20npm)
 * [serverless](https://serverless.com/framework/docs/providers/aws/guide/installation/)
 
-The IAM role that is deploying the lambda will need the following permissions:
+The IAM role that is deploying the lambda might need the following permissions:
 ```
-acm:ListCertificates                *
-acm:DescribeCertificate             *
-apigateway:GET                      /domainnames/*
-apigateway:GET                      /domainnames/*/basepathmappings
-apigateway:DELETE                   /domainnames/*
-apigateway:POST                     /domainnames
-apigateway:POST                     /domainnames/*/basepathmappings
-apigateway:POST                     /restapis
-apigateway:POST                     /restapis/*
-apigateway:GET                      /restapis
-apigateway:GET                      /restapis/*
-apigateway:PUT                      /restapis
-apigateway:PUT                      /restapis/*
-apigateway:DELETE                   /restapis/*
-apigateway:PATCH                    /domainnames/*/basepathmapping
-cloudformation:GET                  *
-cloudfront:UpdateDistribution       *
-route53:ListHostedZones             *
-route53:ChangeResourceRecordSets    hostedzone/{HostedZoneId}
-route53:GetHostedZone               *
-route53:ListResourceRecordSets      *
-iam:CreateServiceLinkedRole         arn:aws:iam::${AWS::AccountId}: role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway
-s3:ListBucket                       *
-s3:GetObject                        *
+acm:ListCertificates                   *
+acm:DescribeCertificate                *
+apigateway:AddCertificateToDomain      /domainnames*
+apigateway:RemoveCertificateFromDomain /domainnames*
+apigateway:GET                         /domainnames*, /apis*, /restapis*
+apigateway:DELETE                      /domainnames*, /apis*, /restapis*
+apigateway:POST                        /domainnames*, /apis*, /restapis*
+apigateway:PATCH                       /domainnames*, /apis*, /restapis*
+cloudformation:GET                     *
+cloudfront:UpdateDistribution          *
+route53:ListHostedZones                *
+route53:ChangeResourceRecordSets       hostedzone/{HostedZoneId}
+route53:GetHostedZone                  *
+route53:ListResourceRecordSets         *
+iam:CreateServiceLinkedRole            arn:aws:iam::${AWS::AccountId}: role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway
+s3:ListBucket                          *
+s3:GetObject                           *
 ```
 ### CloudFormation
 Alternatively you can generate an least privileged IAM Managed Policy for deployment with this:

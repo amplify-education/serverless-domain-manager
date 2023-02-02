@@ -22,33 +22,19 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - apigateway:POST
-            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames
-          - Effect: Allow
-            Action:
-              - apigateway:GET
-              - apigateway:DELETE
-            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*
-          - Effect: Allow
-            Action:
-              - apigateway:POST
-              - apigateway:PUT
-              - apigateway:GET
-            Resource:
-              - !Sub arn:aws:apigateway:${Region}::/restapis
-              - !Sub arn:aws:apigateway:${Region}::/restapis/*
+              - apigateway:AddCertificateToDomain
+              - apigateway:RemoveCertificateFromDomain
+            Resource: !Sub arn:aws:apigateway:${AWS::Region}::/domainnames*
           - Effect: Allow
             Action:
               - apigateway:DELETE
-            Resource:
-              - !Sub arn:aws:apigateway:${Region}::/restapis/*
-          - Effect: Allow
-            Action:
+              - apigateway:GET
               - apigateway:PATCH
               - apigateway:POST
             Resource:
-              - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings
-              - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames/*/basepathmappings/*
+              !Sub arn:aws:apigateway:${AWS::Region}::/apis*
+              !Sub arn:aws:apigateway:${AWS::Region}::/domainnames*
+              !Sub arn:aws:apigateway:${AWS::Region}::/restapis*
           - Effect: Allow
             Action:
               - cloudfront:UpdateDistribution

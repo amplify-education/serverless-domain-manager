@@ -36,6 +36,7 @@ class DomainConfig {
     public apiId: string | undefined;
     public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
     public allowPathMatching: boolean | false;
+    public apiGatewayVersion: string | "v2";
 
     constructor(config: CustomDomain) {
 

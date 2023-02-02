@@ -220,19 +220,36 @@ class APIGatewayWrapper {
     }
 
     public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse[]> {
-        try {
-            return await getAWSPagedResults(
-                this.apiGatewayV2,
-                "getApiMappings",
-                "Items",
-                "NextToken",
-                "NextToken",
-                {DomainName: domain.givenDomainName},
-            );
-        } catch (err) {
-            throw new Error(
-                `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`
-            );
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
+            try {
+                return await getAWSPagedResults(
+                    this.apiGateway,
+                    "getBasePathMappings",
+                    "items",
+                    "NextToken",
+                    "NextToken",
+                    {domainName: domain.givenDomainName},
+                );
+            } catch (err) {
+                throw new Error(
+                    `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings(APIGatewayV1):\n${err.message}`
+                );
+            }
+        } else {
+            try {
+                return await getAWSPagedResults(
+                    this.apiGatewayV2,
+                    "getApiMappings",
+                    "Items",
+                    "NextToken",
+                    "NextToken",
+                    {DomainName: domain.givenDomainName},
+                );
+            } catch (err) {
+                throw new Error(
+                    `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings(APIGatewayV2):\n${err.message}`
+                );
+            }
         }
     }
 

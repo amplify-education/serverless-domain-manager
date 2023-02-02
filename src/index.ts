@@ -293,7 +293,7 @@ class ServerlessCustomDomain {
                 const filteredMappings = mappings.filter((mapping) => {
                     return mapping.ApiId === domain.apiId || (
                         mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
-                    )
+                    ) || mapping.restApiId === domain.apiId
                 });
                 domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                 domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);

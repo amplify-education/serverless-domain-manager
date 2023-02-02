@@ -32,6 +32,11 @@ apigateway:POST                     /domainnames
 apigateway:POST                     /domainnames/*/basepathmappings
 apigateway:POST                     /restapis
 apigateway:POST                     /restapis/*
+apigateway:GET                      /restapis
+apigateway:GET                      /restapis/*
+apigateway:PUT                      /restapis
+apigateway:PUT                      /restapis/*
+apigateway:DELETE                   /restapis/*
 apigateway:PATCH                    /domainnames/*/basepathmapping
 cloudformation:GET                  *
 cloudfront:UpdateDistribution       *

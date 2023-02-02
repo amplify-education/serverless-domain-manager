@@ -1,6 +1,6 @@
 {
-  "name": "serverless-domain-manager",
-  "version": "6.2.3",
+  "name": "@sunday/serverless-domain-manager",
+  "version": "6.2.11",
   "engines": {
     "node": ">=14"
   },

@@ -7,9 +7,15 @@ import Globals from "../globals";
 import {APIGateway, ApiGatewayV2} from "aws-sdk";
 import {getAWSPagedResults, throttledCall} from "../utils";
 
+// Merge api v1 & v2 response
+interface APIMappingV1V2Response extends ApiGatewayV2.GetApiMappingResponse, APIGateway.BasePathMapping {};
+
 class APIGatewayWrapper {
     public apiGateway: APIGateway;
     public apiGatewayV2: ApiGatewayV2;
+
+    
+
 
     constructor(credentials: any) {
         this.apiGateway = new APIGateway(credentials);
@@ -224,16 +230,16 @@ class APIGatewayWrapper {
             }
         }
     }
-    // TODO: change any to ApiGatewayV2.GetApiMappingResponse 
-    public async getApiMappings(domain: DomainConfig): Promise<any> {
+
+    public async getApiMappings(domain: DomainConfig): Promise<APIMappingV1V2Response[]> {
         try {
             if( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){
                 return await getAWSPagedResults(
                     this.apiGateway,
                     "getBasePathMappings",
                     "items",
-                    "NextToken",
-                    "NextToken",
+                    "position",
+                    "position",
                     {domainName: domain.givenDomainName},
                 );
             } else {

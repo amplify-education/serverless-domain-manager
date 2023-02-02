@@ -24,6 +24,7 @@ export interface CustomDomain { // tslint:disable-line
     allowPathMatching: boolean | undefined;
     route53Params: Route53Params | undefined;
     preserveExternalPathMappings: boolean | undefined;
+    apiGatewayVersion: string | undefined;
 }
 
 export interface ServerlessInstance { // tslint:disable-line

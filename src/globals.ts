@@ -23,7 +23,10 @@ export default class Globals {
         rest: "REST",
         websocket: "WEBSOCKET",
     };
-
+    public static apiGatewayVersions = {
+        v1: "v1",
+        v2: "v2"
+    }
     public static gatewayAPIIdKeys = {
         [Globals.apiTypes.rest]: "restApiId",
         [Globals.apiTypes.websocket]: "websocketApiId",

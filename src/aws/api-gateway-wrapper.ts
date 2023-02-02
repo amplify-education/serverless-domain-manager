@@ -22,7 +22,7 @@ class APIGatewayWrapper {
      */
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
+        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0 || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1) {
             // For EDGE domain name or TLS 1.0, create with APIGateway (v1)
             return new DomainInfo(await this.createCustomDomainV1(domain));
         } else {
@@ -122,9 +122,15 @@ class APIGatewayWrapper {
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-            await throttledCall(this.apiGatewayV2, "deleteDomainName", {
-                DomainName: domain.givenDomainName,
-            });
+            if (domain.apiGatewayVersion === Globals.apiGatewayVersions.v1){
+                await throttledCall(this.apiGateway, "deleteDomainName", {
+                    domainName: domain.givenDomainName,
+                });
+            } else {
+                await throttledCall(this.apiGatewayV2, "deleteDomainName", {
+                    DomainName: domain.givenDomainName,
+                });
+            }
         } catch (err) {
             throw new Error(`Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
         }
@@ -135,7 +141,7 @@ class APIGatewayWrapper {
      */
     public async getCustomDomainInfo(domain: DomainConfig): Promise<DomainInfo> {
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
+        if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0 || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1) {
             // For EDGE domain name or TLS 1.0, get info with APIGateway (v1)
             return await this.getCustomDomainInfoV1(domain)
         } else {
@@ -184,8 +190,8 @@ class APIGatewayWrapper {
      * Creates basepath mapping
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        // Use APIGateway (v1) for EDGE or TLS 1.0 domains
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
+        // Use APIGateway (v1) for EDGE or TLS 1.0 domains or ApiGatewayV1
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0" || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1) {
             const params = {
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
@@ -219,9 +225,9 @@ class APIGatewayWrapper {
         }
     }
 
-    public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse[]> {
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
-            try {
+    public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayV2.GetApiMappingResponse[] | APIGateway.BasePathMapping[] | any[]> {
+        try {
+            if( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){
                 return await getAWSPagedResults(
                     this.apiGateway,
                     "getBasePathMappings",
@@ -230,13 +236,7 @@ class APIGatewayWrapper {
                     "NextToken",
                     {domainName: domain.givenDomainName},
                 );
-            } catch (err) {
-                throw new Error(
-                    `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings(APIGatewayV1):\n${err.message}`
-                );
-            }
-        } else {
-            try {
+            } else {
                 return await getAWSPagedResults(
                     this.apiGatewayV2,
                     "getApiMappings",
@@ -245,11 +245,11 @@ class APIGatewayWrapper {
                     "NextToken",
                     {DomainName: domain.givenDomainName},
                 );
-            } catch (err) {
-                throw new Error(
-                    `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings(APIGatewayV2):\n${err.message}`
-                );
             }
+        } catch (err) {
+            throw new Error(
+                `Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings(${domain.apiGatewayVersion}):\n${err.message}`
+            );
         }
     }
 
@@ -261,7 +261,7 @@ class APIGatewayWrapper {
         // check here if the EXISTING domain is using TLS 1.0 regardless of what is configured
         // We don't support updating custom domains so switching from TLS 1.0 to 1.2 will require recreating
         // the domain
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0" || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ) {
             const params = {
                 basePath: domain.apiMapping.ApiMappingKey || Globals.defaultBasePath,
                 domainName: domain.givenDomainName,
@@ -301,17 +301,33 @@ class APIGatewayWrapper {
      * Deletes basepath mapping
      */
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
-        const params = {
-            ApiMappingId: domain.apiMapping.ApiMappingId,
-            DomainName: domain.givenDomainName,
-        };
+        // API Gateway V1 
+        if ( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){
+            const params = {
+                basePath: domain.apiMapping.ApiMappingKey || Globals.defaultBasePath,
+                domainName: domain.givenDomainName,
+            };
 
-        // Make API call
-        try {
-            await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
-            Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
-        } catch (err) {
-            throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
+            // Make API call
+            try {
+                await throttledCall(this.apiGateway, "deleteBasePathMapping", params);
+                Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+            } catch (err) {
+                throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
+            } 
+        } else { // API Gateway V2 
+            const params = {
+                ApiMappingId: domain.apiMapping.ApiMappingId,
+                DomainName: domain.givenDomainName,
+            };
+
+            // Make API call
+            try {
+                await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
+                Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+            } catch (err) {
+                throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
+            }
         }
     }
 }

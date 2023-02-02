@@ -111,6 +111,12 @@ class DomainConfig {
                 "Use a regional endpoint instead."
             );
         }
+        const apiGatewayVersionDefault = config.apiGatewayVersion || Globals.apiGatewayVersions.v2;
+        const apiGatewayVersionToUse = Globals.apiGatewayVersions[apiGatewayVersionDefault.toLowerCase()];
+        if (!apiGatewayVersionToUse) {
+            throw new Error(`${apiGatewayVersionDefault} is not supported api gateway version, use v1 or v2.`);
+        }
+        this.apiGatewayVersion = apiGatewayVersionToUse;
 
         this.route53Params = {
             routingPolicy: routingPolicyToUse,

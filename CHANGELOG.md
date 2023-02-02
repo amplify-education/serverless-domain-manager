@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.2.3] - 2023-02-02
+
+### Fixed
+- Updated the README.md and cloudformation config example with the proper permissions. Thank you @delenamalan([541](https://github.com/amplify-education/serverless-domain-manager/pull/541))
 
 ## [6.2.2] - 2023-02-01
 

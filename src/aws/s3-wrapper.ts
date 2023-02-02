@@ -25,6 +25,7 @@ class S3Wrapper {
             await throttledCall(this.s3, "headObject", params);
         } catch (err) {
             if (err.code !== "AccessDenied") {
+                Globals.logError(err);
                 throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`);
             }
 

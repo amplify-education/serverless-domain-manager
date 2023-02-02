@@ -24,11 +24,13 @@ class S3Wrapper {
 
             await throttledCall(this.s3, "headObject", params);
         } catch (err) {
-            if (err.code !== "AccessDenied") {
+            if (err.statusCode !== 403) {
                 throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`);
             }
 
-            Globals.logWarning(`Unable to check existance of S3 object at ${domain.tlsTruststoreUri} due to\n${err.message}`);
+            Globals.logWarning(
+                `Forbidden to check the existence of the S3 object ${domain.tlsTruststoreUri} due to\n${err}`
+            );
         }
     }
 
@@ -36,9 +38,8 @@ class S3Wrapper {
      * * Extracts Bucket and Key from the given s3 uri
      */
     private extractBucketAndKey(uri: string): { Bucket: string; Key: string } {
-        const { hostname, pathname } = new URL(uri);
-
-        return { Bucket: hostname, Key: pathname.substring(1) };
+        const {hostname, pathname} = new URL(uri);
+        return {Bucket: hostname, Key: pathname.substring(1)};
     }
 }
 

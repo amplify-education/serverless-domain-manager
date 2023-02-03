@@ -33,9 +33,10 @@ class ACMWrapper {
                 "NextToken",
                 {CertificateStatuses: certStatuses},
             );
-
+            // enhancement idea: weight the choice of cert so longer expiries
+            // and RenewalEligibility = ELIGIBLE is more preferable
             if (certificateName != null) {
-                certificateArn = await this.getCertArnByCertName(certificates, certificateName);
+                certificateArn = this.getCertArnByCertName(certificates, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
                 certificateArn = this.getCertArnByDomainName(certificates, certificateName);
@@ -52,50 +53,42 @@ class ACMWrapper {
     /**
      * * Gets Certificate ARN that most closely matches Cert ARN and not expired
      */
-    private async getCertArnByCertName(certificates, certName): Promise<string> {
-        // note: we only check DomainName, but a future enhancement could
-        // be to also check SubjectAlternativeNames
-        const matches = certificates.filter((certificate) => (certificate.DomainName === certName));
-        for (const certificate of matches) {
-            const certificateArn = certificate.CertificateArn;
-            const details = await throttledCall(
-                this.acm,
-                "describeCertificate",
-                {CertificateArn: certificateArn},
-            );
-            const currNotAfter = details.Certificate.NotAfter;
-            if (Date.now() < currNotAfter) {
-                Globals.logInfo(
-                    `Selecting cert with ARN=${certificateArn} with future expiry (${currNotAfter.toISOString()})`
-                );
-                return certificateArn;
-            }
-            Globals.logInfo(
-                `Ignoring cert with ARN=${certificateArn} that is expired (${currNotAfter.toISOString()})`
-            );
+    private getCertArnByCertName(certificates, certName): string {
+        const found = certificates.find((c) => c.DomainName === certName);
+        if (found) {
+          return found.CertificateArn;
         }
+        return null;
     }
 
     /**
      * * Gets Certificate ARN that most closely matches domain name
      */
-    private getCertArnByDomainName(certificates, domainName): Promise<string> {
+    private getCertArnByDomainName(certificates, domainName): string {
         // The more specific name will be the longest
         let nameLength = 0;
         let certificateArn;
-        certificates.forEach((certificate) => {
-            let certificateListName = certificate.DomainName;
-            // Looks for wild card and takes it out when checking
-            if (certificateListName[0] === "*") {
-                certificateListName = certificateListName.substring(1);
+        for (const currCert of certificates) {
+            const allDomainsForCert = [
+                currCert.DomainName,
+                ...(currCert.SubjectAlternativeNameSummaries || []),
+            ];
+            for (const currCertDomain of allDomainsForCert) {
+                let certificateListName = currCertDomain;
+                // Looks for wild card and take it out when checking
+                if (certificateListName[0] === "*") {
+                    certificateListName = certificateListName.substring(1);
+                }
+                // Looks to see if the name in the list is within the given domain
+                // Also checks if the name is more specific than previous ones
+                if (domainName.includes(certificateListName)
+                      && certificateListName.length > nameLength
+                ) {
+                    nameLength = certificateListName.length;
+                    certificateArn = currCert.CertificateArn;
+                }
             }
-            // Looks to see if the name in the list is within the given domain
-            // Also checks if the name is more specific than previous ones
-            if (domainName.includes(certificateListName) && certificateListName.length > nameLength) {
-                nameLength = certificateListName.length;
-                certificateArn = certificate.CertificateArn;
-            }
-        });
+        }
         return certificateArn;
     }
 }

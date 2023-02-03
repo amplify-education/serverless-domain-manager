@@ -4,15 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [6.2.4] - 2023-02-03
+
+### Fixed
+- Improved certificate searching. Thank you @tomsaleeba ([529](https://github.com/amplify-education/serverless-domain-manager/pull/529))
+
 ## [6.2.3] - 2023-02-02
 
 ### Fixed
-- Updated the README.md and cloudformation config example with the proper permissions. Thank you @delenamalan([541](https://github.com/amplify-education/serverless-domain-manager/pull/541))
+- Updated the README.md and cloudformation config example with the proper permissions. Thank you @delenamalan ([541](https://github.com/amplify-education/serverless-domain-manager/pull/541))
 
 ## [6.2.2] - 2023-02-01
 
 ### Fixed
-- Fixed getCustomDomainInfo function to different APIGateway versions. Thank you @aalongkott([537](https://github.com/amplify-education/serverless-domain-manager/pull/537))
+- Fixed getCustomDomainInfo function to different APIGateway versions. Thank you @aalongkott ([537](https://github.com/amplify-education/serverless-domain-manager/pull/537))
 
 ## [6.2.1] - 2022-11-28
 

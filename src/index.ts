@@ -287,26 +287,20 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            try {
-                domain.apiId = await this.getApiId(domain);
-                const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
-                const filteredMappings = mappings.filter((mapping) => {
-                    return mapping.ApiId === domain.apiId || (
-                        mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
-                    )
-                });
-                domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
-                domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+            domain.apiId = await this.getApiId(domain);
+            const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+            const filteredMappings = mappings.filter((mapping) => {
+                return mapping.ApiId === domain.apiId || (
+                    mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                )
+            });
+            domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
+            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
 
-                if (!domain.apiMapping) {
-                    await this.apiGatewayWrapper.createBasePathMapping(domain);
-                } else {
-                    await this.apiGatewayWrapper.updateBasePathMapping(domain);
-                }
-            } catch (err) {
-                throw new Error(
-                    `Unable to setup base domain mappings for '${domain.givenDomainName}':\n${err.message}`
-                );
+            if (!domain.apiMapping) {
+                await this.apiGatewayWrapper.createBasePathMapping(domain);
+            } else {
+                await this.apiGatewayWrapper.updateBasePathMapping(domain);
             }
         })).finally(() => {
             Globals.printDomainSummary(this.domains);
@@ -442,10 +436,12 @@ class ServerlessCustomDomain {
             hostedZoneIdOutputKey += "Websocket";
         }
 
+        // Remove remove all special characters
+        const safeStage = domain.stage.replace(/[^a-zA-Z0-9]/g, '');
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
             Export: {
-                Name: `sls-${service.service}-${domain.stage}-${domainNameOutputKey}`,
+                Name: `sls-${service.service}-${safeStage}-${domainNameOutputKey}`,
             },
         };
 
@@ -453,13 +449,13 @@ class ServerlessCustomDomain {
             service.provider.compiledCloudFormationTemplate.Outputs[distributionDomainNameOutputKey] = {
                 Value: domain.domainInfo.domainName,
                 Export: {
-                    Name: `sls-${service.service}-${domain.stage}-${distributionDomainNameOutputKey}`,
+                    Name: `sls-${service.service}-${safeStage}-${distributionDomainNameOutputKey}`,
                 },
             };
             service.provider.compiledCloudFormationTemplate.Outputs[hostedZoneIdOutputKey] = {
                 Value: domain.domainInfo.hostedZoneId,
                 Export: {
-                    Name: `sls-${service.service}-${domain.stage}-${hostedZoneIdOutputKey}`,
+                    Name: `sls-${service.service}-${safeStage}-${hostedZoneIdOutputKey}`,
                 },
             };
         }

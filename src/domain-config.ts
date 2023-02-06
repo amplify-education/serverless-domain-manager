@@ -9,6 +9,7 @@ import {CustomDomain, Route53Params} from "./types";
 import {evaluateBoolean} from "./utils";
 
 class DomainConfig {
+    private readonly _stage: string | undefined;
 
     public givenDomainName: string;
     public basePath: string | undefined;
@@ -58,13 +59,16 @@ class DomainConfig {
         if (!basePath || basePath.trim() === "") {
             basePath = Globals.defaultBasePath;
         }
+        if (Globals.reservedBasePaths.indexOf(basePath) !== -1) {
+            Globals.logWarning(
+                "The `/ping` and `/sping` paths are reserved for the service health check.\n Please take a look at" +
+                "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html"
+            );
+        }
         this.basePath = basePath;
 
-        let stage = config.stage;
-        if (!stage) {
-            stage = Globals.options.stage || Globals.serverless.service.provider.stage;
-        }
-        this.stage = stage;
+        this._stage = config.stage;
+        this.stage = config.stage || Globals.options.stage || Globals.serverless.service.provider.stage;
 
         const endpointTypeWithDefault = config.endpointType || Globals.endpointTypes.edge;
         const endpointTypeToUse = Globals.endpointTypes[endpointTypeWithDefault.toLowerCase()];
@@ -121,8 +125,15 @@ class DomainConfig {
         this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
     }
 
+    /**
+     * Return the stage provided in the custom config
+     */
+    public getConfigStage(): string | undefined {
+        return this._stage;
+    }
+
     private validateS3Uri(uri: string): void {
-        const { protocol, pathname } = new URL(uri);
+        const {protocol, pathname} = new URL(uri);
 
         if (protocol !== "s3:" && !pathname.substring(1).includes("/")) {
             throw new Error(`${uri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`);

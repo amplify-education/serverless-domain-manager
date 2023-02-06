@@ -13,6 +13,9 @@ export default class Globals {
     public static defaultBasePath = "(none)";
     public static defaultStage = "$default";
 
+    // https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html
+    public static reservedBasePaths = ["ping", "sping"];
+
     public static endpointTypes = {
         edge: "EDGE",
         regional: "REGIONAL",

@@ -207,7 +207,7 @@ class APIGatewayWrapper {
                 ApiId: domain.apiId,
                 ApiMappingKey: domain.basePath,
                 DomainName: domain.givenDomainName,
-                Stage: domain.apiType === Globals.apiTypes.http ? Globals.defaultStage : domain.stage,
+                Stage: domain.stage,
             };
             // Make API call
             try {
@@ -268,7 +268,7 @@ class APIGatewayWrapper {
                 ApiMappingId: domain.apiMapping.ApiMappingId,
                 ApiMappingKey: domain.basePath,
                 DomainName: domain.givenDomainName,
-                Stage: domain.apiType === Globals.apiTypes.http ? Globals.defaultStage : domain.stage,
+                Stage: domain.stage,
             };
             // Make API call
             try {

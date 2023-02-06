@@ -2365,7 +2365,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Should thrown an Error when Serverless custom configuration object is missing for multiple domains", () => {
-            const plugin = constructPlugin({}, null,true);
+            const plugin = constructPlugin({}, null, true);
             delete plugin.serverless.service.custom.customDomains;
 
             let errored = false;

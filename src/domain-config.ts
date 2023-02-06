@@ -63,7 +63,7 @@ class DomainConfig {
 
         let stage = config.stage;
         if (!stage) {
-            stage = Globals.options.stage || Globals.serverless.service.provider.stage;
+            stage = Globals.options.stage || Globals.serverless.service.provider.stage || Globals.defaultStage;
         }
         this.stage = stage;
 

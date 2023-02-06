@@ -11,6 +11,7 @@ import {getAWSPagedResults} from "../../src/utils";
 import Route53Wrapper = require("../../src/aws/route53-wrapper");
 import ACMWrapper = require("../../src/aws/acm-wrapper");
 import S3Wrapper = require("../../src/aws/s3-wrapper");
+import {ServerlessOptions} from "../../src/types";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -38,7 +39,7 @@ const testCreds = {
     sessionToken: "test_session",
 };
 
-const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
+const constructPlugin = (customDomainOptions, options?: ServerlessOptions, multiple: boolean = false) => {
     aws.config.update(testCreds);
     aws.config.region = "eu-west-1";
 
@@ -113,7 +114,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                     Outputs: null,
                 },
                 stackName: "custom-stage-name",
-                stage: "test",
+                stage: null,
                 stackTags: {
                     test: "test"
                 },
@@ -124,10 +125,10 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
             service: "test",
         },
     };
-    const options = {
+    const defaultOptions = {
         stage: "test",
     };
-    return new ServerlessCustomDomain(serverless, options);
+    return new ServerlessCustomDomain(serverless, options || defaultOptions);
 };
 
 Globals.cliLog = (prefix: string, message: string) => {
@@ -327,6 +328,8 @@ describe("Custom Domain Plugin", () => {
                 basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "REGIONAL",
+            }, {
+                stage: null
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -386,6 +389,8 @@ describe("Custom Domain Plugin", () => {
                 basePath: "test_basepath",
                 domainName: "test_domain",
                 endpointType: "REGIONAL",
+            }, {
+                stage: null
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -728,7 +733,7 @@ describe("Custom Domain Plugin", () => {
                         CertificateArn: "test_arn",
                         DomainName: "test.com",
                         SubjectAlternativeNameSummaries: [
-                          "example.com",
+                            "example.com",
                         ],
                     },
                 ],
@@ -755,7 +760,7 @@ describe("Custom Domain Plugin", () => {
                         CertificateArn: "test_arn",
                         DomainName: "test.com",
                         SubjectAlternativeNameSummaries: [
-                          "example.com",
+                            "example.com",
                         ],
                     },
                 ],
@@ -782,7 +787,7 @@ describe("Custom Domain Plugin", () => {
                         CertificateArn: "test_arn",
                         DomainName: "test.com",
                         SubjectAlternativeNameSummaries: [
-                          "*.example.com",
+                            "*.example.com",
                         ],
                     },
                 ],
@@ -1775,8 +1780,8 @@ describe("Custom Domain Plugin", () => {
         it("createDomain if one does not exist before", async () => {
             AWS.mock("ACM", "listCertificates", certTestData);
             AWS.mock("APIGateway", "getDomainName", (params, callback) => {
-                 // @ts-ignore
-                 callback({code: "NotFoundException"}, {});
+                // @ts-ignore
+                callback({code: "NotFoundException"}, {});
             });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 // @ts-ignore
@@ -1813,7 +1818,7 @@ describe("Custom Domain Plugin", () => {
             AWS.mock("ACM", "listCertificates", certTestData);
             AWS.mock("ACM", "listCertificates", certTestData);
             AWS.mock("APIGateway", "getDomainName", (params, callback) => {
-                 callback(null, {domainName: "test_domain", regionalHostedZoneId: "test_id"});
+                callback(null, {domainName: "test_domain", regionalHostedZoneId: "test_id"});
             });
             AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
                 callback(null, {DomainName: "test_domain", DomainNameConfigurations: [{HostedZoneId: "test_id"}]});
@@ -2360,7 +2365,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Should thrown an Error when Serverless custom configuration object is missing for multiple domains", () => {
-            const plugin = constructPlugin({}, true);
+            const plugin = constructPlugin({}, null,true);
             delete plugin.serverless.service.custom.customDomains;
 
             let errored = false;

@@ -186,36 +186,52 @@ class APIGatewayWrapper {
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         // Use APIGateway (v1) for EDGE or TLS 1.0 domains
         if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
-            const params = {
+            await this.createBasePathMappingV1(domain);
+        } else {
+            await this.createBasePathMappingV2(domain);
+        }
+    }
+
+    private async createBasePathMappingV1(domain: DomainConfig): Promise<void> {
+        try {
+            await throttledCall(this.apiGateway, "createBasePathMapping", {
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
                 restApiId: domain.apiId,
                 stage: domain.stage,
-            };
-            // Make API call
-            try {
-                await throttledCall(this.apiGateway, "createBasePathMapping", params);
-                Globals.logInfo(`Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
-            } catch (err) {
-                throw new Error(
-                    `Make sure the '${domain.givenDomainName}' exists.
+            });
+            Globals.logInfo(`Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
+        } catch (err) {
+            throw new Error(
+                `Make sure the '${domain.givenDomainName}' exists.
                      Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+            );
+        }
+    }
+
+    private async createBasePathMappingV2(domain: DomainConfig): Promise<void> {
+        let stage = domain.stage;
+        if (domain.apiType === Globals.apiTypes.http) {
+            stage = domain.getConfigStage() || Globals.defaultStage;
+
+            if (stage !== Globals.defaultStage) {
+                Globals.logWarning(
+                    `Using the stage '${stage}' for the HTTP gateway type.
+                     Make sure the '${Globals.defaultStage}' is set.\n
+                     https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
                 );
             }
-        } else { // Use ApiGatewayV2 for Regional domains
-            const params = {
+        }
+        try {
+            await throttledCall(this.apiGatewayV2, "createApiMapping", {
                 ApiId: domain.apiId,
                 ApiMappingKey: domain.basePath,
                 DomainName: domain.givenDomainName,
-                Stage: domain.stage,
-            };
-            // Make API call
-            try {
-                await throttledCall(this.apiGatewayV2, "createApiMapping", params);
-                Globals.logInfo(`Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
-            } catch (err) {
-                throw new Error(`Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`);
-            }
+                Stage: stage,
+            });
+            Globals.logInfo(`Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
+        } catch (err) {
+            throw new Error(`Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`);
         }
     }
 
@@ -245,7 +261,15 @@ class APIGatewayWrapper {
         // We don't support updating custom domains so switching from TLS 1.0 to 1.2 will require recreating
         // the domain
         if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
-            const params = {
+            await this.updateBasePathMappingV1(domain);
+        } else {
+            await this.updateBasePathMappingV2(domain);
+        }
+    }
+
+    private async updateBasePathMappingV1(domain: DomainConfig): Promise<void> {
+        try {
+            await throttledCall(this.apiGateway, "updateBasePathMapping", {
                 basePath: domain.apiMapping.ApiMappingKey || Globals.defaultBasePath,
                 domainName: domain.givenDomainName,
                 patchOperations: [{
@@ -253,30 +277,36 @@ class APIGatewayWrapper {
                     path: "/basePath",
                     value: domain.basePath,
                 }]
-            };
-            // Make API call
-            try {
-                await throttledCall(this.apiGateway, "updateBasePathMapping", params);
-                Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
+            });
+            Globals.logInfo(`Updated API mapping from '${domain.apiMapping.ApiMappingKey}'
                     to '${domain.basePath}' for '${domain.givenDomainName}'`);
-            } catch (err) {
-                throw new Error(`Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`);
-            }
-        } else { // Use ApiGatewayV2 for Regional domains
-            const params = {
+        } catch (err) {
+            throw new Error(`Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`);
+        }
+    }
+
+    private async updateBasePathMappingV2(domain: DomainConfig): Promise<void> {
+        let stage = domain.stage;
+        if (domain.apiType === Globals.apiTypes.http) {
+            stage = domain.getConfigStage() || Globals.defaultStage;
+
+            Globals.logWarning(
+                `Using the stage '${stage}' for the HTTP gateway type.
+                 Make sure the '${Globals.defaultStage}' is set.\n
+                 https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
+            );
+        }
+        try {
+            await throttledCall(this.apiGatewayV2, "updateApiMapping", {
                 ApiId: domain.apiId,
                 ApiMappingId: domain.apiMapping.ApiMappingId,
                 ApiMappingKey: domain.basePath,
                 DomainName: domain.givenDomainName,
-                Stage: domain.stage,
-            };
-            // Make API call
-            try {
-                await throttledCall(this.apiGatewayV2, "updateApiMapping", params);
-                Globals.logInfo(`Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
-            } catch (err) {
-                throw new Error(`Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`);
-            }
+                Stage: stage,
+            });
+            Globals.logInfo(`Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
+        } catch (err) {
+            throw new Error(`Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`);
         }
     }
 

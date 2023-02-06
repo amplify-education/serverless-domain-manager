@@ -14,9 +14,6 @@ class APIGatewayWrapper {
     public apiGateway: APIGateway;
     public apiGatewayV2: ApiGatewayV2;
 
-    
-
-
     constructor(credentials: any) {
         this.apiGateway = new APIGateway(credentials);
         this.apiGatewayV2 = new ApiGatewayV2(credentials);
@@ -307,7 +304,7 @@ class APIGatewayWrapper {
      * Deletes basepath mapping
      */
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
-        // API Gateway V1 
+        // API Gateway V1
         if ( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){
             const params = {
                 basePath: domain.apiMapping.ApiMappingKey || Globals.defaultBasePath,
@@ -320,8 +317,8 @@ class APIGatewayWrapper {
                 Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
             } catch (err) {
                 throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
-            } 
-        } else { // API Gateway V2 
+            }
+        } else { // API Gateway V2
             const params = {
                 ApiMappingId: domain.apiMapping.ApiMappingId,
                 DomainName: domain.givenDomainName,

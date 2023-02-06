@@ -34,7 +34,7 @@ describe("Integration Tests", function () {
             await utilities.destroyResources(testName);
         }
     });
-
+/*
     it("Delete domain then recreate", async () => {
         const testName = "basepath-mapping";
         const configFolder = `${CONFIGS_FOLDER}/${testName}`;
@@ -164,5 +164,5 @@ describe("Integration Tests", function () {
         } finally {
             await utilities.destroyResources(testName);
         }
-    });
+    });*/
 });

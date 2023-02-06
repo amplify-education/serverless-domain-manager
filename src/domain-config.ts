@@ -58,6 +58,12 @@ class DomainConfig {
         if (!basePath || basePath.trim() === "") {
             basePath = Globals.defaultBasePath;
         }
+        if (Globals.reservedBasePaths.indexOf(basePath) !== -1) {
+            Globals.logWarning(
+                "The `/ping` and `/sping` paths are reserved for the service health check.\n Please take a look at" +
+                "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html"
+            );
+        }
         this.basePath = basePath;
 
         let stage = config.stage;

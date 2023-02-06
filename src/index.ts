@@ -298,15 +298,10 @@ class ServerlessCustomDomain {
                 domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                 domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
 
-                if (!domain.apiMapping) {
-                    await this.apiGatewayWrapper.createBasePathMapping(domain);
-                } else {
-                    await this.apiGatewayWrapper.updateBasePathMapping(domain);
-                }
-            } catch (err) {
-                throw new Error(
-                    `Unable to setup base domain mappings for '${domain.givenDomainName}':\n${err.message}`
-                );
+            if (!domain.apiMapping) {
+                await this.apiGatewayWrapper.createBasePathMapping(domain);
+            } else {
+                await this.apiGatewayWrapper.updateBasePathMapping(domain);
             }
         })).finally(() => {
             Globals.printDomainSummary(this.domains);

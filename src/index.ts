@@ -37,6 +37,7 @@ class ServerlessCustomDomain {
             Globals.v3Utils = v3Utils;
         }
 
+        /*eslint camelcase: ["error", {allow: ["create_domain", "delete_domain"]}]*/
         this.commands = {
             create_domain: {
                 lifecycleEvents: [
@@ -240,7 +241,7 @@ class ServerlessCustomDomain {
             if (domain.domainInfo) {
                 await this.apiGatewayWrapper.deleteCustomDomain(domain);
                 await route53.changeResourceRecordSet("DELETE", domain);
-                domain.domainInfo = undefined;
+                domain.domainInfo = null;
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
             } else {
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} does not exist.`);
@@ -332,7 +333,7 @@ class ServerlessCustomDomain {
                     }
                     domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                     if (domain.apiMapping) {
-                        Globals.logInfo(`Removing API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+                        Globals.logInfo(`Removing API Mapping with id: '${domain.apiMapping.ApiMappingId}'`);
                         await this.apiGatewayWrapper.deleteBasePathMapping(domain);
                     } else {
                         Globals.logWarning(
@@ -364,7 +365,7 @@ class ServerlessCustomDomain {
      */
     public async domainSummaries(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain)
+            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         })).finally(() => {
             Globals.printDomainSummary(this.domains);
         });

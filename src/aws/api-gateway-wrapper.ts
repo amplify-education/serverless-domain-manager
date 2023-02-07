@@ -137,10 +137,10 @@ class APIGatewayWrapper {
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
         if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
             // For EDGE domain name or TLS 1.0, get info with APIGateway (v1)
-            return await this.getCustomDomainInfoV1(domain)
+            return await this.getCustomDomainInfoV1(domain);
         } else {
             /// For Regional domain name get info with ApiGatewayV2
-            return await this.getCustomDomainInfoV2(domain)
+            return await this.getCustomDomainInfoV2(domain);
         }
     }
 
@@ -314,7 +314,7 @@ class APIGatewayWrapper {
         // Make API call
         try {
             await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
-            Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+            Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`);
         } catch (err) {
             throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
         }

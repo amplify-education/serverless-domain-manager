@@ -39,6 +39,7 @@ export default class Globals {
         [Globals.apiTypes.websocket]: "WebsocketsApi",
     };
 
+    /*eslint camelcase: ["error", {allow: ["^tls_"]}]*/
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
@@ -98,7 +99,7 @@ export default class Globals {
                 summaryList.push(`Target Domain: ${domain.domainInfo.domainName}`);
                 summaryList.push(`Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
             }
-        })
+        });
         // don't print summary if summaryList is empty
         if (!summaryList.length) {
             return;

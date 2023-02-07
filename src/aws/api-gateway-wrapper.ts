@@ -212,7 +212,7 @@ class APIGatewayWrapper {
     private async createBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            // TODO: find a better way how to implement custom stage for the HTTP API type
+            // find a better way how to implement custom stage for the HTTP API type
             // stage = domain.getConfigStage() || Globals.defaultStage;
 
             stage = Globals.defaultStage;
@@ -283,7 +283,7 @@ class APIGatewayWrapper {
     private async updateBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            // TODO: find a better way how to implement custom stage for the HTTP API type
+            // find a better way how to implement custom stage for the HTTP API type
             // stage = domain.getConfigStage() || Globals.defaultStage;
 
             stage = Globals.defaultStage;

@@ -212,15 +212,10 @@ class APIGatewayWrapper {
     private async createBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            stage = domain.getConfigStage() || Globals.defaultStage;
+            // TODO: find a better way how to implement custom stage for the HTTP API type
+            // stage = domain.getConfigStage() || Globals.defaultStage;
 
-            if (stage !== Globals.defaultStage) {
-                Globals.logWarning(
-                    `Using the stage '${stage}' for the HTTP gateway type.
-                     Make sure the '${Globals.defaultStage}' is set.\n
-                     https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
-                );
-            }
+            stage = Globals.defaultStage;
         }
         try {
             await throttledCall(this.apiGatewayV2, "createApiMapping", {
@@ -288,13 +283,10 @@ class APIGatewayWrapper {
     private async updateBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            stage = domain.getConfigStage() || Globals.defaultStage;
+            // TODO: find a better way how to implement custom stage for the HTTP API type
+            // stage = domain.getConfigStage() || Globals.defaultStage;
 
-            Globals.logWarning(
-                `Using the stage '${stage}' for the HTTP gateway type.
-                 Make sure the '${Globals.defaultStage}' is set.\n
-                 https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
-            );
+            stage = Globals.defaultStage;
         }
         try {
             await throttledCall(this.apiGatewayV2, "updateApiMapping", {

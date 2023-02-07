@@ -197,7 +197,7 @@ class APIGatewayWrapper {
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         // Use APIGateway (v1) for EDGE or TLS 1.0 domains
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0") {
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.securityPolicy === "TLS_1_0"  || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1) {
             await this.createBasePathMappingV1(domain);
         } else {
             await this.createBasePathMappingV2(domain);
@@ -283,7 +283,7 @@ class APIGatewayWrapper {
         // check here if the EXISTING domain is using TLS 1.0 regardless of what is configured
         // We don't support updating custom domains so switching from TLS 1.0 to 1.2 will require recreating
         // the domain
-        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0") {
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.domainInfo.securityPolicy === "TLS_1_0" || domain.apiGatewayVersion === Globals.apiGatewayVersions.v1) {
             await this.updateBasePathMappingV1(domain);
         } else {
             await this.updateBasePathMappingV2(domain);
@@ -338,7 +338,7 @@ class APIGatewayWrapper {
      */
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
         // API Gateway V1
-        if ( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1 ){
+        if ( domain.apiGatewayVersion === Globals.apiGatewayVersions.v1){
             const params = {
                 basePath: domain.apiMapping.ApiMappingKey || Globals.defaultBasePath,
                 domainName: domain.givenDomainName,

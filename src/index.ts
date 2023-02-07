@@ -287,17 +287,15 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            try {
-                domain.apiId = await this.getApiId(domain);
-                const mappings = await this.apiGatewayWrapper.getApiMappings(domain)
-                const filteredMappings = mappings.filter((mapping) => {
-                    return mapping?.ApiId === domain.apiId || (
-                        mapping?.ApiMappingKey === domain?.basePath && domain?.allowPathMatching
-                    ) || mapping?.restApiId === domain.apiId
-                });
-                domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
-                domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
-
+            domain.apiId = await this.getApiId(domain);
+            const mappings = await this.apiGatewayWrapper.getApiMappings(domain)
+            const filteredMappings = mappings.filter((mapping) => {
+                return mapping?.ApiId === domain.apiId || (
+                    mapping?.ApiMappingKey === domain?.basePath && domain?.allowPathMatching
+                ) || mapping?.restApiId === domain.apiId
+            });
+            domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
+            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
             if (!domain.apiMapping) {
                 await this.apiGatewayWrapper.createBasePathMapping(domain);
             } else {

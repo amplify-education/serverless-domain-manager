@@ -120,7 +120,7 @@ class DomainConfig {
             setIdentifier: config.route53Params?.setIdentifier,
             weight: config.route53Params?.weight ?? 200,
             healthCheckId: config.route53Params?.healthCheckId
-        }
+        };
 
         this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
     }

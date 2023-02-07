@@ -137,10 +137,10 @@ class APIGatewayWrapper {
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
         if (isEdgeType || domain.securityPolicy === Globals.tlsVersions.tls_1_0) {
             // For EDGE domain name or TLS 1.0, get info with APIGateway (v1)
-            return await this.getCustomDomainInfoV1(domain)
+            return await this.getCustomDomainInfoV1(domain);
         } else {
             /// For Regional domain name get info with ApiGatewayV2
-            return await this.getCustomDomainInfoV2(domain)
+            return await this.getCustomDomainInfoV2(domain);
         }
     }
 
@@ -212,15 +212,10 @@ class APIGatewayWrapper {
     private async createBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            stage = domain.getConfigStage() || Globals.defaultStage;
+            // find a better way how to implement custom stage for the HTTP API type
+            // stage = domain.getConfigStage() || Globals.defaultStage;
 
-            if (stage !== Globals.defaultStage) {
-                Globals.logWarning(
-                    `Using the stage '${stage}' for the HTTP gateway type.
-                     Make sure the '${Globals.defaultStage}' is set.\n
-                     https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
-                );
-            }
+            stage = Globals.defaultStage;
         }
         try {
             await throttledCall(this.apiGatewayV2, "createApiMapping", {
@@ -288,13 +283,10 @@ class APIGatewayWrapper {
     private async updateBasePathMappingV2(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
-            stage = domain.getConfigStage() || Globals.defaultStage;
+            // find a better way how to implement custom stage for the HTTP API type
+            // stage = domain.getConfigStage() || Globals.defaultStage;
 
-            Globals.logWarning(
-                `Using the stage '${stage}' for the HTTP gateway type.
-                 Make sure the '${Globals.defaultStage}' is set.\n
-                 https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html`
-            );
+            stage = Globals.defaultStage;
         }
         try {
             await throttledCall(this.apiGatewayV2, "updateApiMapping", {
@@ -322,7 +314,7 @@ class APIGatewayWrapper {
         // Make API call
         try {
             await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
-            Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`)
+            Globals.logInfo(`Removed API Mapping with id: '${domain.apiMapping.ApiMappingId}'`);
         } catch (err) {
             throw new Error(`Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`);
         }

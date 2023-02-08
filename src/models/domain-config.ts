@@ -2,11 +2,11 @@
  * Wrapper class for Custom Domain information
  */
 
-import * as AWS from "aws-sdk"; // imported for Types
 import DomainInfo = require("./domain-info");
-import Globals from "./globals";
-import {CustomDomain, Route53Params} from "./types";
-import {evaluateBoolean} from "./utils";
+import Globals from "../globals";
+import {CustomDomain, Route53Params} from "../types";
+import {evaluateBoolean} from "../utils";
+import ApiGatewayMap = require("./api-gateway-map");
 
 class DomainConfig {
     private readonly _stage: string | undefined;
@@ -35,7 +35,7 @@ class DomainConfig {
     public preserveExternalPathMappings: boolean | undefined;
     public domainInfo: DomainInfo | undefined;
     public apiId: string | undefined;
-    public apiMapping: AWS.ApiGatewayV2.GetApiMappingResponse;
+    public apiMapping: ApiGatewayMap;
     public allowPathMatching: boolean | false;
 
     constructor(config: CustomDomain) {

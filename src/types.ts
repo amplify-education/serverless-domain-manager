@@ -1,6 +1,6 @@
 import {HTTPOptions} from "aws-sdk";
 
-export interface CustomDomain { // tslint:disable-line
+export interface CustomDomain {
     domainName: string;
     basePath: string | undefined;
     stage: string | undefined;
@@ -30,7 +30,7 @@ export interface Tags {
     [key: string]: string;
 }
 
-export interface ServerlessInstance { // tslint:disable-line
+export interface ServerlessInstance {
     service: {
         service: string
         provider: {

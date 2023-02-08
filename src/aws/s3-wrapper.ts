@@ -1,6 +1,6 @@
 import {S3} from "aws-sdk";
 import {throttledCall} from "../utils";
-import DomainConfig = require("../domain-config");
+import DomainConfig = require("../models/domain-config");
 import Globals from "../globals";
 
 class S3Wrapper {

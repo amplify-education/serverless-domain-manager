@@ -1,6 +1,6 @@
 import Globals from "../globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
-import DomainConfig = require("../domain-config");
+import DomainConfig = require("../models/domain-config");
 import {Route53} from "aws-sdk";
 
 class Route53Wrapper {

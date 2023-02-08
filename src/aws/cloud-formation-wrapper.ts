@@ -3,7 +3,7 @@
  */
 
 import {CloudFormation} from "aws-sdk";
-import DomainConfig = require("../domain-config");
+import DomainConfig = require("../models/domain-config");
 import Globals from "../globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
 

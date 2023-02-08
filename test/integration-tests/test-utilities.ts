@@ -120,7 +120,7 @@ function slsCreateDomain(tempDir) {
  * @returns {Promise<void>}
  */
 function slsDeploy(tempDir) {
-    return exec(`cd ${tempDir} && $(npm bin)/serverless deploy`);
+    return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --verbose`);
 }
 
 /**

@@ -1,7 +1,7 @@
 import {ACM} from "aws-sdk";
 import Globals from "../globals";
-import {getAWSPagedResults, throttledCall} from "../utils";
-import DomainConfig = require("../domain-config");
+import {getAWSPagedResults} from "../utils";
+import DomainConfig = require("../models/domain-config");
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 

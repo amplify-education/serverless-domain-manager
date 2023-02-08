@@ -5,7 +5,7 @@ import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import Route53Wrapper = require("./aws/route53-wrapper");
 import S3Wrapper = require("./aws/s3-wrapper");
-import DomainConfig = require("./domain-config");
+import DomainConfig = require("./models/domain-config");
 import Globals from "./globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {sleep} from "./utils";
@@ -291,8 +291,8 @@ class ServerlessCustomDomain {
             domain.apiId = await this.getApiId(domain);
             const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
             const filteredMappings = mappings.filter((mapping) => {
-                return mapping.ApiId === domain.apiId || (
-                    mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                return mapping.apiId === domain.apiId || (
+                    mapping.basePath === domain.basePath && domain.allowPathMatching
                 )
             });
             domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
@@ -324,8 +324,8 @@ class ServerlessCustomDomain {
                 } else {
                     const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
                     const filteredMappings = mappings.filter((mapping) => {
-                        return mapping.ApiId === domain.apiId || (
-                            mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching
+                        return mapping.apiId === domain.apiId || (
+                            mapping.basePath === domain.basePath && domain.allowPathMatching
                         )
                     });
                     if (domain.preserveExternalPathMappings) {
@@ -333,7 +333,6 @@ class ServerlessCustomDomain {
                     }
                     domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                     if (domain.apiMapping) {
-                        Globals.logInfo(`Removing API Mapping with id: '${domain.apiMapping.ApiMappingId}'`);
                         await this.apiGatewayWrapper.deleteBasePathMapping(domain);
                     } else {
                         Globals.logWarning(
@@ -437,7 +436,7 @@ class ServerlessCustomDomain {
             hostedZoneIdOutputKey += "Websocket";
         }
 
-        // Remove remove all special characters
+        // Remove all special characters
         const safeStage = domain.stage.replace(/[^a-zA-Z0-9]/g, '');
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,

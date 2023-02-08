@@ -1,4 +1,4 @@
-import DomainConfig = require("./domain-config");
+import DomainConfig = require("./models/domain-config");
 import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 
 export default class Globals {

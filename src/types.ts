@@ -27,6 +27,10 @@ export interface CustomDomain { // tslint:disable-line
     apiGatewayVersion: string | undefined;
 }
 
+export interface Tags {
+    [key: string]: string;
+}
+
 export interface ServerlessInstance { // tslint:disable-line
     service: {
         service: string
@@ -100,12 +104,8 @@ export interface ServerlessUtils {
 }
 
 export interface Route53Params {
-    routingPolicy: 'simple' | 'latency' | 'weighted' | undefined;
+    routingPolicy: "simple" | "latency" | "weighted" | undefined;
     weight: number | undefined;
     setIdentifier: string | undefined;
     healthCheckId: string | undefined;
-}
-
-export interface Tags {
-    [key: string]: string;
 }

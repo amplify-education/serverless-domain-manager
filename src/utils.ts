@@ -4,32 +4,12 @@ import Globals from "./globals";
 const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
 /**
- * Iterate through the pages of a AWS SDK response and collect them into a single array
- *
- * @param service - The AWS service instance to use to make the calls
- * @param funcName - The function name in the service to call
- * @param resultsKey - The key name in the response that contains the items to return
- * @param nextTokenKey - The request key name to append to the request that has the paging token value
- * @param nextRequestTokenKey - The response key name that has the next paging token value
- * @param params - Parameters to send in the request
+ * Stops event thread execution for given number of seconds.
+ * @param seconds
+ * @returns {Promise<void>} Resolves after given number of seconds.
  */
-async function getAWSPagedResults(
-    service: Service,
-    funcName: string,
-    resultsKey: string,
-    nextTokenKey: string,
-    nextRequestTokenKey: string,
-    params: object,
-): Promise<any[]> {
-    let results = [];
-    let response = await throttledCall(service, funcName, params);
-    results = results.concat(response[resultsKey]);
-    while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
-        params[nextTokenKey] = response[nextRequestTokenKey];
-        response = await service[funcName](params).promise();
-        results = results.concat(response[resultsKey]);
-    }
-    return results;
+async function sleep(seconds) {
+    return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
 async function throttledCall(service: Service, funcName: string, params: object): Promise<any> {
@@ -68,12 +48,32 @@ async function throttledCall(service: Service, funcName: string, params: object)
 }
 
 /**
- * Stops event thread execution for given number of seconds.
- * @param seconds
- * @returns {Promise<void>} Resolves after given number of seconds.
+ * Iterate through the pages of a AWS SDK response and collect them into a single array
+ *
+ * @param service - The AWS service instance to use to make the calls
+ * @param funcName - The function name in the service to call
+ * @param resultsKey - The key name in the response that contains the items to return
+ * @param nextTokenKey - The request key name to append to the request that has the paging token value
+ * @param nextRequestTokenKey - The response key name that has the next paging token value
+ * @param params - Parameters to send in the request
  */
-async function sleep(seconds) {
-    return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
+async function getAWSPagedResults(
+    service: Service,
+    funcName: string,
+    resultsKey: string,
+    nextTokenKey: string,
+    nextRequestTokenKey: string,
+    params: object,
+): Promise<any[]> {
+    let results = [];
+    let response = await throttledCall(service, funcName, params);
+    results = results.concat(response[resultsKey]);
+    while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
+        params[nextTokenKey] = response[nextRequestTokenKey];
+        response = await service[funcName](params).promise();
+        results = results.concat(response[resultsKey]);
+    }
+    return results;
 }
 
 /**

@@ -40,9 +40,9 @@ class Route53Wrapper {
         const domainInfo = domain.domainInfo ?? {
             domainName: domain.givenDomainName,
             hostedZoneId: route53HostedZoneId,
-        }
+        };
 
-        let routingOptions = {}
+        let routingOptions = {};
         if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
             routingOptions = {
                 Region: this.route53.config.region,

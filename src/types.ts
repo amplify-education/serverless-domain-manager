@@ -1,5 +1,12 @@
 import {HTTPOptions} from "aws-sdk";
 
+export interface Route53Params {
+    routingPolicy: "simple" | "latency" | "weighted" | undefined;
+    weight: number | undefined;
+    setIdentifier: string | undefined;
+    healthCheckId: string | undefined;
+}
+
 export interface CustomDomain {
     domainName: string;
     basePath: string | undefined;
@@ -100,11 +107,4 @@ export interface ServerlessUtils {
         warning(message: string): void
     }
     progress: ServerlessProgressFactory
-}
-
-export interface Route53Params {
-    routingPolicy: "simple" | "latency" | "weighted" | undefined;
-    weight: number | undefined;
-    setIdentifier: string | undefined;
-    healthCheckId: string | undefined;
 }

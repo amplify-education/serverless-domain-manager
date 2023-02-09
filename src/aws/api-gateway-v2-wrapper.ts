@@ -105,6 +105,10 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;
         }
+        if (domain.apiType === Globals.apiTypes.websocket) {
+            // find out why custom stage does not work for the websocket
+            stage = Globals.serverless.service.provider.stage;
+        }
         try {
             await throttledCall(this.apiGateway, "createApiMapping", {
                 ApiId: domain.apiId,
@@ -154,6 +158,10 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;
+        }
+        if (domain.apiType === Globals.apiTypes.websocket) {
+            // find out why custom stage does not work for the websocket
+            stage = Globals.serverless.service.provider.stage;
         }
         try {
             await throttledCall(this.apiGateway, "updateApiMapping", {

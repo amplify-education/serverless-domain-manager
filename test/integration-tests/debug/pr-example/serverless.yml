@@ -1,0 +1,46 @@
+service: ${env:PLUGIN_IDENTIFIER}-pr-example-${env:RANDOM_STRING}
+provider:
+  name: aws
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
+  runtime: nodejs14.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - httpApi:
+          path: /hello-world
+          method: get
+  helloWorld2:
+    handler: handler.helloWorld
+    events:
+      - websocket:
+          route: $connect
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    http:
+      domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      autoDomain: true
+      stage: 'dev'
+      basePath: 'v1'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    websocket:
+      domainName: ${env:PLUGIN_IDENTIFIER}-websocket-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      autoDomain: true
+      stage: 'dev'
+      basePath: 'v1'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+
+package:
+  patterns:
+    - '!node_modules/**'

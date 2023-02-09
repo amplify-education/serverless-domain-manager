@@ -110,7 +110,7 @@ export default class Globals {
             Globals.cliLog("[Summary]", "Distribution Domain Name");
             summaryList.forEach((item) => {
                 Globals.cliLog("", `${item}`);
-            })
+            });
         }
     }
 

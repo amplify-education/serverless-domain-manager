@@ -117,10 +117,11 @@ function slsCreateDomain(tempDir) {
 /**
  * Runs `sls deploy` for the given folder
  * @param tempDir
+ * @param debug - enable loging
  * @returns {Promise<void>}
  */
-function slsDeploy(tempDir) {
-    return exec(`cd ${tempDir} && $(npm bin)/serverless deploy`);
+function slsDeploy(tempDir, debug: boolean = false) {
+    return exec(`cd ${tempDir} && $(npm bin)/serverless deploy` + (debug ? " --verbose" : ""));
 }
 
 /**

@@ -309,9 +309,11 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            const apiGateway = this.getApiGateway(domain);
             domain.apiId = await this.getApiId(domain);
+
+            const apiGateway = this.getApiGateway(domain);
             const mappings = await apiGateway.getBasePathMappings(domain);
+
             const filteredMappings = mappings.filter((mapping) => {
                 return mapping.apiId === domain.apiId || (
                     mapping.basePath === domain.basePath && domain.allowPathMatching
@@ -427,7 +429,7 @@ class ServerlessCustomDomain {
             throw new Error("Unsupported apiGateway.restApiId object");
         }
 
-        const stackName = slsService.provider.stackName || `${slsService.service}-${domain.stage}`;
+        const stackName = slsService.provider.stackName || `${slsService.service}-${slsService.provider.stage}`;
         try {
             return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {

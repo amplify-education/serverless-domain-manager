@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "6.3.2",
+  "version": "6.3.3",
   "engines": {
     "node": ">=14"
   },
@@ -29,9 +29,10 @@
   "scripts": {
     "integration-basic": "nyc mocha -r ts-node/register --project tsconfig.json --parallel test/integration-tests/basic.test.ts",
     "integration-deploy": "nyc mocha -r ts-node/register --project tsconfig.json --parallel test/integration-tests/deploy.test.ts",
+    "integration-debug": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/debug.test.ts",
     "test": "nyc mocha -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
-    "integration-test": "npm run integration-basic && npm run integration-deploy && nyc report --reporter=text-summary",
+    "integration-test": "npm run integration-basic && npm run integration-deploy",
     "lint": "tslint --project . && tslint --project tsconfig.json",
     "build": "tsc --project ."
   },

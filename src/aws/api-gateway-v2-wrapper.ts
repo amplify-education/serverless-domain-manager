@@ -7,12 +7,13 @@ import Globals from "../globals";
 import {ApiGatewayV2} from "aws-sdk";
 import {getAWSPagedResults, throttledCall} from "../utils";
 import ApiGatewayMap = require("../models/api-gateway-map");
+import APIGatewayBase = require("../models/apigateway-base");
 
-class APIGatewayV2Wrapper {
-    public apiGatewayV2: ApiGatewayV2;
+class APIGatewayV2Wrapper extends APIGatewayBase {
 
     constructor(credentials: any) {
-        this.apiGatewayV2 = new ApiGatewayV2(credentials);
+        super();
+        this.apiGateway = new ApiGatewayV2(credentials);
     }
 
     /**
@@ -47,7 +48,7 @@ class APIGatewayV2Wrapper {
         }
 
         try {
-            const domainInfo = await throttledCall(this.apiGatewayV2, "createDomainName", params);
+            const domainInfo = await throttledCall(this.apiGateway, "createDomainName", params);
             return new DomainInfo(domainInfo);
         } catch (err) {
             throw new Error(
@@ -63,7 +64,7 @@ class APIGatewayV2Wrapper {
     public async getCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
-            const domainInfo = await throttledCall(this.apiGatewayV2, "getDomainName", {
+            const domainInfo = await throttledCall(this.apiGateway, "getDomainName", {
                 DomainName: domain.givenDomainName,
             });
             return new DomainInfo(domainInfo);
@@ -84,7 +85,7 @@ class APIGatewayV2Wrapper {
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-            await throttledCall(this.apiGatewayV2, "deleteDomainName", {
+            await throttledCall(this.apiGateway, "deleteDomainName", {
                 DomainName: domain.givenDomainName,
             });
         } catch (err) {
@@ -98,7 +99,7 @@ class APIGatewayV2Wrapper {
      * Create Base Path Mapping
      * @param domain: DomainConfig
      */
-    public async createApiMapping(domain: DomainConfig): Promise<void> {
+    public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
@@ -107,7 +108,7 @@ class APIGatewayV2Wrapper {
             stage = Globals.defaultStage;
         }
         try {
-            await throttledCall(this.apiGatewayV2, "createApiMapping", {
+            await throttledCall(this.apiGateway, "createApiMapping", {
                 ApiId: domain.apiId,
                 ApiMappingKey: domain.basePath,
                 DomainName: domain.givenDomainName,
@@ -125,10 +126,10 @@ class APIGatewayV2Wrapper {
      * Get APi Mapping
      * @param domain: DomainConfig
      */
-    public async getApiMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
+    public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
             const items = await getAWSPagedResults(
-                this.apiGatewayV2,
+                this.apiGateway,
                 "getApiMappings",
                 "Items",
                 "NextToken",
@@ -150,7 +151,7 @@ class APIGatewayV2Wrapper {
      * Update APi Mapping
      * @param domain: DomainConfig
      */
-    public async updateApiMapping(domain: DomainConfig): Promise<void> {
+    public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
@@ -159,7 +160,7 @@ class APIGatewayV2Wrapper {
             stage = Globals.defaultStage;
         }
         try {
-            await throttledCall(this.apiGatewayV2, "updateApiMapping", {
+            await throttledCall(this.apiGateway, "updateApiMapping", {
                 ApiId: domain.apiId,
                 ApiMappingId: domain.apiMapping.apiMappingId,
                 ApiMappingKey: domain.basePath,
@@ -177,7 +178,7 @@ class APIGatewayV2Wrapper {
     /**
      * Delete Api Mapping
      */
-    public async deleteApiMapping(domain: DomainConfig): Promise<void> {
+    public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
         const params = {
             ApiMappingId: domain.apiMapping.apiMappingId,
             DomainName: domain.givenDomainName,
@@ -185,7 +186,7 @@ class APIGatewayV2Wrapper {
 
         // Make API call
         try {
-            await throttledCall(this.apiGatewayV2, "deleteApiMapping", params);
+            await throttledCall(this.apiGateway, "deleteApiMapping", params);
             Globals.logInfo(`V2 - Removed API Mapping with id: '${domain.apiMapping.apiMappingId}'`);
         } catch (err) {
             throw new Error(

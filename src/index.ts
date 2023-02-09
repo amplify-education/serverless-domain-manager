@@ -1,7 +1,6 @@
 "use strict";
 
 import ACMWrapper = require("./aws/acm-wrapper");
-import APIGatewayWrapper = require("./aws/api-gateway-wrapper");
 import CloudFormationWrapper = require("./aws/cloud-formation-wrapper");
 import Route53Wrapper = require("./aws/route53-wrapper");
 import S3Wrapper = require("./aws/s3-wrapper");
@@ -9,11 +8,15 @@ import DomainConfig = require("./models/domain-config");
 import Globals from "./globals";
 import {CustomDomain, ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {sleep} from "./utils";
+import APIGatewayV1Wrapper = require("./aws/api-gateway-v1-wrapper");
+import APIGatewayV2Wrapper = require("./aws/api-gateway-v2-wrapper");
+import APIGatewayBase = require("./models/apigateway-base");
 
 class ServerlessCustomDomain {
 
     // AWS SDK resources
-    public apiGatewayWrapper: APIGatewayWrapper;
+    public apiGatewayV1Wrapper: APIGatewayV1Wrapper;
+    public apiGatewayV2Wrapper: APIGatewayV2Wrapper;
     public cloudFormationWrapper: CloudFormationWrapper;
     public s3Wrapper: S3Wrapper;
 
@@ -169,9 +172,23 @@ class ServerlessCustomDomain {
         credentials.region = this.serverless.providers.aws.getRegion();
         credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
 
-        this.apiGatewayWrapper = new APIGatewayWrapper(credentials);
+        this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper(credentials);
+        this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper(credentials);
         this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
         this.s3Wrapper = new S3Wrapper(credentials);
+    }
+
+    public getApiGateway(domain: DomainConfig): APIGatewayBase {
+        const isEdge = domain.endpointType === Globals.endpointTypes.edge;
+        const isTLS10 = domain.securityPolicy === Globals.tlsVersions.tls_1_0;
+        // For EDGE domain name or TLS 1.0 use APIGateway
+        if (isEdge || isTLS10) {
+            console.log("APIGatewayV1Wrapper")
+            return this.apiGatewayV1Wrapper;
+        }
+        console.log("APIGatewayV2Wrapper")
+        // For Regional domain use ApiGatewayV2
+        return this.apiGatewayV2Wrapper;
     }
 
     /**
@@ -189,10 +206,14 @@ class ServerlessCustomDomain {
      * Wraps creating a domain and resource record set
      */
     public async createDomain(domain: DomainConfig): Promise<void> {
-        domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         const creationProgress = Globals.v3Utils && Globals.v3Utils.progress.get(`create-${domain.givenDomainName}`);
+
+        const apiGateway = this.getApiGateway(domain);
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
         const acm = new ACMWrapper(domain.endpointType);
+
+        domain.domainInfo = await apiGateway.getCustomDomain(domain);
+
         try {
             if (domain.tlsTruststoreUri) {
                 await this.s3Wrapper.assertTlsCertObjectExists(domain);
@@ -204,7 +225,7 @@ class ServerlessCustomDomain {
                     Globals.logInfo(`Searching for a certificate with the '${searchName}' domain`);
                     domain.certificateArn = await acm.getCertArn(domain);
                 }
-                domain.domainInfo = await this.apiGatewayWrapper.createCustomDomain(domain);
+                domain.domainInfo = await apiGateway.createCustomDomain(domain);
                 Globals.logInfo(`Custom domain '${domain.givenDomainName}' was created.
                  New domains may take up to 40 minutes to be initialized.`);
             } else {
@@ -235,11 +256,16 @@ class ServerlessCustomDomain {
      * Wraps deleting a domain and resource record set
      */
     public async deleteDomain(domain: DomainConfig): Promise<void> {
-        domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+        const apiGateway = this.getApiGateway(domain);
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+
+        domain.domainInfo = await apiGateway.getCustomDomain(domain);
+        console.log(1);
         try {
             if (domain.domainInfo) {
-                await this.apiGatewayWrapper.deleteCustomDomain(domain);
+                console.log(2);
+                await apiGateway.deleteCustomDomain(domain);
+                console.log(3);
                 await route53.changeResourceRecordSet("DELETE", domain);
                 domain.domainInfo = null;
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
@@ -256,15 +282,15 @@ class ServerlessCustomDomain {
      */
     public async createOrGetDomainForCfOutputs(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            const autoDomain = domain.autoDomain;
-            if (autoDomain === true) {
+            if (domain.autoDomain) {
                 Globals.logInfo("Creating domain name before deploy.");
                 await this.createDomain(domain);
             }
 
-            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+            const apiGateway = this.getApiGateway(domain);
+            domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
-            if (autoDomain === true) {
+            if (domain.autoDomain) {
                 const atLeastOneDoesNotExist = () => this.domains.some((d) => !d.domainInfo);
                 const maxWaitFor = parseInt(domain.autoDomainWaitFor, 10) || 120;
                 const pollInterval = 3;
@@ -275,7 +301,7 @@ class ServerlessCustomDomain {
                         have elapsed before starting deployment
                     `);
                     await sleep(pollInterval);
-                    domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+                    domain.domainInfo = await apiGateway.getCustomDomain(domain);
                 }
             }
             this.addOutputs(domain);
@@ -288,20 +314,21 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
+            const apiGateway = this.getApiGateway(domain);
             domain.apiId = await this.getApiId(domain);
-            const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+            const mappings = await apiGateway.getBasePathMappings(domain);
             const filteredMappings = mappings.filter((mapping) => {
                 return mapping.apiId === domain.apiId || (
                     mapping.basePath === domain.basePath && domain.allowPathMatching
                 )
             });
             domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
-            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+            domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
             if (!domain.apiMapping) {
-                await this.apiGatewayWrapper.createBasePathMapping(domain);
+                await apiGateway.createBasePathMapping(domain);
             } else {
-                await this.apiGatewayWrapper.updateBasePathMapping(domain);
+                await apiGateway.updateBasePathMapping(domain);
             }
         })).finally(() => {
             Globals.printDomainSummary(this.domains);
@@ -322,7 +349,8 @@ class ServerlessCustomDomain {
                     Globals.logInfo(`Unable to find corresponding API for '${domain.givenDomainName}',
                         API Mappings may need to be manually removed.`);
                 } else {
-                    const mappings = await this.apiGatewayWrapper.getApiMappings(domain);
+                    const apiGateway = this.getApiGateway(domain);
+                    const mappings = await apiGateway.getBasePathMappings(domain);
                     const filteredMappings = mappings.filter((mapping) => {
                         return mapping.apiId === domain.apiId || (
                             mapping.basePath === domain.basePath && domain.allowPathMatching
@@ -333,7 +361,7 @@ class ServerlessCustomDomain {
                     }
                     domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
                     if (domain.apiMapping) {
-                        await this.apiGatewayWrapper.deleteBasePathMapping(domain);
+                        await apiGateway.deleteBasePathMapping(domain);
                     } else {
                         Globals.logWarning(
                             `Api mapping was not found for '${domain.givenDomainName}'. Skipping base path deletion.`
@@ -364,7 +392,8 @@ class ServerlessCustomDomain {
      */
     public async domainSummaries(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
+            const apiGateway = this.getApiGateway(domain);
+            domain.domainInfo = await apiGateway.getCustomDomain(domain);
         })).finally(() => {
             Globals.printDomainSummary(this.domains);
         });

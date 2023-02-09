@@ -7,12 +7,12 @@ import Globals from "../globals";
 import {APIGateway} from "aws-sdk";
 import {getAWSPagedResults, throttledCall} from "../utils";
 import ApiGatewayMap = require("../models/api-gateway-map");
+import APIGatewayBase = require("../models/apigateway-base");
 
-class APIGatewayV1Wrapper {
-    public apiGatewayV1: APIGateway;
-
+class APIGatewayV1Wrapper extends APIGatewayBase {
     constructor(credentials: any) {
-        this.apiGatewayV1 = new APIGateway(credentials);
+        super();
+        this.apiGateway = new APIGateway(credentials);
     }
 
     /**
@@ -52,7 +52,7 @@ class APIGatewayV1Wrapper {
         }
 
         try {
-            const domainInfo = await throttledCall(this.apiGatewayV1, "createDomainName", params);
+            const domainInfo = await throttledCall(this.apiGateway, "createDomainName", params);
             return new DomainInfo(domainInfo);
         } catch (err) {
             throw new Error(
@@ -67,7 +67,7 @@ class APIGatewayV1Wrapper {
     public async getCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
-            const domainInfo = await throttledCall(this.apiGatewayV1, "getDomainName", {
+            const domainInfo = await throttledCall(this.apiGateway, "getDomainName", {
                 domainName: domain.givenDomainName,
             });
             return new DomainInfo(domainInfo);
@@ -85,11 +85,13 @@ class APIGatewayV1Wrapper {
      * Delete Custom Domain Name through API Gateway
      */
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
+        console.log("deleteCustomDomain")
         // Make API call
         try {
-            await throttledCall(this.apiGatewayV1, "deleteDomainName", {
+            await throttledCall(this.apiGateway, "deleteDomainName", {
                 domainName: domain.givenDomainName,
             });
+            console.log("deleteCustomDomain")
         } catch (err) {
             throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
         }
@@ -97,7 +99,7 @@ class APIGatewayV1Wrapper {
 
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
-            await throttledCall(this.apiGatewayV1, "createBasePathMapping", {
+            await throttledCall(this.apiGateway, "createBasePathMapping", {
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
                 restApiId: domain.apiId,
@@ -115,7 +117,7 @@ class APIGatewayV1Wrapper {
     public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
             const items = await getAWSPagedResults(
-                this.apiGatewayV1,
+                this.apiGateway,
                 "getBasePathMappings",
                 "items",
                 "position",
@@ -136,7 +138,7 @@ class APIGatewayV1Wrapper {
 
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
-            await throttledCall(this.apiGatewayV1, "updateBasePathMapping", {
+            await throttledCall(this.apiGateway, "updateBasePathMapping", {
                 basePath: domain.apiMapping.basePath,
                 domainName: domain.givenDomainName,
                 patchOperations: [{
@@ -160,7 +162,7 @@ class APIGatewayV1Wrapper {
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-            await throttledCall(this.apiGatewayV1, "deleteBasePathMapping", {
+            await throttledCall(this.apiGateway, "deleteBasePathMapping", {
                 basePath: domain.apiMapping.basePath,
                 domainName: domain.givenDomainName,
             });

@@ -67,7 +67,7 @@ async function getAWSPagedResults(
 ): Promise<any[]> {
     let results = [];
     let response = await throttledCall(service, funcName, params);
-    results = results.concat(response[resultsKey]);
+    results = results.concat(response[resultsKey] || results);
     while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
         params[nextTokenKey] = response[nextRequestTokenKey];
         response = await service[funcName](params).promise();

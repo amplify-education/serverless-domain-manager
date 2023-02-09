@@ -1,0 +1,65 @@
+name: Test, Lint, Release and Publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  main:
+    name: Release and publish Node package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install and test
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test
+
+      - name: Extract version
+        id: extract_version
+        uses: Saionaro/extract-package-version@v1.2.1
+
+      - name: Get latest tag
+        id: get_latest_tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+
+      - name: See if version changed
+        run: |
+          if [[ "v${{ steps.extract_version.outputs.version }}" == "${{ steps.get_latest_tag.outputs.tag }}" ]]; then
+            echo "VERSION_CHANGED=false" >> "$GITHUB_ENV"
+          else
+            echo "VERSION_CHANGED=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Create tag
+        uses: rickstaa/action-create-tag@v1
+        if: env.VERSION_CHANGED == 'true'
+        with:
+          tag: "v${{ steps.extract_version.outputs.version }}"
+
+      - name: Create release
+        if: env.VERSION_CHANGED == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: 'v${{ steps.extract_version.outputs.version }}'
+          generate_release_notes: 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish new version
+        if: env.VERSION_CHANGED == 'true'
+        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
+        #       as it appears actions/setup-node sets own value
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --verbose
+
+      - name: Print dirs
+        if: failure()
+        run: find /home/runner/.npm/_logs/ -type f -exec cat {} \;

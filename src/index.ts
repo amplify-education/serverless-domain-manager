@@ -152,13 +152,13 @@ class ServerlessCustomDomain {
             } else if (domain.apiType === Globals.apiTypes.http) { // Validation for http apis
                 // HTTP Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`'EDGE' endpointType is not compatible with HTTP APIs`);
+                    throw Error("'EDGE' endpointType is not compatible with HTTP APIs");
                 }
 
             } else if (domain.apiType === Globals.apiTypes.websocket) { // Validation for WebSocket apis
                 // Websocket Apis do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
-                    throw Error(`'EDGE' endpointType is not compatible with WebSocket APIs`);
+                    throw Error("'EDGE' endpointType is not compatible with WebSocket APIs");
                 }
             }
         });
@@ -229,7 +229,7 @@ class ServerlessCustomDomain {
             } else {
                 Globals.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
             }
-            Globals.logInfo(`Creating/updating route53 record for '${domain.givenDomainName}'.`)
+            Globals.logInfo(`Creating/updating route53 record for '${domain.givenDomainName}'.`);
             await route53.changeResourceRecordSet("UPSERT", domain);
         } catch (err) {
             throw new Error(`Unable to create domain '${domain.givenDomainName}':\n${err.message}`);
@@ -317,7 +317,7 @@ class ServerlessCustomDomain {
             const filteredMappings = mappings.filter((mapping) => {
                 return mapping.apiId === domain.apiId || (
                     mapping.basePath === domain.basePath && domain.allowPathMatching
-                )
+                );
             });
             domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
             domain.domainInfo = await apiGateway.getCustomDomain(domain);
@@ -463,7 +463,7 @@ class ServerlessCustomDomain {
         }
 
         // Remove all special characters
-        const safeStage = domain.stage.replace(/[^a-zA-Z0-9]/g, '');
+        const safeStage = domain.stage.replace(/[^a-zA-Z0-9]/g, "");
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
             Export: {

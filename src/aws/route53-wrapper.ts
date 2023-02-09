@@ -48,7 +48,7 @@ class Route53Wrapper {
                 Region: this.route53.config.region,
                 SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
-            }
+            };
         }
 
         if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
@@ -112,7 +112,8 @@ class Route53Wrapper {
             return domain.hostedZoneId;
         }
 
-        if (isHostedZonePrivate !== undefined) {
+        const isPrivateDefined = typeof isHostedZonePrivate !== "undefined";
+        if (isPrivateDefined) {
             const zoneTypeString = isHostedZonePrivate ? "private" : "public";
             Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
         }
@@ -133,7 +134,7 @@ class Route53Wrapper {
 
         const targetHostedZone = hostedZones
             .filter((hostedZone) => {
-                return isHostedZonePrivate === undefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
+                return !isPrivateDefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
             })
             .filter((hostedZone) => {
                 const hostedZoneName = hostedZone.Name.replace(/\.$/, "");

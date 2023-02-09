@@ -103,8 +103,6 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
-            // stage = domain.getConfigStage() || Globals.defaultStage;
-
             stage = Globals.defaultStage;
         }
         try {
@@ -155,8 +153,6 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
-            // stage = domain.getConfigStage() || Globals.defaultStage;
-
             stage = Globals.defaultStage;
         }
         try {

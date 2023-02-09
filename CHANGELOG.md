@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.3.2] - 2023-02-9
 
 ### Fixed
-- Used APIGateway V1 for the EDGE endpoint type or TLS 1.0.
+- Divided a mixed SDK API Gateway versions usage. Now for the EDGE endpoint type or TLS 1.0 will be used only APIGateway V1 and APIGateway V2 for other cases.
 
 ## [6.3.1] - 2023-02-08
 

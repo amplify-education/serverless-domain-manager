@@ -452,6 +452,17 @@ describe("Custom Domain Plugin", () => {
                     items: [{restApiId: "test_rest_api_id", basePath: "test", stage: "test"},],
                 });
             });
+            AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                // @ts-ignore
+                callback(null, {
+                    Items: [{
+                        ApiId: "test_rest_api_id",
+                        ApiMappingKey: "test",
+                        Stage: "test",
+                        ApiMappingId: "test_id"
+                    },],
+                });
+            });
             AWS.mock("APIGateway", "deleteBasePathMapping", (params, callback) => {
                 callback(null, params);
             });
@@ -464,14 +475,19 @@ describe("Custom Domain Plugin", () => {
             plugin.initializeVariables();
             plugin.initAWSResources();
 
-            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-            const apiGateway = plugin.getApiGateway(dc);
-            const spy = chai.spy.on(apiGateway.apiGateway, "deleteBasePathMapping");
-
+            const spyV1 = chai.spy.on(plugin.apiGatewayV1Wrapper.apiGateway, "deleteBasePathMapping");
             await plugin.removeBasePathMappings();
-            expect(spy).to.have.been.called.with({
+            expect(spyV1).to.have.been.called.with({
                 basePath: "test",
                 domainName: "test_domain",
+            });
+
+            plugin.domains[0].endpointType = Globals.endpointTypes.regional;
+            const spyV2 = chai.spy.on(plugin.apiGatewayV2Wrapper.apiGateway, "deleteApiMapping");
+            await plugin.removeBasePathMappings();
+            expect(spyV2).to.have.been.called.with({
+                ApiMappingId: "test_id",
+                DomainName: "test_domain",
             });
         });
 
@@ -919,7 +935,11 @@ describe("Custom Domain Plugin", () => {
 
         it("Create a domain name with mutual TLS authentication", async () => {
             AWS.mock("APIGateway", "createDomainName", (params, callback) => {
-                callback(null, {distributionDomainName: "foo", securityPolicy: "TLS_1_0"});
+                callback(null, params);
+            });
+
+            AWS.mock("ApiGatewayV2", "createDomainName", (params, callback) => {
+                callback(null, params);
             });
 
             const plugin = constructPlugin({
@@ -934,10 +954,9 @@ describe("Custom Domain Plugin", () => {
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
             dc.certificateArn = "fake_cert";
 
-            const apiGateway = plugin.getApiGateway(dc);
-            const spy = chai.spy.on(apiGateway.apiGateway, "createDomainName");
-            await apiGateway.createCustomDomain(dc);
-            const expectedParams = {
+            const spyV1 = chai.spy.on(plugin.apiGatewayV1Wrapper.apiGateway, "createDomainName");
+            await plugin.apiGatewayV1Wrapper.createCustomDomain(dc);
+            const expectedParamsV1 = {
                 domainName: dc.givenDomainName,
                 endpointConfiguration: {
                     types: [dc.endpointType],
@@ -952,7 +971,28 @@ describe("Custom Domain Plugin", () => {
                 },
                 regionalCertificateArn: dc.certificateArn
             }
-            expect(spy).to.have.been.called.with(expectedParams);
+            expect(spyV1).to.have.been.called.with(expectedParamsV1);
+
+            dc.endpointType = Globals.endpointTypes.regional;
+            const spyV2 = chai.spy.on(plugin.apiGatewayV2Wrapper.apiGateway, "createDomainName");
+            await plugin.apiGatewayV2Wrapper.createCustomDomain(dc);
+            const expectedParamsV2 = {
+                DomainName: dc.givenDomainName,
+                DomainNameConfigurations: [
+                    {
+                        CertificateArn: dc.certificateArn,
+                        EndpointType: dc.endpointType,
+                        SecurityPolicy: dc.securityPolicy
+                    }
+                ],
+                Tags: {
+                    ...plugin.serverless.service.provider.stackTags,
+                    ...plugin.serverless.service.provider.tags,
+                },
+                MutualTlsAuthentication: {TruststoreUri: dc.tlsTruststoreUri}
+            }
+
+            expect(spyV2).to.have.been.called.with(expectedParamsV2);
         });
 
         it("Create an HTTP domain name with mutual TLS authentication", async () => {
@@ -964,7 +1004,8 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
                 endpointType: "regional",
                 apiType: "http",
-                tlsTruststoreUri: "s3://bucket-name/key-name"
+                tlsTruststoreUri: "s3://bucket-name/key-name",
+                tlsTruststoreVersion: "test_version"
             });
             plugin.initializeVariables();
             plugin.initAWSResources();
@@ -983,7 +1024,8 @@ describe("Custom Domain Plugin", () => {
                     SecurityPolicy: dc.securityPolicy
                 }],
                 MutualTlsAuthentication: {
-                    TruststoreUri: dc.tlsTruststoreUri
+                    TruststoreUri: dc.tlsTruststoreUri,
+                    TruststoreVersion: dc.tlsTruststoreVersion
                 },
                 Tags: {
                     ...plugin.serverless.service.provider.stackTags,
@@ -1261,6 +1303,11 @@ describe("Custom Domain Plugin", () => {
                     items: [{restApiId: "test_rest_api_id", basePath: "api", stage: "test"},],
                 });
             });
+            AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
+                callback(null, {
+                    Items: [{ApiId: "test_rest_api_id", ApiMappingKey: "api", Stage: "test", ApiMappingId: "api_id"},],
+                });
+            });
 
             const plugin = constructPlugin({
                 apiType: Globals.apiTypes.rest,
@@ -1274,13 +1321,20 @@ describe("Custom Domain Plugin", () => {
             plugin.initializeVariables();
             plugin.initAWSResources();
 
-            const apiGateway = plugin.getApiGateway(dc);
-            const result = await apiGateway.getBasePathMappings(dc);
-            expect(result[0]).to.eql({
+            const resultV1 = await plugin.apiGatewayV1Wrapper.getBasePathMappings(dc);
+            expect(resultV1[0]).to.eql({
                 apiId: "test_rest_api_id",
                 basePath: "api",
                 stage: "test",
                 apiMappingId: null,
+            });
+
+            const resultV2 = await plugin.apiGatewayV2Wrapper.getBasePathMappings(dc);
+            expect(resultV2[0]).to.eql({
+                apiId: "test_rest_api_id",
+                basePath: "api",
+                stage: "test",
+                apiMappingId: "api_id",
             });
         });
 
@@ -1575,6 +1629,9 @@ describe("Custom Domain Plugin", () => {
             AWS.mock("APIGateway", "deleteDomainName", (params, callback) => {
                 callback(null, {});
             });
+            AWS.mock("ApiGatewayV2", "deleteDomainName", (params, callback) => {
+                callback(null, {});
+            });
 
             const plugin = constructPlugin({
                 basePath: "test_basepath",
@@ -1583,12 +1640,19 @@ describe("Custom Domain Plugin", () => {
             plugin.initAWSResources();
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
-            const apiGateway = plugin.getApiGateway(dc);
-            const spy = chai.spy.on(apiGateway.apiGateway, "deleteDomainName");
 
-            await apiGateway.deleteCustomDomain(dc);
-            expect(spy).to.be.called.with({
+            const apiGatewayV1 = plugin.apiGatewayV1Wrapper;
+            const spyV1 = chai.spy.on(plugin.apiGatewayV1Wrapper.apiGateway, "deleteDomainName");
+            await apiGatewayV1.deleteCustomDomain(dc);
+            expect(spyV1).to.be.called.with({
                 domainName: "test_domain",
+            });
+
+            const apiGatewayV2 = plugin.apiGatewayV2Wrapper;
+            const spyV2 = chai.spy.on(plugin.apiGatewayV2Wrapper.apiGateway, "deleteDomainName");
+            await apiGatewayV2.deleteCustomDomain(dc);
+            expect(spyV2).to.be.called.with({
+                DomainName: "test_domain",
             });
         });
 

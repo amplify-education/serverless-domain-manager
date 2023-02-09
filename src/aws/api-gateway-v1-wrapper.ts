@@ -85,13 +85,11 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
      * Delete Custom Domain Name through API Gateway
      */
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
-        console.log("deleteCustomDomain")
         // Make API call
         try {
             await throttledCall(this.apiGateway, "deleteDomainName", {
                 domainName: domain.givenDomainName,
             });
-            console.log("deleteCustomDomain")
         } catch (err) {
             throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
         }

@@ -183,10 +183,8 @@ class ServerlessCustomDomain {
         const isTLS10 = domain.securityPolicy === Globals.tlsVersions.tls_1_0;
         // For EDGE domain name or TLS 1.0 use APIGateway
         if (isEdge || isTLS10) {
-            console.log("APIGatewayV1Wrapper")
             return this.apiGatewayV1Wrapper;
         }
-        console.log("APIGatewayV2Wrapper")
         // For Regional domain use ApiGatewayV2
         return this.apiGatewayV2Wrapper;
     }
@@ -260,12 +258,9 @@ class ServerlessCustomDomain {
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
 
         domain.domainInfo = await apiGateway.getCustomDomain(domain);
-        console.log(1);
         try {
             if (domain.domainInfo) {
-                console.log(2);
                 await apiGateway.deleteCustomDomain(domain);
-                console.log(3);
                 await route53.changeResourceRecordSet("DELETE", domain);
                 domain.domainInfo = null;
                 Globals.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);

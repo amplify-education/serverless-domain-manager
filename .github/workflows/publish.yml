@@ -28,6 +28,8 @@ jobs:
       - name: Get latest tag
         id: get_latest_tag
         uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          initial_version: 'v${{ steps.extract_version.outputs.version }}'
 
       - name: See if version changed
         run: |
@@ -59,7 +61,3 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --verbose
-
-      - name: Print dirs
-        if: failure()
-        run: find /home/runner/.npm/_logs/ -type f -exec cat {} \;

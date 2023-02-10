@@ -61,7 +61,7 @@ class CloudFormationWrapper {
         const ref = apiGatewayValue[Globals.CFFuncNames.ref];
         if (ref) {
             try {
-                return this.getStackApiId(apiType, ref);
+                return await this.getStackApiId(apiType, ref);
             } catch (error) {
                 Globals.logWarning(`Unable to get ref ${ref} value.\n ${error.message}`);
                 return null;

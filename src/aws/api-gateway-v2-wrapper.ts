@@ -100,15 +100,12 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.stage;
+        let stage = domain.baseStage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;
         }
-        if (domain.apiType === Globals.apiTypes.websocket) {
-            // find out why custom stage does not work for the websocket
-            stage = Globals.serverless.service.provider.stage;
-        }
+
         try {
             await throttledCall(this.apiGateway, "createApiMapping", {
                 ApiId: domain.apiId,
@@ -154,15 +151,12 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.stage;
+        let stage = domain.baseStage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;
         }
-        if (domain.apiType === Globals.apiTypes.websocket) {
-            // find out why custom stage does not work for the websocket
-            stage = Globals.serverless.service.provider.stage;
-        }
+
         try {
             await throttledCall(this.apiGateway, "updateApiMapping", {
                 ApiId: domain.apiId,

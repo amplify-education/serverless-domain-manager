@@ -10,36 +10,20 @@ functions:
   helloWorld:
     handler: handler.helloWorld
     events:
-      - httpApi:
+      - http:
           path: /hello-world
           method: get
-  helloWorld2:
-    handler: handler.helloWorld
-    events:
-      - websocket:
-          route: $connect
 
 plugins:
   - serverless-domain-manager
 
 custom:
   customDomain:
-    http:
-      domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-      autoDomain: true
-      stage: 'dev'
-      basePath: 'v1'
-      createRoute53Record: true
-      endpointType: 'regional'
-      securityPolicy: tls_1_2
-    websocket:
-      domainName: ${env:PLUGIN_IDENTIFIER}-websocket-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-      autoDomain: true
-      stage: 'dev'
-      basePath: 'v1'
-      createRoute53Record: true
-      endpointType: 'regional'
-      securityPolicy: tls_1_2
+    autoDomain: true
+    basePath: ""
+    domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    stage: "dev"
+    createRoute53Record: true
 
 package:
   patterns:

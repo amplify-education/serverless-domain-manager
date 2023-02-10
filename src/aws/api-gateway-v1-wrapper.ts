@@ -101,7 +101,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
                 restApiId: domain.apiId,
-                stage: domain.stage,
+                stage: domain.baseStage,
             });
             Globals.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
         } catch (err) {

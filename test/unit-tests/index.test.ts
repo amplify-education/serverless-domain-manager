@@ -1388,7 +1388,7 @@ describe("Custom Domain Plugin", () => {
 
             const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
-            const result = await plugin.cloudFormationWrapper.findApiId(dc);
+            const result = await plugin.cloudFormationWrapper.findApiId(dc.apiType);
 
             expect(result).to.equal("test_rest_api_id");
             expect(spy).to.have.been.called.exactly(2);
@@ -1444,7 +1444,7 @@ describe("Custom Domain Plugin", () => {
 
             const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
-            const result = await plugin.cloudFormationWrapper.findApiId(dc);
+            const result = await plugin.cloudFormationWrapper.findApiId(dc.apiType);
             expect(result).to.equal("test_http_api_id");
             expect(spy).to.have.been.called.exactly(2);
             expect(spy).to.have.been.called.with({
@@ -1499,7 +1499,7 @@ describe("Custom Domain Plugin", () => {
 
             const spy = chai.spy.on(plugin.cloudFormationWrapper.cloudFormation, "describeStackResource");
 
-            const result = await plugin.cloudFormationWrapper.findApiId(dc);
+            const result = await plugin.cloudFormationWrapper.findApiId(dc.apiType);
             expect(result).to.equal("test_ws_api_id");
             expect(spy).to.have.been.called.exactly(3);
             expect(spy).to.have.been.called.with({
@@ -1530,7 +1530,7 @@ describe("Custom Domain Plugin", () => {
 
             const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
 
-            const result = await plugin.cloudFormationWrapper.findApiId(dc);
+            const result = await plugin.cloudFormationWrapper.findApiId(dc.apiType);
             expect(result).to.equal("custom_test_rest_api_id");
         });
 

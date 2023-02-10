@@ -309,7 +309,7 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            domain.apiId = await this.cloudFormationWrapper.findApiId(domain);
+            domain.apiId = await this.cloudFormationWrapper.findApiId(domain.apiType);
 
             const apiGateway = this.getApiGateway(domain);
             const mappings = await apiGateway.getBasePathMappings(domain);
@@ -340,7 +340,7 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             let externalBasePathExists = false;
             try {
-                domain.apiId = await this.cloudFormationWrapper.findApiId(domain);
+                domain.apiId = await this.cloudFormationWrapper.findApiId(domain.apiType);
                 // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
                     Globals.logInfo(`Unable to find corresponding API for '${domain.givenDomainName}',

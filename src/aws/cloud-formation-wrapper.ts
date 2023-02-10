@@ -5,7 +5,6 @@
 import {CloudFormation} from "aws-sdk";
 import Globals from "../globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
-import DomainConfig = require("../models/domain-config");
 
 class CloudFormationWrapper {
     public cloudFormation: CloudFormation;
@@ -20,13 +19,13 @@ class CloudFormationWrapper {
     /**
      * Get an API id from the existing config or CloudFormation stack resources or outputs
      */
-    public async findApiId(domain: DomainConfig): Promise<string> {
-        const configApiId = await this.getConfigId(domain.apiType);
+    public async findApiId(apiType: string): Promise<string> {
+        const configApiId = await this.getConfigId(apiType);
         if (configApiId) {
             return configApiId;
         }
 
-        return await this.getStackApiId(domain.apiType);
+        return await this.getStackApiId(apiType);
     }
 
     /**

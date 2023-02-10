@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [6.4.0] - 2023-02-13
 
 ### Added
-- Added support CloudFormation `Ref` intrinsic function.
+- Added support for the CloudFormation `Ref` intrinsic function.
 
 ## [6.3.4] - 2023-02-10
 

@@ -11,6 +11,7 @@ import ApiGatewayMap = require("./api-gateway-map");
 class DomainConfig {
     public givenDomainName: string;
     public basePath: string | undefined;
+    public baseStage: string | undefined;
     public stage: string | undefined;
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
@@ -53,7 +54,8 @@ class DomainConfig {
         this.autoDomainWaitFor = config.autoDomainWaitFor;
         this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
         this.basePath = this._getBasePath(config.basePath);
-        this.stage = this._getStage(config.stage);
+        this.baseStage = Globals.options.stage || Globals.serverless.service.provider.stage;
+        this.stage = config.stage || this.baseStage;
         this.endpointType = this._getEndpointType(config.endpointType);
         this.apiType = this._getApiType(config.apiType);
         this.tlsTruststoreUri = this._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
@@ -74,10 +76,6 @@ class DomainConfig {
             );
         }
         return basePath;
-    }
-
-    private _getStage(stage: string | undefined) {
-        return stage || Globals.options.stage || Globals.serverless.service.provider.stage;
     }
 
     private _getEndpointType(endpointType: string | undefined) {

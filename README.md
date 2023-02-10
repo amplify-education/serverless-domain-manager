@@ -32,6 +32,8 @@ apigateway:DELETE                      /domainnames*, /apis*, /restapis*
 apigateway:POST                        /domainnames*, /apis*, /restapis*
 apigateway:PATCH                       /domainnames*, /apis*, /restapis*
 cloudformation:GET                     *
+cloudformation:ListStacks              *
+cloudformation:DescribeStacks          *
 cloudfront:UpdateDistribution          *
 route53:ListHostedZones                *
 route53:ChangeResourceRecordSets       hostedzone/{HostedZoneId}

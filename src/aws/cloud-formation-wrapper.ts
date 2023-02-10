@@ -12,19 +12,17 @@ class CloudFormationWrapper {
     public stackName: string;
 
     constructor(credentials: any) {
-        const slsService = Globals.serverless.service;
-
         this.cloudFormation = new CloudFormation(credentials);
-        this.stackName = slsService.provider.stackName || `${Globals.options.stage || slsService.provider.stage}`;
+        this.stackName = Globals.serverless.service.provider.stackName ||
+            `${Globals.serverless.service.service}-${Globals.getBaseStage()}`;
     }
 
     /**
      * Get an API id from the existing config or CloudFormation stack resources or outputs
      */
     public async findApiId(domain: DomainConfig): Promise<string> {
-        const configApiId = this.getConfigId(domain.apiType);
+        const configApiId = await this.getConfigId(domain.apiType);
         if (configApiId) {
-            console.log("getConfigId: ", configApiId);
             return configApiId;
         }
 
@@ -37,23 +35,11 @@ class CloudFormationWrapper {
     public async getConfigId(apiType: string): Promise<string | null> {
         const apiGateway = Globals.serverless.service.provider.apiGateway || {};
         const apiIdKey = Globals.gatewayAPIIdKeys[apiType];
-        let apiGatewayValue = apiGateway[apiIdKey];
-
-        console.log(apiGatewayValue);
+        const apiGatewayValue = apiGateway[apiIdKey];
 
         if (apiGatewayValue) {
             if (typeof apiGatewayValue === "string") {
-                // check if the string is a short intrinsic function reference
-                // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
-                const splittedValue = apiGatewayValue.split(" ", 2);
-                if (splittedValue.length === 1) {
-                    Globals.logInfo(`Mapping custom domain to existing API '${apiGatewayValue}'.`);
-                    return apiGatewayValue;
-                }
-
-                apiGatewayValue = {
-                    [apiGatewayValue[0]]: apiGatewayValue[1]
-                }
+                return apiGatewayValue;
             }
 
             return await this.getCloudformationId(apiGatewayValue, apiType)
@@ -64,7 +50,7 @@ class CloudFormationWrapper {
 
     public async getCloudformationId(apiGatewayValue: object, apiType: string): Promise<string | null> {
         // in case object and Fn::ImportValue try to get API id from the CloudFormation outputs
-        const importName = apiGatewayValue["Fn::ImportValue"];
+        const importName = apiGatewayValue[Globals.CFFuncNames.fnImport];
         if (importName) {
             const importValues = await this.getImportValues([importName]);
             if (!importValues[importName]) {
@@ -73,7 +59,7 @@ class CloudFormationWrapper {
             return importValues[importName];
         }
 
-        const ref = apiGatewayValue["Ref"] || apiGatewayValue["!Ref"];
+        const ref = apiGatewayValue[Globals.CFFuncNames.ref];
         if (ref) {
             try {
                 return this.getStackApiId(apiType, ref);
@@ -186,7 +172,7 @@ class CloudFormationWrapper {
                 response = await this.getStack(logicalResourceId, name);
                 break;
             } catch (err) {
-                Globals.logWarning(err);
+                Globals.logWarning(err.message);
             }
         }
         return response;

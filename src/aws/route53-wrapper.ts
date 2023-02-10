@@ -56,7 +56,7 @@ class Route53Wrapper {
                 Weight: domain.route53Params.weight,
                 SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
-            }
+            };
         }
 
         let hostedZoneIds: string[];

@@ -39,6 +39,12 @@ export default class Globals {
         [Globals.apiTypes.websocket]: "WebsocketsApi",
     };
 
+    // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
+    public static CFFuncNames = {
+        fnImport: "Fn::ImportValue",
+        ref: "Ref"
+    }
+
     /*eslint camelcase: ["error", {allow: ["^tls_"]}]*/
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
@@ -50,6 +56,10 @@ export default class Globals {
         latency: "latency",
         weighted: "weighted",
     };
+
+    public static getBaseStage() {
+        return Globals.options.stage || Globals.serverless.service.provider.stage;
+    }
 
     public static cliLog(prefix: string, message: string): void {
         Globals.serverless.cli.log(`${prefix} ${message}`, Globals.pluginName);
@@ -113,5 +123,4 @@ export default class Globals {
             });
         }
     }
-
 }

@@ -54,8 +54,8 @@ class DomainConfig {
         this.autoDomainWaitFor = config.autoDomainWaitFor;
         this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
         this.basePath = this._getBasePath(config.basePath);
-        this.baseStage = Globals.options.stage || Globals.serverless.service.provider.stage;
-        this.stage = config.stage || this.baseStage;
+        this.baseStage = Globals.getBaseStage();
+        this.stage = config.stage || Globals.getBaseStage();
         this.endpointType = this._getEndpointType(config.endpointType);
         this.apiType = this._getApiType(config.apiType);
         this.tlsTruststoreUri = this._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);

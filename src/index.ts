@@ -429,7 +429,8 @@ class ServerlessCustomDomain {
             throw new Error("Unsupported apiGateway.restApiId object");
         }
 
-        const stackName = slsService.provider.stackName || `${slsService.service}-${slsService.provider.stage}`;
+        const stage = Globals.options.stage || Globals.serverless.service.provider.stage;
+        const stackName = slsService.provider.stackName || `${slsService.service}-${stage}`;
         try {
             return await this.cloudFormationWrapper.getApiId(domain, stackName);
         } catch (err) {

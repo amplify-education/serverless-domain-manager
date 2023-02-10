@@ -309,7 +309,8 @@ class ServerlessCustomDomain {
      */
     public async setupBasePathMappings(): Promise<void> {
         await Promise.all(this.domains.map(async (domain) => {
-            domain.apiId = await this.getApiId(domain);
+            domain.apiId = await this.cloudFormationWrapper.findApiId(domain);
+            console.log("findApiId: ", domain.apiId);
 
             const apiGateway = this.getApiGateway(domain);
             const mappings = await apiGateway.getBasePathMappings(domain);
@@ -340,7 +341,7 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             let externalBasePathExists = false;
             try {
-                domain.apiId = await this.getApiId(domain);
+                domain.apiId = await this.cloudFormationWrapper.findApiId(domain);
                 // Unable to find the corresponding API, manual clean up will be required
                 if (!domain.apiId) {
                     Globals.logInfo(`Unable to find corresponding API for '${domain.givenDomainName}',
@@ -395,46 +396,6 @@ class ServerlessCustomDomain {
             Globals.printDomainSummary(this.domains);
         });
 
-    }
-
-    /**
-     * Gets rest API id from existing config or CloudFormation stack
-     */
-    public async getApiId(domain: DomainConfig): Promise<string> {
-        const slsService = this.serverless.service;
-        const apiGateway = slsService.provider.apiGateway || {};
-        const apiIdKey = Globals.gatewayAPIIdKeys[domain.apiType];
-        const apiId = apiGateway[apiIdKey];
-        if (apiId) {
-            // if string value exists return the value
-            if (typeof apiId === "string") {
-                Globals.logInfo(`Mapping custom domain to existing API '${apiId}'.`);
-                return apiId;
-            }
-            // in case object and Fn::ImportValue try to get restApiId from the CloudFormation exports
-            if (typeof apiId === "object" && apiId["Fn::ImportValue"]) {
-                const importName = apiId["Fn::ImportValue"];
-                let importValues;
-                try {
-                    importValues = await this.cloudFormationWrapper.getImportValues([importName]);
-                } catch (err) {
-                    throw new Error(`Failed to find CloudFormation ImportValue by '${importName}':\n${err.message}`);
-                }
-                if (!importValues[importName]) {
-                    throw new Error(`CloudFormation ImportValue not found by '${importName}'`);
-                }
-                return importValues[importName];
-            }
-            // throw an exception in case not supported restApiId
-            throw new Error("Unsupported apiGateway.restApiId object");
-        }
-
-        const stackName = slsService.provider.stackName || `${slsService.service}-${slsService.provider.stage}`;
-        try {
-            return await this.cloudFormationWrapper.getApiId(domain, stackName);
-        } catch (err) {
-            throw new Error(`Failed to find CloudFormation resources for '${domain.givenDomainName}':\n${err.message}`);
-        }
     }
 
     /**

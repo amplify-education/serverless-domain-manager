@@ -3,41 +3,117 @@
  */
 
 import {CloudFormation} from "aws-sdk";
-import DomainConfig = require("../models/domain-config");
 import Globals from "../globals";
 import {getAWSPagedResults, throttledCall} from "../utils";
+import DomainConfig = require("../models/domain-config");
 
 class CloudFormationWrapper {
     public cloudFormation: CloudFormation;
+    public stackName: string;
 
     constructor(credentials: any) {
+        const slsService = Globals.serverless.service;
+
         this.cloudFormation = new CloudFormation(credentials);
+        this.stackName = slsService.provider.stackName || `${Globals.options.stage || slsService.provider.stage}`;
+    }
+
+    /**
+     * Get an API id from the existing config or CloudFormation stack resources or outputs
+     */
+    public async findApiId(domain: DomainConfig): Promise<string> {
+        const configApiId = this.getConfigId(domain.apiType);
+        if (configApiId) {
+            console.log("getConfigId: ", configApiId);
+            return configApiId;
+        }
+
+        return await this.getStackApiId(domain.apiType);
+    }
+
+    /**
+     * Get an API id from the existing config or CloudFormation stack based on provider.apiGateway params
+     */
+    public async getConfigId(apiType: string): Promise<string | null> {
+        const apiGateway = Globals.serverless.service.provider.apiGateway || {};
+        const apiIdKey = Globals.gatewayAPIIdKeys[apiType];
+        let apiGatewayValue = apiGateway[apiIdKey];
+
+        console.log(apiGatewayValue);
+
+        if (apiGatewayValue) {
+            if (typeof apiGatewayValue === "string") {
+                // check if the string is a short intrinsic function reference
+                // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
+                const splittedValue = apiGatewayValue.split(" ", 2);
+                if (splittedValue.length === 1) {
+                    Globals.logInfo(`Mapping custom domain to existing API '${apiGatewayValue}'.`);
+                    return apiGatewayValue;
+                }
+
+                apiGatewayValue = {
+                    [apiGatewayValue[0]]: apiGatewayValue[1]
+                }
+            }
+
+            return await this.getCloudformationId(apiGatewayValue, apiType)
+        }
+
+        return null;
+    }
+
+    public async getCloudformationId(apiGatewayValue: object, apiType: string): Promise<string | null> {
+        // in case object and Fn::ImportValue try to get API id from the CloudFormation outputs
+        const importName = apiGatewayValue["Fn::ImportValue"];
+        if (importName) {
+            const importValues = await this.getImportValues([importName]);
+            if (!importValues[importName]) {
+                Globals.logWarning(`CloudFormation ImportValue '${importName}' not found in the outputs`);
+            }
+            return importValues[importName];
+        }
+
+        const ref = apiGatewayValue["Ref"] || apiGatewayValue["!Ref"];
+        if (ref) {
+            try {
+                return this.getStackApiId(apiType, ref);
+            } catch (error) {
+                Globals.logWarning(`Unable to get ref ${ref} value.\n ${error.message}`);
+                return null;
+            }
+        }
+
+        // log warning not supported restApiId
+        Globals.logWarning(`Unsupported apiGateway.${apiType} object`);
+
+        return null;
     }
 
     /**
      * Gets rest API id from CloudFormation stack or nested stack
      */
-    public async getApiId(domain: DomainConfig, stackName: string): Promise<string> {
-        const logicalResourceId = Globals.CFResourceIds[domain.apiType];
+    public async getStackApiId(apiType: string, logicalResourceId: string = null): Promise<string> {
+        if (!logicalResourceId) {
+            logicalResourceId = Globals.CFResourceIds[apiType];
+        }
+
         let response;
         try {
             // trying to get information for specified stack name
-            response = await this.getStack(logicalResourceId, stackName);
+            response = await this.getStack(logicalResourceId, this.stackName);
         } catch {
             // in case error trying to get information from some of nested stacks
-            response = await this.getNestedStack(logicalResourceId, stackName);
+            response = await this.getNestedStack(logicalResourceId, this.stackName);
         }
 
         if (!response) {
-            throw new Error(`Failed to find a stack ${stackName}\n`);
+            throw new Error(`Failed to find a stack ${this.stackName}\n`);
         }
 
         const apiId = response.StackResourceDetail.PhysicalResourceId;
         if (!apiId) {
-            throw new Error(`No ApiId associated with CloudFormation stack ${stackName}`);
+            throw new Error(`No ApiId associated with CloudFormation stack ${this.stackName}`);
         }
-
-        Globals.logInfo(`Found apiId: ${apiId} for ${domain.givenDomainName}`);
 
         return apiId;
     }

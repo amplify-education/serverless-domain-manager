@@ -297,7 +297,7 @@ describe("Custom Domain Plugin", () => {
         });
 
         it("Creates basepath mapping for regional tls 1.2 REST api", async () => {
-            AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
+            AWS.mock("APIGateway", "createBasePathMapping", (params, callback) => {
                 callback(null, params);
             });
             const plugin = constructPlugin({
@@ -312,15 +312,15 @@ describe("Custom Domain Plugin", () => {
             dc.apiId = "test_rest_api_id";
 
             const apiGateway = plugin.getApiGateway(dc);
-            const spy = chai.spy.on(apiGateway.apiGateway, "createApiMapping");
+            const spy = chai.spy.on(apiGateway.apiGateway, "createBasePathMapping");
 
             await apiGateway.createBasePathMapping(dc);
 
             expect(spy).to.have.been.called.with({
-                ApiId: "test_rest_api_id",
-                ApiMappingKey: "test_basepath",
-                DomainName: "test_domain",
-                Stage: "test",
+                domainName: "test_domain",
+                restApiId: "test_rest_api_id",
+                basePath: "test_basepath",
+                stage: "test",
             });
         });
 
@@ -482,7 +482,7 @@ describe("Custom Domain Plugin", () => {
                 domainName: "test_domain",
             });
 
-            plugin.domains[0].endpointType = Globals.endpointTypes.regional;
+            plugin.domains[0].apiType = Globals.apiTypes.http;
             const spyV2 = chai.spy.on(plugin.apiGatewayV2Wrapper.apiGateway, "deleteApiMapping");
             await plugin.removeBasePathMappings();
             expect(spyV2).to.have.been.called.with({
@@ -2218,8 +2218,8 @@ describe("Custom Domain Plugin", () => {
         });
 
         it('should fail when the mutual TLS certificate is not stored in S3', async () => {
-            AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
-                callback(null, {DomainName: "test_domain", DomainNameConfigurations: [{HostedZoneId: "test_id"}]});
+            AWS.mock("APIGateway", "getDomainName", (params, callback) => {
+                callback(null, {domainName: "test_domain", regionalHostedZoneId: "test_id"});
             });
             AWS.mock("S3", "headObject", (params, callback) => {
                 // @ts-ignore

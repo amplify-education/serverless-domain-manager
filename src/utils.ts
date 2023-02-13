@@ -15,13 +15,13 @@ async function sleep(seconds) {
 async function throttledCall(service: Service, funcName: string, params: object): Promise<any> {
     const maxTimePassed = 5 * 60;
     const minWait = 3;
-    const stopLoop = false;
     const maxWait = 60;
+    const runLoop = true;
 
     let timePassed = 0;
     let previousInterval = 0;
 
-    while (!stopLoop) {
+    while (runLoop) {
         try {
             return await service[funcName](params).promise();
         } catch (ex) {

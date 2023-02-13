@@ -178,11 +178,17 @@ class ServerlessCustomDomain {
     }
 
     public getApiGateway(domain: DomainConfig): APIGatewayBase {
-        // For EDGE domain name or TLS 1.0 use APIGateway
+        // 1. https://stackoverflow.com/questions/72339224/aws-v1-vs-v2-api-for-listing-apis-on-aws-api-gateway-return-different-data-for-t
+        // 2. https://aws.amazon.com/blogs/compute/announcing-http-apis-for-amazon-api-gateway/
+        // There are currently two API Gateway namespaces for managing API Gateway deployments.
+        // The API V1 namespace represents REST APIs and API V2 represents WebSocket APIs and the new HTTP APIs.
+        // You can create an HTTP API by using the AWS Management Console, CLI, APIs, CloudFormation, SDKs, or the Serverless Application Model (SAM).
+
+        // use apiGatewayV1 for the `rest` API type
         if (domain.apiType === Globals.apiTypes.rest) {
             return this.apiGatewayV1Wrapper;
         }
-        // For Regional domain use ApiGatewayV2
+        // ApiGatewayV2 for the `http` and `websocket` types
         return this.apiGatewayV2Wrapper;
     }
 

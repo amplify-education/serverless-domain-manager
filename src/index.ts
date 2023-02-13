@@ -139,8 +139,6 @@ class ServerlessCustomDomain {
      */
     public validateDomainConfigs() {
         this.domains.forEach((domain) => {
-
-            // Show warning if allowPathMatching is set to true
             if (domain.allowPathMatching) {
                 Globals.logWarning(`"allowPathMatching" is set for ${domain.givenDomainName}.
                     This should only be used when migrating a path to a different API type. e.g. REST to HTTP.`);
@@ -149,14 +147,15 @@ class ServerlessCustomDomain {
             if (domain.apiType === Globals.apiTypes.rest) {
                 // Currently no validation for REST API types
 
-            } else if (domain.apiType === Globals.apiTypes.http) { // Validation for http apis
-                // HTTP Apis do not support edge domains
+            } else if (domain.apiType === Globals.apiTypes.http) {
+                // HTTP APIs do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
+                    // https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html
                     throw Error("'EDGE' endpointType is not compatible with HTTP APIs");
                 }
 
-            } else if (domain.apiType === Globals.apiTypes.websocket) { // Validation for WebSocket apis
-                // Websocket Apis do not support edge domains
+            } else if (domain.apiType === Globals.apiTypes.websocket) {
+                // Websocket APIs do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
                     throw Error("'EDGE' endpointType is not compatible with WebSocket APIs");
                 }
@@ -179,10 +178,8 @@ class ServerlessCustomDomain {
     }
 
     public getApiGateway(domain: DomainConfig): APIGatewayBase {
-        const isEdge = domain.endpointType === Globals.endpointTypes.edge;
-        const isTLS10 = domain.securityPolicy === Globals.tlsVersions.tls_1_0;
         // For EDGE domain name or TLS 1.0 use APIGateway
-        if (isEdge || isTLS10) {
+        if (domain.apiType === Globals.apiTypes.rest) {
             return this.apiGatewayV1Wrapper;
         }
         // For Regional domain use ApiGatewayV2

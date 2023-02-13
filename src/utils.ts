@@ -14,24 +14,26 @@ async function sleep(seconds) {
 
 async function throttledCall(service: Service, funcName: string, params: object): Promise<any> {
     const maxTimePassed = 5 * 60;
-
-    let timePassed = 0;
-    let previousInterval = 0;
-
     const minWait = 3;
     const maxWait = 60;
 
-    while (true) {
+    let timePassed = 0;
+    let previousInterval = 0;
+    let stopLoop = false;
+
+    while (!stopLoop) {
         try {
             return await service[funcName](params).promise();
         } catch (ex) {
             // rethrow the exception if it is not a type of retryable exception
             if (RETRYABLE_ERRORS.indexOf(ex.code) === -1) {
+                stopLoop = true;
                 throw ex;
             }
 
             // rethrow the exception if we have waited too long
             if (timePassed >= maxTimePassed) {
+                stopLoop = true;
                 throw ex;
             }
 

@@ -152,7 +152,7 @@ class CloudFormationWrapper {
         );
 
         // filter stacks by given stackName and check by nested stack RootId
-        const regex = new RegExp(`\/${stackName}\/`);
+        const regex = new RegExp("/" + stackName + "/");
         const filteredStackNames = stacks
             .reduce((acc, stack) => {
                 if (!stack.RootId) {

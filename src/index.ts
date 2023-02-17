@@ -151,7 +151,10 @@ class ServerlessCustomDomain {
                 // HTTP APIs do not support edge domains
                 if (domain.endpointType === Globals.endpointTypes.edge) {
                     // https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html
-                    throw Error("'EDGE' endpointType is not compatible with HTTP APIs");
+                    throw Error(
+                        "'EDGE' endpointType is not compatible with HTTP APIs\n" +
+                        "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html"
+                    );
                 }
 
             } else if (domain.apiType === Globals.apiTypes.websocket) {
@@ -183,13 +186,18 @@ class ServerlessCustomDomain {
         // There are currently two API Gateway namespaces for managing API Gateway deployments.
         // The API V1 namespace represents REST APIs and API V2 represents WebSocket APIs and the new HTTP APIs.
         // You can create an HTTP API by using the AWS Management Console, CLI, APIs, CloudFormation, SDKs, or the Serverless Application Model (SAM).
-
-        // use apiGatewayV1 for the `rest` API type
-        if (domain.apiType === Globals.apiTypes.rest) {
-            return this.apiGatewayV1Wrapper;
+        if (domain.apiType !== Globals.apiTypes.rest) {
+            return this.apiGatewayV2Wrapper;
         }
-        // ApiGatewayV2 for the `http` and `websocket` types
-        return this.apiGatewayV2Wrapper;
+
+        // multi-level base path mapping is supported by Gateway V2
+        // https://github.com/amplify-education/serverless-domain-manager/issues/558
+        // https://aws.amazon.com/blogs/compute/using-multiple-segments-in-amazon-api-gateway-base-path-mapping/
+        if (domain.baseStage.includes("/")) {
+            return this.apiGatewayV2Wrapper;
+        }
+
+        return this.apiGatewayV1Wrapper;
     }
 
     /**

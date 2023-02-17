@@ -1,6 +1,5 @@
 # serverless-domain-manager
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
-[![Build Status](https://travis-ci.org/amplify-education/serverless-domain-manager.svg?branch=main)](https://travis-ci.org/amplify-education/serverless-domain-manager)
 [![npm version](https://badge.fury.io/js/serverless-domain-manager.svg)](https://badge.fury.io/js/serverless-domain-manager)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-domain-manager/main/LICENSE)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/235fe249b8354a3db0cc5926dba47899)](https://www.codacy.com/gh/amplify-education/serverless-domain-manager/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=amplify-education/serverless-domain-manager&amp;utm_campaign=Badge_Grade)

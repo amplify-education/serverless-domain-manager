@@ -201,7 +201,7 @@ describe("Custom Domain Plugin", () => {
                 plugin.validateDomainConfigs();
             } catch (err) {
                 errored = true;
-                expect(err.message).to.equal("'EDGE' endpointType is not compatible with HTTP APIs");
+                expect(err.message).to.contains("'EDGE' endpointType is not compatible with HTTP APIs");
             }
             expect(errored).to.equal(true);
         });

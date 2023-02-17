@@ -41,7 +41,7 @@ class CloudFormationWrapper {
                 return apiGatewayValue;
             }
 
-            return await this.getCloudformationId(apiGatewayValue, apiType)
+            return await this.getCloudformationId(apiGatewayValue, apiType);
         }
 
         return null;
@@ -52,10 +52,11 @@ class CloudFormationWrapper {
         const importName = apiGatewayValue[Globals.CFFuncNames.fnImport];
         if (importName) {
             const importValues = await this.getImportValues([importName]);
-            if (!importValues[importName]) {
+            const nameValue = importValues[importName];
+            if (!nameValue) {
                 Globals.logWarning(`CloudFormation ImportValue '${importName}' not found in the outputs`);
             }
-            return importValues[importName];
+            return nameValue;
         }
 
         const ref = apiGatewayValue[Globals.CFFuncNames.ref];

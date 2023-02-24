@@ -324,6 +324,36 @@ describe("Custom Domain Plugin", () => {
             });
         });
 
+        it("Creates basepath mapping for regional tls 1.2 REST api with '/' in base path", async () => {
+            AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
+                callback(null, params);
+            });
+            const plugin = constructPlugin({
+                apiType: "rest",
+                basePath: "test/basepath",
+                domainName: "test_domain",
+                endpointType: "REGIONAL",
+            });
+            plugin.initializeVariables();
+            plugin.initAWSResources();
+
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            dc.apiId = "test_rest_api_id";
+
+            const apiGateway = plugin.getApiGateway(dc);
+            const spy = chai.spy.on(apiGateway.apiGateway, "createApiMapping");
+
+            await apiGateway.createBasePathMapping(dc);
+
+            expect(spy).to.have.been.called.exactly(1)
+            expect(spy).to.have.been.called.with({
+                ApiId: "test_rest_api_id",
+                ApiMappingKey: "test/basepath",
+                DomainName: "test_domain",
+                Stage: "test",
+            });
+        });
+
         it("Creates basepath mapping for regional HTTP/Websocket api", async () => {
             AWS.mock("ApiGatewayV2", "createApiMapping", (params, callback) => {
                 callback(null, params);

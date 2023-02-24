@@ -193,7 +193,7 @@ class ServerlessCustomDomain {
         // multi-level base path mapping is supported by Gateway V2
         // https://github.com/amplify-education/serverless-domain-manager/issues/558
         // https://aws.amazon.com/blogs/compute/using-multiple-segments-in-amazon-api-gateway-base-path-mapping/
-        if (domain.baseStage.includes("/")) {
+        if (domain.basePath.includes("/")) {
             return this.apiGatewayV2Wrapper;
         }
 

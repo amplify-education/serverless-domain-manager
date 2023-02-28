@@ -1,4 +1,3 @@
-import {HTTPOptions} from "aws-sdk";
 
 export interface Route53Params {
     routingPolicy: "simple" | "latency" | "weighted" | undefined;
@@ -68,7 +67,7 @@ export interface ServerlessInstance {
                 ACM: any,
                 S3: any,
                 config: {
-                    httpOptions: HTTPOptions,
+                    httpOptions: any,
                     update(toUpdate: object): void,
                 },
                 SharedIniFileCredentials: any,

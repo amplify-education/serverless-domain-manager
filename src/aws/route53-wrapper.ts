@@ -1,10 +1,15 @@
 import Globals from "../globals";
-import {getAWSPagedResults, throttledCall} from "../utils";
 import DomainConfig = require("../models/domain-config");
-import {Route53} from "aws-sdk";
+import Logging from "../logging";
+import {
+    ChangeResourceRecordSetsCommand,
+    ListHostedZonesCommand,
+    ListHostedZonesCommandOutput,
+    Route53Client
+} from "@aws-sdk/client-route-53";
 
 class Route53Wrapper {
-    public route53: Route53;
+    public route53: Route53Client;
 
     constructor(profile?: string, region?: string) {
         let credentials = Globals.serverless.providers.aws.getCredentials();
@@ -20,7 +25,7 @@ class Route53Wrapper {
                 httpOptions: credentials.httpOptions
             };
         }
-        this.route53 = new Globals.serverless.providers.aws.sdk.Route53(credentials);
+        this.route53 = new Route53Client(credentials);
     }
 
     /**
@@ -30,7 +35,7 @@ class Route53Wrapper {
      */
     public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
         if (domain.createRoute53Record === false) {
-            Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
+            Logging.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
         // Set up parameters
@@ -93,7 +98,7 @@ class Route53Wrapper {
             };
             // Make API call
             try {
-                await throttledCall(this.route53, "changeResourceRecordSets", params);
+                await this.route53.send(new ChangeResourceRecordSetsCommand(params));
             } catch (err) {
                 throw new Error(
                     `Failed to ${action} ${recordsToCreate.join(",")} Alias for '${domain.givenDomainName}':\n
@@ -108,26 +113,22 @@ class Route53Wrapper {
      */
     public async getRoute53HostedZoneId(domain: DomainConfig, isHostedZonePrivate?: boolean): Promise<string> {
         if (domain.hostedZoneId) {
-            Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
+            Logging.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
             return domain.hostedZoneId;
         }
 
         const isPrivateDefined = typeof isHostedZonePrivate !== "undefined";
         if (isPrivateDefined) {
             const zoneTypeString = isHostedZonePrivate ? "private" : "public";
-            Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
+            Logging.logInfo(`Filtering to only ${zoneTypeString} zones.`);
         }
 
         let hostedZones = [];
         try {
-            hostedZones = await getAWSPagedResults(
-                this.route53,
-                "listHostedZones",
-                "HostedZones",
-                "Marker",
-                "NextMarker",
-                {}
+            const response: ListHostedZonesCommandOutput = await this.route53.send(
+                new ListHostedZonesCommand({})
             );
+            hostedZones = response.HostedZones || hostedZones;
         } catch (err) {
             throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
         }

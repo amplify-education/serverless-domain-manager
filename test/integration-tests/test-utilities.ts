@@ -1,11 +1,20 @@
 "use strict";
 
-import aws = require("aws-sdk");
 import shell = require("shelljs");
 import {TEMP_DIR} from "./base";
+import {
+    APIGatewayClient,
+    CreateRestApiCommand,
+    CreateRestApiCommandOutput, DeleteRestApiCommand,
+    GetBasePathMappingsCommand,
+    GetBasePathMappingsCommandOutput,
+    GetDomainNameCommand,
+    GetDomainNameCommandOutput,
+    GetResourcesCommand, GetResourcesCommandOutput
+} from "@aws-sdk/client-api-gateway";
 
 // the us-west-2 is set in each test config
-const apiGateway = new aws.APIGateway({
+const apiGateway = new APIGatewayClient({
     region: "us-west-2"
 });
 
@@ -44,39 +53,39 @@ async function createTempDir(tempDir, folderName) {
 
 /**
  * Gets endpoint type of given URL from AWS
- * @param url
+ * @param domainName
  * @returns {Promise<String>}
  */
-async function getEndpointType(url) {
-    const result = await apiGateway.getDomainName({
-        domainName: url,
-    }).promise();
+async function getEndpointType(domainName) {
+    const result: GetDomainNameCommandOutput = await apiGateway.send(
+        new GetDomainNameCommand({domainName})
+    )
 
     return result.endpointConfiguration.types[0];
 }
 
 /**
  * Gets stage of given URL from AWS
- * @param url
+ * @param domainName
  * @returns {Promise<String>}
  */
-async function getStage(url) {
-    const result = await apiGateway.getBasePathMappings({
-        domainName: url,
-    }).promise();
+async function getStage(domainName) {
+    const result: GetBasePathMappingsCommandOutput = await apiGateway.send(
+        new GetBasePathMappingsCommand({domainName})
+    )
 
     return result.items[0].stage;
 }
 
 /**
  * Gets basePath of given URL from AWS
- * @param url
+ * @param domainName
  * @returns {Promise<String>}
  */
-async function getBasePath(url) {
-    const result = await apiGateway.getBasePathMappings({
-        domainName: url,
-    }).promise();
+async function getBasePath(domainName) {
+    const result: GetBasePathMappingsCommandOutput = await apiGateway.send(
+        new GetBasePathMappingsCommand({domainName})
+    )
 
     return result.items[0].basePath;
 }
@@ -87,10 +96,16 @@ async function getBasePath(url) {
  * @return {Object} Contains restApiId and resourceId
  */
 async function setupApiGatewayResources(restApiName) {
-    const restApiInfo = await apiGateway.createRestApi({name: restApiName}).promise();
-    const restApiId = restApiInfo.id;
-    const resourceInfo = await apiGateway.getResources({restApiId}).promise();
-    const resourceId = resourceInfo.items[0].id;
+    const restAPI: CreateRestApiCommandOutput = await apiGateway.send(
+        new CreateRestApiCommand({name: restApiName})
+    )
+
+    const restApiId = restAPI.id;
+    const resources: GetResourcesCommandOutput = await apiGateway.send(
+        new GetResourcesCommand({restApiId})
+    )
+
+    const resourceId = resources.items[0].id;
     shell.env.REST_API_ID = restApiId;
     shell.env.RESOURCE_ID = resourceId;
     return {restApiId, resourceId};
@@ -102,7 +117,9 @@ async function setupApiGatewayResources(restApiName) {
  * @return {boolean} Returns true if deleted
  */
 async function deleteApiGatewayResources(restApiId) {
-    return apiGateway.deleteRestApi({restApiId}).promise();
+    return await apiGateway.send(
+        new DeleteRestApiCommand({restApiId})
+    )
 }
 
 /**

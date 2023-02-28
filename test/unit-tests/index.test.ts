@@ -7,11 +7,11 @@ import DomainConfig = require("../../src/models/domain-config");
 import DomainInfo = require("../../src/models/domain-info");
 import Globals from "../../src/globals";
 import ServerlessCustomDomain = require("../../src/index");
-import {getAWSPagedResults} from "../../src/utils";
 import Route53Wrapper = require("../../src/aws/route53-wrapper");
 import ACMWrapper = require("../../src/aws/acm-wrapper");
 import S3Wrapper = require("../../src/aws/s3-wrapper");
 import {ServerlessOptions} from "../../src/types";
+import Logging from "../../src/logging";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -130,7 +130,7 @@ const constructPlugin = (customDomainOptions, options?: ServerlessOptions, multi
     return new ServerlessCustomDomain(serverless, options || defaultOptions);
 };
 
-Globals.cliLog = (prefix: string, message: string) => {
+Logging.cliLog = (prefix: string, message: string) => {
     consoleOutput.push(message);
 };
 
@@ -2243,7 +2243,7 @@ describe("Custom Domain Plugin", () => {
 
             // set sls debug to true
             process.env.SLS_DEBUG = "True";
-            Globals.logError("test message");
+            Logging.logError("test message");
             expect(consoleOutput[0]).to.contain("test message");
         });
 
@@ -2509,43 +2509,6 @@ describe("Custom Domain Plugin", () => {
                 expect(err.message).to.equal(`${Globals.pluginName}: Plugin configuration is missing.`);
             }
             expect(errored).to.equal(true);
-        });
-    });
-
-    describe("AWS paged results", () => {
-        it("Should combine paged results into a list", async () => {
-            let callCount = 0;
-            const responses = [{
-                Items: ["a", "b"],
-                NextToken: "1",
-            },
-                {
-                    Items: ["c", "d"],
-                    NextToken: "2",
-                },
-                {
-                    Items: ["e"],
-                },
-                {
-                    Items: ["f"],
-                    // this call should never happen since its after the last request that included a token
-                }];
-            AWS.mock("ApiGatewayV2", "getApiMappings", (params, callback) => {
-                // @ts-ignore
-                callback(null, responses[callCount++]);
-            });
-
-            const plugin = constructPlugin({});
-            const results = await getAWSPagedResults(
-                new aws.ApiGatewayV2(),
-                "getApiMappings",
-                "Items",
-                "NextToken",
-                "NextToken",
-                {DomainName: "example.com"},
-            );
-            expect(results).to.deep.equal(["a", "b", "c", "d", "e"]);
-            AWS.restore();
         });
     });
 

@@ -1,10 +1,10 @@
 import DomainInfo = require("./domain-info");
 import ApiGatewayMap = require("./api-gateway-map");
 import DomainConfig = require("./domain-config");
-import {APIGateway, ApiGatewayV2} from "aws-sdk";
+import {Client} from "@aws-sdk/smithy-client";
 
 abstract class APIGatewayBase {
-    public apiGateway: APIGateway | ApiGatewayV2;
+    public apiGateway: Client<any, any, any, any>;
 
     abstract createCustomDomain(domain: DomainConfig): Promise<DomainInfo>;
 

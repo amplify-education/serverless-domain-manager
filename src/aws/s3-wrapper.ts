@@ -1,13 +1,12 @@
-import {S3} from "aws-sdk";
-import {throttledCall} from "../utils";
 import DomainConfig = require("../models/domain-config");
-import Globals from "../globals";
+import Logging from "../logging";
+import {HeadObjectCommand, HeadObjectRequest, S3Client} from "@aws-sdk/client-s3";
 
 class S3Wrapper {
-    public s3: S3;
+    public s3: S3Client;
 
     constructor(credentials: any) {
-        this.s3 = new S3(credentials);
+        this.s3 = new S3Client(credentials);
     }
 
     /**
@@ -16,19 +15,19 @@ class S3Wrapper {
     public async assertTlsCertObjectExists(domain: DomainConfig): Promise<void> {
         try {
             const {Bucket, Key} = this.extractBucketAndKey(domain.tlsTruststoreUri);
-            const params: S3.Types.HeadObjectRequest = {Bucket, Key};
+            const params: HeadObjectRequest = {Bucket, Key};
 
             if (domain.tlsTruststoreVersion) {
                 params.VersionId = domain.tlsTruststoreVersion;
             }
 
-            await throttledCall(this.s3, "headObject", params);
+            await this.s3.send(new HeadObjectCommand(params));
         } catch (err) {
-            if (err.statusCode !== 403) {
+            if (err.$metadata && err.$metadata.httpStatusCode !== 403) {
                 throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`);
             }
 
-            Globals.logWarning(
+            Logging.logWarning(
                 `Forbidden to check the existence of the S3 object ${domain.tlsTruststoreUri} due to\n${err}`
             );
         }

@@ -2,16 +2,24 @@
  * Wrapper class for AWS CloudFormation provider
  */
 
-import {CloudFormation} from "aws-sdk";
 import Globals from "../globals";
-import {getAWSPagedResults, throttledCall} from "../utils";
+import Logging from "../logging";
+import {
+    CloudFormationClient,
+    DescribeStackResourceCommand,
+    DescribeStackResourceCommandOutput,
+    DescribeStacksCommand,
+    DescribeStacksCommandOutput,
+    ListExportsCommand,
+    ListExportsCommandOutput
+} from "@aws-sdk/client-cloudformation";
 
 class CloudFormationWrapper {
-    public cloudFormation: CloudFormation;
+    public cloudFormation: CloudFormationClient;
     public stackName: string;
 
     constructor(credentials: any) {
-        this.cloudFormation = new CloudFormation(credentials);
+        this.cloudFormation = new CloudFormationClient(credentials);
         this.stackName = Globals.serverless.service.provider.stackName ||
             `${Globals.serverless.service.service}-${Globals.getBaseStage()}`;
     }
@@ -54,7 +62,7 @@ class CloudFormationWrapper {
             const importValues = await this.getImportValues([importName]);
             const nameValue = importValues[importName];
             if (!nameValue) {
-                Globals.logWarning(`CloudFormation ImportValue '${importName}' not found in the outputs`);
+                Logging.logWarning(`CloudFormation ImportValue '${importName}' not found in the outputs`);
             }
             return nameValue;
         }
@@ -64,13 +72,13 @@ class CloudFormationWrapper {
             try {
                 return await this.getStackApiId(apiType, ref);
             } catch (error) {
-                Globals.logWarning(`Unable to get ref ${ref} value.\n ${error.message}`);
+                Logging.logWarning(`Unable to get ref ${ref} value.\n ${error.message}`);
                 return null;
             }
         }
 
         // log warning not supported restApiId
-        Globals.logWarning(`Unsupported apiGateway.${apiType} object`);
+        Logging.logWarning(`Unsupported apiGateway.${apiType} object`);
 
         return null;
     }
@@ -108,15 +116,10 @@ class CloudFormationWrapper {
      * Gets values by names from cloudformation exports
      */
     public async getImportValues(names: string[]): Promise<any> {
-        const exports = await getAWSPagedResults(
-            this.cloudFormation,
-            "listExports",
-            "Exports",
-            "NextToken",
-            "NextToken",
-            {},
+        const response: ListExportsCommandOutput = await this.cloudFormation.send(
+            new ListExportsCommand({})
         );
-
+        const exports = response.Exports || []
         // filter Exports by names which we need
         const filteredExports = exports.filter((item) => names.indexOf(item.Name) !== -1);
         // converting a list of unique values to dict
@@ -127,12 +130,14 @@ class CloudFormationWrapper {
     /**
      * Returns a description of the specified resource in the specified stack.
      */
-    public async getStack(logicalResourceId: string, stackName: string) {
+    public async getStack(logicalResourceId: string, stackName: string): Promise<DescribeStackResourceCommandOutput> {
         try {
-            return await throttledCall(this.cloudFormation, "describeStackResource", {
-                LogicalResourceId: logicalResourceId,
-                StackName: stackName,
-            });
+            return await this.cloudFormation.send(
+                new DescribeStackResourceCommand({
+                    LogicalResourceId: logicalResourceId,
+                    StackName: stackName,
+                })
+            );
         } catch (err) {
             throw new Error(`Failed to find CloudFormation resources with an error: ${err.message}\n`);
         }
@@ -143,14 +148,10 @@ class CloudFormationWrapper {
      */
     public async getNestedStack(logicalResourceId: string, stackName?: string) {
         // get all stacks from the CloudFormation
-        const stacks = await getAWSPagedResults(
-            this.cloudFormation,
-            "describeStacks",
-            "Stacks",
-            "NextToken",
-            "NextToken",
-            {},
+        const response: DescribeStacksCommandOutput = await this.cloudFormation.send(
+            new DescribeStacksCommand({})
         );
+        const stacks = response.Stacks || [];
 
         // filter stacks by given stackName and check by nested stack RootId
         const regex = new RegExp("/" + stackName + "/");
@@ -166,16 +167,16 @@ class CloudFormationWrapper {
                 return acc;
             }, []);
 
-        let response;
         for (const name of filteredStackNames) {
             try {
-                response = await this.getStack(logicalResourceId, name);
-                break;
+                // stop the loop and return the stack details in case the first one found
+                // in case of error continue the looping
+                return await this.getStack(logicalResourceId, name);
             } catch (err) {
-                Globals.logWarning(err.message);
+                Logging.logWarning(err.message);
             }
         }
-        return response;
+        return null;
     }
 }
 

@@ -1,4 +1,3 @@
-
 export interface Route53Params {
     routingPolicy: "simple" | "latency" | "weighted" | undefined;
     weight: number | undefined;
@@ -59,20 +58,6 @@ export interface ServerlessInstance {
     };
     providers: {
         aws: {
-            sdk: {
-                APIGateway: any,
-                ApiGatewayV2: any,
-                Route53: any,
-                CloudFormation: any,
-                ACM: any,
-                S3: any,
-                config: {
-                    httpOptions: any,
-                    update(toUpdate: object): void,
-                },
-                SharedIniFileCredentials: any,
-            }
-            getCredentials(),
             getRegion(),
         },
     };

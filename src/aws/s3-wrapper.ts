@@ -1,12 +1,15 @@
 import DomainConfig = require("../models/domain-config");
 import Logging from "../logging";
 import {HeadObjectCommand, HeadObjectRequest, S3Client} from "@aws-sdk/client-s3";
+import Globals from "../globals";
 
 class S3Wrapper {
     public s3: S3Client;
 
-    constructor(credentials: any) {
-        this.s3 = new S3Client(credentials);
+    constructor() {
+        this.s3 = new S3Client({
+            region: Globals.serverless.providers.aws.getRegion()
+        });
     }
 
     /**

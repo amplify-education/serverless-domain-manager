@@ -7,25 +7,25 @@ import {
     ListHostedZonesCommandOutput,
     Route53Client
 } from "@aws-sdk/client-route-53";
+import {fromIni} from "@aws-sdk/credential-providers";
 
 class Route53Wrapper {
     public route53: Route53Client;
+    private readonly region: string;
 
     constructor(profile?: string, region?: string) {
-        let credentials = Globals.serverless.providers.aws.getCredentials();
-        credentials.region = Globals.serverless.providers.aws.getRegion();
-        credentials.httpOptions = Globals.serverless.providers.aws.sdk.config.httpOptions;
+        this.region = Globals.serverless.providers.aws.getRegion();
+        this.route53 = new Route53Client({
+            region: this.region
+        });
 
         if (profile) {
-            credentials = {
-                credentials: new Globals.serverless.providers.aws.sdk.SharedIniFileCredentials({
-                    profile
-                }),
-                region: region || credentials.region,
-                httpOptions: credentials.httpOptions
-            };
+            this.region = region || this.region;
+            this.route53 = new Route53Client({
+                credentials: fromIni({profile}),
+                region: this.region
+            });
         }
-        this.route53 = new Route53Client(credentials);
     }
 
     /**
@@ -50,7 +50,7 @@ class Route53Wrapper {
         let routingOptions = {};
         if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
             routingOptions = {
-                Region: this.route53.config.region,
+                Region: this.region,
                 SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             };

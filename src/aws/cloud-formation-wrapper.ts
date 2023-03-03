@@ -18,8 +18,10 @@ class CloudFormationWrapper {
     public cloudFormation: CloudFormationClient;
     public stackName: string;
 
-    constructor(credentials: any) {
-        this.cloudFormation = new CloudFormationClient(credentials);
+    constructor() {
+        this.cloudFormation = new CloudFormationClient({
+            region: Globals.serverless.providers.aws.getRegion()
+        });
         this.stackName = Globals.serverless.service.provider.stackName ||
             `${Globals.serverless.service.service}-${Globals.getBaseStage()}`;
     }

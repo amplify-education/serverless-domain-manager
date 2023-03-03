@@ -171,14 +171,10 @@ class ServerlessCustomDomain {
      * Setup AWS resources
      */
     public initAWSResources(): void {
-        const credentials = this.serverless.providers.aws.getCredentials();
-        credentials.region = this.serverless.providers.aws.getRegion();
-        credentials.httpOptions = this.serverless.providers.aws.sdk.config.httpOptions;
-
-        this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper(credentials);
-        this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper(credentials);
-        this.cloudFormationWrapper = new CloudFormationWrapper(credentials);
-        this.s3Wrapper = new S3Wrapper(credentials);
+        this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
+        this.cloudFormationWrapper = new CloudFormationWrapper();
+        this.s3Wrapper = new S3Wrapper();
     }
 
     public getApiGateway(domain: DomainConfig): APIGatewayBase {

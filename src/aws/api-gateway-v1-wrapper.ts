@@ -22,9 +22,11 @@ import APIGatewayBase = require("../models/apigateway-base");
 import Logging from "../logging";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
-    constructor(credentials: any) {
+    constructor() {
         super();
-        this.apiGateway = new APIGatewayClient(credentials);
+        this.apiGateway = new APIGatewayClient({
+            region: Globals.serverless.providers.aws.getRegion()
+        });
     }
 
     /**

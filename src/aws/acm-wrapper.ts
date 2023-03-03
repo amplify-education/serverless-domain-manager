@@ -12,12 +12,10 @@ class ACMWrapper {
     public acm: ACMClient;
 
     constructor(endpointType: string) {
-        const credentials = Globals.serverless.providers.aws.getCredentials();
-        credentials.region = Globals.defaultRegion;
-        if (endpointType === Globals.endpointTypes.regional) {
-            credentials.region = Globals.serverless.providers.aws.getRegion();
-        }
-        this.acm = new ACMClient(credentials);
+        const isEdge = endpointType === Globals.endpointTypes.edge;
+        this.acm = new ACMClient({
+            region: isEdge ? Globals.defaultRegion : Globals.serverless.providers.aws.getRegion()
+        });
     }
 
     /**

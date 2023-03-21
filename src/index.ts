@@ -115,14 +115,14 @@ class ServerlessCustomDomain {
         customDomains.forEach((domain) => {
             // If the key of the item in config is an API type then using per API type domain structure
             let isTypeConfigFound = false;
-            Object.keys(Globals.apiTypes).map((apiType) => {
+            Object.keys(Globals.apiTypes).forEach((apiType) => {
                 const domainTypeConfig = domain[apiType];
                 if (domainTypeConfig) {
                     domainTypeConfig.apiType = apiType;
                     this.domains.push(new DomainConfig(domainTypeConfig));
                     isTypeConfigFound = true;
                 }
-            })
+            });
 
             if (!isTypeConfigFound) {
                 this.domains.push(new DomainConfig(domain));

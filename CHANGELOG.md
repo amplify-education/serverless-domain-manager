@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2022-03-22
+
+### Changed
+- Updated dependency to work with Serverless V3. Releasing a new major version in case there are any issues that weren't caught in our testing.
+- Logging improvements
+
 ## [6.4.4] - 2023-02-24
 
 ### Fixed

@@ -85,7 +85,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             );
             return new DomainInfo(domainInfo);
         } catch (err) {
-            if (err.$metadata && err.$metadata.httpStatusCode !== 404) {
+            if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
                 throw new Error(
                     `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
                 );

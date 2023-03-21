@@ -56,8 +56,6 @@ export default class APIGatewayWrap {
             new GetBasePathMappingsCommand({domainName})
         )
 
-        console.log(result);
-
         return result.items[0].stage;
     }
 

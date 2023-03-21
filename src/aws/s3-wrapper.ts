@@ -7,26 +7,24 @@ class S3Wrapper {
     public s3: S3Client;
 
     constructor() {
-        this.s3 = new S3Client({
-            region: Globals.serverless.providers.aws.getRegion()
-        });
+        this.s3 = new S3Client({region: Globals.currentRegion});
     }
 
     /**
      * * Checks whether the Mutual TLS certificate exists in S3 or not
      */
     public async assertTlsCertObjectExists(domain: DomainConfig): Promise<void> {
+        const {Bucket, Key} = this.extractBucketAndKey(domain.tlsTruststoreUri);
+        const params: HeadObjectRequest = {Bucket, Key};
+
+        if (domain.tlsTruststoreVersion) {
+            params.VersionId = domain.tlsTruststoreVersion;
+        }
+
         try {
-            const {Bucket, Key} = this.extractBucketAndKey(domain.tlsTruststoreUri);
-            const params: HeadObjectRequest = {Bucket, Key};
-
-            if (domain.tlsTruststoreVersion) {
-                params.VersionId = domain.tlsTruststoreVersion;
-            }
-
             await this.s3.send(new HeadObjectCommand(params));
         } catch (err) {
-            if (err.$metadata && err.$metadata.httpStatusCode !== 403) {
+            if (!err.$metadata || err.$metadata.httpStatusCode !== 403) {
                 throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`);
             }
 

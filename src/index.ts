@@ -12,6 +12,8 @@ import APIGatewayV1Wrapper = require("./aws/api-gateway-v1-wrapper");
 import APIGatewayV2Wrapper = require("./aws/api-gateway-v2-wrapper");
 import APIGatewayBase = require("./models/apigateway-base");
 import Logging from "./logging";
+import {loadConfig} from "@aws-sdk/node-config-provider";
+import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@aws-sdk/config-resolver";
 
 class ServerlessCustomDomain {
 
@@ -80,7 +82,8 @@ class ServerlessCustomDomain {
         // Validate the domain configurations
         this.validateDomainConfigs();
         // setup AWS resources
-        this.initAWSResources();
+        await this.initAWSRegion();
+        await this.initAWSResources();
 
         return lifecycleFunc.call(this);
     }
@@ -110,23 +113,18 @@ class ServerlessCustomDomain {
         // Loop over the domain configurations and populate the domains array with DomainConfigs
         this.domains = [];
         customDomains.forEach((domain) => {
-            const apiTypes = Object.keys(Globals.apiTypes);
+            // If the key of the item in config is an API type then using per API type domain structure
+            let isTypeConfigFound = false;
+            Object.keys(Globals.apiTypes).map((apiType) => {
+                const domainTypeConfig = domain[apiType];
+                if (domainTypeConfig) {
+                    domainTypeConfig.apiType = apiType;
+                    this.domains.push(new DomainConfig(domainTypeConfig));
+                    isTypeConfigFound = true;
+                }
+            })
 
-            const configKeys = Object.keys(domain);
-            // If the key of the item in config is an api type it is using per api type domain structure
-            if (apiTypes.some((apiType) => configKeys.includes(apiType))) {
-                // validate invalid api types
-                const invalidApiTypes = configKeys.filter((configType) => !apiTypes.includes(configType));
-                if (invalidApiTypes.length) {
-                    throw Error(`Invalid API Type(s): ${invalidApiTypes}-${invalidApiTypes.join("; ")}`);
-                }
-                // init config for each type
-                for (const configApiType of configKeys) {
-                    const typeConfig = domain[configApiType];
-                    typeConfig.apiType = configApiType;
-                    this.domains.push(new DomainConfig(typeConfig));
-                }
-            } else { // Default to single domain config
+            if (!isTypeConfigFound) {
                 this.domains.push(new DomainConfig(domain));
             }
         });
@@ -168,9 +166,16 @@ class ServerlessCustomDomain {
     }
 
     /**
+     * Init AWS current region
+     */
+    public async initAWSRegion(): Promise<void> {
+        Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+    }
+
+    /**
      * Setup AWS resources
      */
-    public initAWSResources(): void {
+    public async initAWSResources(): Promise<void> {
         this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
         this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
         this.cloudFormationWrapper = new CloudFormationWrapper();
@@ -215,17 +220,17 @@ class ServerlessCustomDomain {
         const creationProgress = Globals.v3Utils && Globals.v3Utils.progress.get(`create-${domain.givenDomainName}`);
 
         const apiGateway = this.getApiGateway(domain);
-        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+        const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : null;
+        const route53 = new Route53Wrapper(route53Creds, domain.route53Region);
         const acm = new ACMWrapper(domain.endpointType);
 
         domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
         try {
-            if (domain.tlsTruststoreUri) {
-                await this.s3Wrapper.assertTlsCertObjectExists(domain);
-            }
-
             if (!domain.domainInfo) {
+                if (domain.tlsTruststoreUri) {
+                    await this.s3Wrapper.assertTlsCertObjectExists(domain);
+                }
                 if (!domain.certificateArn) {
                     const searchName = domain.certificateName || domain.givenDomainName;
                     Logging.logInfo(`Searching for a certificate with the '${searchName}' domain`);
@@ -263,7 +268,8 @@ class ServerlessCustomDomain {
      */
     public async deleteDomain(domain: DomainConfig): Promise<void> {
         const apiGateway = this.getApiGateway(domain);
-        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+        const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : null;
+        const route53 = new Route53Wrapper(route53Creds, domain.route53Region);
 
         domain.domainInfo = await apiGateway.getCustomDomain(domain);
         try {
@@ -319,6 +325,8 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             domain.apiId = await this.cloudFormationWrapper.findApiId(domain.apiType);
 
+            console.log(domain.apiId);
+
             const apiGateway = this.getApiGateway(domain);
             const mappings = await apiGateway.getBasePathMappings(domain);
 
@@ -329,6 +337,9 @@ class ServerlessCustomDomain {
             });
             domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
             domain.domainInfo = await apiGateway.getCustomDomain(domain);
+
+            console.log(domain.apiMapping);
+            console.log(domain.domainInfo);
 
             if (!domain.apiMapping) {
                 await apiGateway.createBasePathMapping(domain);
@@ -402,7 +413,6 @@ class ServerlessCustomDomain {
         })).finally(() => {
             Logging.printDomainSummary(this.domains);
         });
-
     }
 
     /**

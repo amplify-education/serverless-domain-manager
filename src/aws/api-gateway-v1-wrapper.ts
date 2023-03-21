@@ -24,15 +24,9 @@ import Logging from "../logging";
 class APIGatewayV1Wrapper extends APIGatewayBase {
     constructor() {
         super();
-        this.apiGateway = new APIGatewayClient({
-            region: Globals.serverless.providers.aws.getRegion()
-        });
+        this.apiGateway = new APIGatewayClient({region: Globals.currentRegion});
     }
 
-    /**
-     * Creates Custom Domain Name
-     * @param domain: DomainConfig
-     */
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         const providerTags = {
             ...Globals.serverless.service.provider.stackTags,
@@ -77,9 +71,6 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
     }
 
-    /**
-     * Get Custom Domain Info
-     */
     public async getCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
@@ -99,9 +90,6 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
     }
 
-    /**
-     * Delete Custom Domain Name through API Gateway
-     */
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
@@ -171,13 +159,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
     }
 
-    /**
-     * Deletes basepath mapping
-     */
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
-        // Make API call
         try {
-
             await this.apiGateway.send(
                 new DeleteBasePathMappingCommand({
                     basePath: domain.apiMapping.basePath,

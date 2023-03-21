@@ -1,4 +1,5 @@
 import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
+import {fromIni} from "@aws-sdk/credential-providers";
 
 export default class Globals {
 
@@ -7,6 +8,8 @@ export default class Globals {
     public static serverless: ServerlessInstance;
     public static options: ServerlessOptions;
     public static v3Utils: ServerlessUtils;
+
+    public static currentRegion: string;
 
     public static defaultRegion = "us-east-1";
     public static defaultBasePath = "(none)";
@@ -48,6 +51,7 @@ export default class Globals {
     public static tlsVersions = {
         tls_1_0: "TLS_1_0",
         tls_1_2: "TLS_1_2",
+        tls_1_3: "TLS_1_3",
     };
 
     public static routingPolicies = {
@@ -58,5 +62,9 @@ export default class Globals {
 
     public static getBaseStage() {
         return Globals.options.stage || Globals.serverless.service.provider.stage;
+    }
+
+    public static async getProfileCreds(profile: string) {
+        return await fromIni({profile})();
     }
 }

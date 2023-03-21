@@ -25,9 +25,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
 
     constructor() {
         super();
-        this.apiGateway = new ApiGatewayV2Client({
-            region: Globals.serverless.providers.aws.getRegion()
-        });
+        this.apiGateway = new ApiGatewayV2Client({region: Globals.currentRegion});
     }
 
     /**

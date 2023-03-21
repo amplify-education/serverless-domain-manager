@@ -45,8 +45,8 @@ export interface ServerlessInstance {
                 Outputs: any,
             },
             apiGateway: {
-                restApiId: string,
-                websocketApiId: string,
+                restApiId: any,
+                websocketApiId: any,
             },
             tags: Tags,
             stackTags: Tags,
@@ -56,14 +56,8 @@ export interface ServerlessInstance {
             customDomains?: CustomDomain[],
         },
     };
-    providers: {
-        aws: {
-            getRegion(),
-        },
-    };
     cli: {
-        log(str: string, entity?: string),
-        consoleLog(str: any),
+        log(str: string, entity?: string)
     };
 
     addServiceOutputSection?(name: string, data: string[]);
@@ -85,7 +79,7 @@ export interface ServerlessProgressFactory {
 
 export interface ServerlessUtils {
     writeText: (message: string) => void,
-    log: ((message: string) => void) & {
+    log: {
         error(message: string): void
         verbose(message: string): void
         warning(message: string): void

@@ -19,11 +19,9 @@ class CloudFormationWrapper {
     public stackName: string;
 
     constructor() {
-        this.cloudFormation = new CloudFormationClient({
-            region: Globals.serverless.providers.aws.getRegion()
-        });
-        this.stackName = Globals.serverless.service.provider.stackName ||
-            `${Globals.serverless.service.service}-${Globals.getBaseStage()}`;
+        const defaultStackName = Globals.serverless.service.service + "-" + Globals.getBaseStage();
+        this.cloudFormation = new CloudFormationClient({region: Globals.currentRegion});
+        this.stackName = Globals.serverless.service.provider.stackName || defaultStackName;
     }
 
     /**
@@ -41,7 +39,7 @@ class CloudFormationWrapper {
     /**
      * Get an API id from the existing config or CloudFormation stack based on provider.apiGateway params
      */
-    public async getConfigId(apiType: string): Promise<string | null> {
+    private async getConfigId(apiType: string): Promise<string | null> {
         const apiGateway = Globals.serverless.service.provider.apiGateway || {};
         const apiIdKey = Globals.gatewayAPIIdKeys[apiType];
         const apiGatewayValue = apiGateway[apiIdKey];
@@ -57,7 +55,7 @@ class CloudFormationWrapper {
         return null;
     }
 
-    public async getCloudformationId(apiGatewayValue: object, apiType: string): Promise<string | null> {
+    private async getCloudformationId(apiGatewayValue: object, apiType: string): Promise<string | null> {
         // in case object and Fn::ImportValue try to get API id from the CloudFormation outputs
         const importName = apiGatewayValue[Globals.CFFuncNames.fnImport];
         if (importName) {
@@ -148,7 +146,7 @@ class CloudFormationWrapper {
     /**
      * Returns a description of the specified resource in the specified nested stack.
      */
-    public async getNestedStack(logicalResourceId: string, stackName?: string) {
+    public async getNestedStack(logicalResourceId: string, stackName: string) {
         // get all stacks from the CloudFormation
         const response: DescribeStacksCommandOutput = await this.cloudFormation.send(
             new DescribeStacksCommand({})

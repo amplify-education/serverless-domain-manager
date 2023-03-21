@@ -325,8 +325,6 @@ class ServerlessCustomDomain {
         await Promise.all(this.domains.map(async (domain) => {
             domain.apiId = await this.cloudFormationWrapper.findApiId(domain.apiType);
 
-            console.log(domain.apiId);
-
             const apiGateway = this.getApiGateway(domain);
             const mappings = await apiGateway.getBasePathMappings(domain);
 
@@ -337,9 +335,6 @@ class ServerlessCustomDomain {
             });
             domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
             domain.domainInfo = await apiGateway.getCustomDomain(domain);
-
-            console.log(domain.apiMapping);
-            console.log(domain.domainInfo);
 
             if (!domain.apiMapping) {
                 await apiGateway.createBasePathMapping(domain);

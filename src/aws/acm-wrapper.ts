@@ -1,45 +1,36 @@
-import {ACM} from "aws-sdk";
+import {
+    ACMClient,
+    ListCertificatesCommand,
+    ListCertificatesCommandOutput,
+} from "@aws-sdk/client-acm";
 import Globals from "../globals";
-import {getAWSPagedResults} from "../utils";
 import DomainConfig = require("../models/domain-config");
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
 class ACMWrapper {
-    public acm: ACM;
+    public acm: ACMClient;
 
     constructor(endpointType: string) {
-        const credentials = Globals.serverless.providers.aws.getCredentials();
-        credentials.region = Globals.defaultRegion;
-        if (endpointType === Globals.endpointTypes.regional) {
-            credentials.region = Globals.serverless.providers.aws.getRegion();
-        }
-        this.acm = new Globals.serverless.providers.aws.sdk.ACM(credentials);
+        const isEdge = endpointType === Globals.endpointTypes.edge;
+        this.acm = new ACMClient({region: isEdge ? Globals.defaultRegion : Globals.currentRegion});
     }
 
-    /**
-     * * Gets Certificate ARN that most closely matches domain name OR given Cert ARN if provided
-     */
     public async getCertArn(domain: DomainConfig): Promise<string> {
         let certificateArn; // The arn of the selected certificate
         let certificateName = domain.certificateName; // The certificate name
 
         try {
-            const certificates = await getAWSPagedResults(
-                this.acm,
-                "listCertificates",
-                "CertificateSummaryList",
-                "NextToken",
-                "NextToken",
-                {CertificateStatuses: certStatuses},
-            );
-            // enhancement idea: weight the choice of cert so longer expiries
+            const response: ListCertificatesCommandOutput = await this.acm.send(
+                new ListCertificatesCommand({CertificateStatuses: certStatuses})
+            )
+            // enhancement idea: weight the choice of cert so longer expires
             // and RenewalEligibility = ELIGIBLE is more preferable
-            if (certificateName != null) {
-                certificateArn = this.getCertArnByCertName(certificates, certificateName);
+            if (certificateName) {
+                certificateArn = this.getCertArnByCertName(response.CertificateSummaryList, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
-                certificateArn = this.getCertArnByDomainName(certificates, certificateName);
+                certificateArn = this.getCertArnByDomainName(response.CertificateSummaryList, certificateName);
             }
         } catch (err) {
             throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
@@ -50,20 +41,14 @@ class ACMWrapper {
         return certificateArn;
     }
 
-    /**
-     * * Gets Certificate ARN that most closely matches Cert ARN and not expired
-     */
     private getCertArnByCertName(certificates, certName): string {
         const found = certificates.find((c) => c.DomainName === certName);
         if (found) {
-          return found.CertificateArn;
+            return found.CertificateArn;
         }
         return null;
     }
 
-    /**
-     * * Gets Certificate ARN that most closely matches domain name
-     */
     private getCertArnByDomainName(certificates, domainName): string {
         // The more specific name will be the longest
         let nameLength = 0;
@@ -81,9 +66,7 @@ class ACMWrapper {
                 }
                 // Looks to see if the name in the list is within the given domain
                 // Also checks if the name is more specific than previous ones
-                if (domainName.includes(certificateListName)
-                      && certificateListName.length > nameLength
-                ) {
+                if (domainName.includes(certificateListName) && certificateListName.length > nameLength) {
                     nameLength = certificateListName.length;
                     certificateArn = currCert.CertificateArn;
                 }

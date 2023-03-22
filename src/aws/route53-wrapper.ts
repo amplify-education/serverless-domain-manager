@@ -1,26 +1,68 @@
 import Globals from "../globals";
-import {getAWSPagedResults, throttledCall} from "../utils";
 import DomainConfig = require("../models/domain-config");
-import {Route53} from "aws-sdk";
+import Logging from "../logging";
+import {
+    ChangeResourceRecordSetsCommand,
+    ListHostedZonesCommand,
+    ListHostedZonesCommandOutput,
+    Route53Client
+} from "@aws-sdk/client-route-53";
 
 class Route53Wrapper {
-    public route53: Route53;
+    public route53: Route53Client;
 
-    constructor(profile?: string, region?: string) {
-        let credentials = Globals.serverless.providers.aws.getCredentials();
-        credentials.region = Globals.serverless.providers.aws.getRegion();
-        credentials.httpOptions = Globals.serverless.providers.aws.sdk.config.httpOptions;
-
-        if (profile) {
-            credentials = {
-                credentials: new Globals.serverless.providers.aws.sdk.SharedIniFileCredentials({
-                    profile
-                }),
-                region: region || credentials.region,
-                httpOptions: credentials.httpOptions
-            };
+    constructor(credentials?: any, region?: string) {
+        if (credentials) {
+            this.route53 = new Route53Client({
+                credentials,
+                region: region || Globals.currentRegion
+            });
+        } else {
+            this.route53 = new Route53Client({region: Globals.currentRegion});
         }
-        this.route53 = new Globals.serverless.providers.aws.sdk.Route53(credentials);
+    }
+
+    /**
+     * Gets Route53 HostedZoneId from user or from AWS
+     */
+    public async getRoute53HostedZoneId(domain: DomainConfig, isHostedZonePrivate?: boolean): Promise<string> {
+        if (domain.hostedZoneId) {
+            Logging.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
+            return domain.hostedZoneId;
+        }
+
+        const isPrivateDefined = typeof isHostedZonePrivate !== "undefined";
+        if (isPrivateDefined) {
+            const zoneTypeString = isHostedZonePrivate ? "private" : "public";
+            Logging.logInfo(`Filtering to only ${zoneTypeString} zones.`);
+        }
+
+        let hostedZones = [];
+        try {
+            const response: ListHostedZonesCommandOutput = await this.route53.send(
+                new ListHostedZonesCommand({})
+            );
+            hostedZones = response.HostedZones || hostedZones;
+        } catch (err) {
+            throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
+        }
+
+        const targetHostedZone = hostedZones
+            .filter((hostedZone) => {
+                return !isPrivateDefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
+            })
+            .filter((hostedZone) => {
+                const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
+                return domain.givenDomainName.endsWith(hostedZoneName);
+            })
+            .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
+            .shift();
+
+        if (targetHostedZone) {
+            return targetHostedZone.Id.replace("/hostedzone/", "");
+        } else {
+            throw new Error(`Could not find hosted zone '${domain.givenDomainName}'`);
+        }
     }
 
     /**
@@ -30,7 +72,7 @@ class Route53Wrapper {
      */
     public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
         if (domain.createRoute53Record === false) {
-            Globals.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
+            Logging.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
             return;
         }
         // Set up parameters
@@ -45,16 +87,16 @@ class Route53Wrapper {
         let routingOptions = {};
         if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
             routingOptions = {
-                Region: this.route53.config.region,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
+                Region: await this.route53.config.region(),
+                SetIdentifier: route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             };
         }
 
         if (route53Params.routingPolicy === Globals.routingPolicies.weighted) {
             routingOptions = {
-                Weight: domain.route53Params.weight,
-                SetIdentifier: domain.route53Params.setIdentifier ?? domainInfo.domainName,
+                Weight: route53Params.weight,
+                SetIdentifier: route53Params.setIdentifier ?? domainInfo.domainName,
                 ...route53healthCheck,
             };
         }
@@ -84,6 +126,7 @@ class Route53Wrapper {
                     ...routingOptions,
                 },
             }));
+
             const params = {
                 ChangeBatch: {
                     Changes: changes,
@@ -93,60 +136,13 @@ class Route53Wrapper {
             };
             // Make API call
             try {
-                await throttledCall(this.route53, "changeResourceRecordSets", params);
+                await this.route53.send(new ChangeResourceRecordSetsCommand(params));
             } catch (err) {
                 throw new Error(
                     `Failed to ${action} ${recordsToCreate.join(",")} Alias for '${domain.givenDomainName}':\n
                     ${err.message}`
                 );
             }
-        }
-    }
-
-    /**
-     * Gets Route53 HostedZoneId from user or from AWS
-     */
-    public async getRoute53HostedZoneId(domain: DomainConfig, isHostedZonePrivate?: boolean): Promise<string> {
-        if (domain.hostedZoneId) {
-            Globals.logInfo(`Selected specific hostedZoneId ${domain.hostedZoneId}`);
-            return domain.hostedZoneId;
-        }
-
-        const isPrivateDefined = typeof isHostedZonePrivate !== "undefined";
-        if (isPrivateDefined) {
-            const zoneTypeString = isHostedZonePrivate ? "private" : "public";
-            Globals.logInfo(`Filtering to only ${zoneTypeString} zones.`);
-        }
-
-        let hostedZones = [];
-        try {
-            hostedZones = await getAWSPagedResults(
-                this.route53,
-                "listHostedZones",
-                "HostedZones",
-                "Marker",
-                "NextMarker",
-                {}
-            );
-        } catch (err) {
-            throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
-        }
-
-        const targetHostedZone = hostedZones
-            .filter((hostedZone) => {
-                return !isPrivateDefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
-            })
-            .filter((hostedZone) => {
-                const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
-                return domain.givenDomainName.endsWith(hostedZoneName);
-            })
-            .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
-            .shift();
-
-        if (targetHostedZone) {
-            return targetHostedZone.Id.replace("/hostedzone/", "");
-        } else {
-            throw new Error(`Could not find hosted zone '${domain.givenDomainName}'`);
         }
     }
 }

@@ -4,21 +4,29 @@
 import DomainConfig = require("../models/domain-config");
 import DomainInfo = require("../models/domain-info");
 import Globals from "../globals";
-import {APIGateway} from "aws-sdk";
-import {getAWSPagedResults, throttledCall} from "../utils";
+import {
+    APIGatewayClient,
+    CreateBasePathMappingCommand,
+    CreateDomainNameCommand,
+    CreateDomainNameCommandOutput,
+    DeleteBasePathMappingCommand,
+    DeleteDomainNameCommand,
+    GetBasePathMappingsCommand,
+    GetBasePathMappingsCommandOutput,
+    GetDomainNameCommand,
+    GetDomainNameCommandOutput,
+    UpdateBasePathMappingCommand,
+} from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
+import Logging from "../logging";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
-    constructor(credentials: any) {
+    constructor() {
         super();
-        this.apiGateway = new APIGateway(credentials);
+        this.apiGateway = new APIGatewayClient({region: Globals.currentRegion});
     }
 
-    /**
-     * Creates Custom Domain Name
-     * @param domain: DomainConfig
-     */
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         const providerTags = {
             ...Globals.serverless.service.provider.stackTags,
@@ -52,7 +60,9 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
 
         try {
-            const domainInfo = await throttledCall(this.apiGateway, "createDomainName", params);
+            const domainInfo: CreateDomainNameCommandOutput = await this.apiGateway.send(
+                new CreateDomainNameCommand(params)
+            );
             return new DomainInfo(domainInfo);
         } catch (err) {
             throw new Error(
@@ -61,35 +71,31 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
     }
 
-    /**
-     * Get Custom Domain Info
-     */
     public async getCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
-            const domainInfo = await throttledCall(this.apiGateway, "getDomainName", {
-                domainName: domain.givenDomainName,
-            });
+            const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
+                new GetDomainNameCommand({
+                    domainName: domain.givenDomainName,
+                })
+            );
             return new DomainInfo(domainInfo);
         } catch (err) {
-            if (err.code !== "NotFoundException") {
+            if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
                 throw new Error(
                     `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
                 );
             }
-            Globals.logInfo(`V1 - '${domain.givenDomainName}' does not exist.`);
+            Logging.logWarning(`V1 - '${domain.givenDomainName}' does not exist.`);
         }
     }
 
-    /**
-     * Delete Custom Domain Name through API Gateway
-     */
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-            await throttledCall(this.apiGateway, "deleteDomainName", {
+            await this.apiGateway.send(new DeleteDomainNameCommand({
                 domainName: domain.givenDomainName,
-            });
+            }));
         } catch (err) {
             throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
         }
@@ -97,13 +103,13 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
-            await throttledCall(this.apiGateway, "createBasePathMapping", {
+            await this.apiGateway.send(new CreateBasePathMappingCommand({
                 basePath: domain.basePath,
                 domainName: domain.givenDomainName,
                 restApiId: domain.apiId,
                 stage: domain.baseStage,
-            });
-            Globals.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
+            }));
+            Logging.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
         } catch (err) {
             throw new Error(
                 `V1 - Make sure the '${domain.givenDomainName}' exists.
@@ -114,14 +120,12 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
     public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
-            const items = await getAWSPagedResults(
-                this.apiGateway,
-                "getBasePathMappings",
-                "items",
-                "position",
-                "position",
-                {domainName: domain.givenDomainName},
+            const response: GetBasePathMappingsCommandOutput = await this.apiGateway.send(
+                new GetBasePathMappingsCommand({
+                    domainName: domain.givenDomainName
+                })
             );
+            const items = response.items || [];
             return items.map((item) => {
                     return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
                 }
@@ -136,16 +140,17 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
-            await throttledCall(this.apiGateway, "updateBasePathMapping", {
-                basePath: domain.apiMapping.basePath,
-                domainName: domain.givenDomainName,
-                patchOperations: [{
-                    op: "replace",
-                    path: "/basePath",
-                    value: domain.basePath,
-                }]
-            });
-            Globals.logInfo(`V1 - Updated API mapping from '${domain.apiMapping.basePath}'
+            await this.apiGateway.send(new UpdateBasePathMappingCommand({
+                    basePath: domain.apiMapping.basePath,
+                    domainName: domain.givenDomainName,
+                    patchOperations: [{
+                        op: "replace",
+                        path: "/basePath",
+                        value: domain.basePath,
+                    }]
+                }
+            ));
+            Logging.logInfo(`V1 - Updated API mapping from '${domain.apiMapping.basePath}'
                     to '${domain.basePath}' for '${domain.givenDomainName}'`);
         } catch (err) {
             throw new Error(
@@ -154,17 +159,15 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         }
     }
 
-    /**
-     * Deletes basepath mapping
-     */
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
-        // Make API call
         try {
-            await throttledCall(this.apiGateway, "deleteBasePathMapping", {
-                basePath: domain.apiMapping.basePath,
-                domainName: domain.givenDomainName,
-            });
-            Globals.logInfo(`V1 - Removed '${domain.apiMapping.basePath}' base path mapping`);
+            await this.apiGateway.send(
+                new DeleteBasePathMappingCommand({
+                    basePath: domain.apiMapping.basePath,
+                    domainName: domain.givenDomainName,
+                })
+            );
+            Logging.logInfo(`V1 - Removed '${domain.apiMapping.basePath}' base path mapping`);
         } catch (err) {
             throw new Error(
                 `V1 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`

@@ -1,16 +1,19 @@
 import chai = require("chai");
 import "mocha";
-import utilities = require("./test-utilities");
+import utilities = require("../test-utilities");
 import {
     PLUGIN_IDENTIFIER,
     RANDOM_STRING,
     TEMP_DIR,
     TEST_DOMAIN,
-} from "./base";
+} from "../base";
+import APIGatewayWrap from "../apigateway";
 
 const expect = chai.expect;
 const CONFIGS_FOLDER = "basic";
 const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+// the us-west-2 is set in each test config
+const apiGatewayClient = new APIGatewayWrap("us-west-2");
 
 describe("Integration Tests", function () {
     this.timeout(TIMEOUT_MINUTES);
@@ -28,7 +31,7 @@ describe("Integration Tests", function () {
             await utilities.slsCreateDomain(TEMP_DIR);
             await utilities.slsDeploy(TEMP_DIR);
 
-            const basePath = await utilities.getBasePath(testURL);
+            const basePath = await apiGatewayClient.getBasePath(testURL);
             expect(basePath).to.equal("(none)");
         } finally {
             await utilities.destroyResources(testName);
@@ -48,7 +51,7 @@ describe("Integration Tests", function () {
             await utilities.slsCreateDomain(TEMP_DIR);
             await utilities.slsDeploy(TEMP_DIR);
 
-            const basePath = await utilities.getBasePath(testURL);
+            const basePath = await apiGatewayClient.getBasePath(testURL);
             expect(basePath).to.equal("api");
         } finally {
             await utilities.destroyResources(testName);
@@ -69,7 +72,7 @@ describe("Integration Tests", function () {
             await utilities.slsCreateDomain(TEMP_DIR);
             await utilities.slsDeploy(TEMP_DIR);
 
-            const basePath = await utilities.getBasePath(testURL);
+            const basePath = await apiGatewayClient.getBasePath(testURL);
             expect(basePath).to.equal("(none)");
         } finally {
             await utilities.destroyResources(testName);
@@ -90,7 +93,7 @@ describe("Integration Tests", function () {
             await utilities.createTempDir(TEMP_DIR, configImportFolder);
             await utilities.slsDeploy(TEMP_DIR);
 
-            const basePath = await utilities.getBasePath(testExportURL);
+            const basePath = await apiGatewayClient.getBasePath(testExportURL);
             expect(basePath).to.equal("hello-world");
         } finally {
             // should destroy the last created config folder ( import config )

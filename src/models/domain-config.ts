@@ -7,6 +7,7 @@ import Globals from "../globals";
 import {CustomDomain, Route53Params} from "../types";
 import {evaluateBoolean} from "../utils";
 import ApiGatewayMap = require("./api-gateway-map");
+import Logging from "../logging";
 
 class DomainConfig {
     public givenDomainName: string;
@@ -70,7 +71,7 @@ class DomainConfig {
             basePath = Globals.defaultBasePath;
         }
         if (Globals.reservedBasePaths.indexOf(basePath) !== -1) {
-            Globals.logWarning(
+            Logging.logWarning(
                 "The `/ping` and `/sping` paths are reserved for the service health check.\n Please take a look at" +
                 "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html"
             );

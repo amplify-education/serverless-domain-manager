@@ -7,7 +7,7 @@ class S3Wrapper {
     public s3: S3Client;
 
     constructor() {
-        this.s3 = new S3Client({region: Globals.currentRegion});
+        this.s3 = new S3Client({region: Globals.getRegion()});
     }
 
     /**

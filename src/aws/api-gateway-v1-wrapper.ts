@@ -24,7 +24,7 @@ import Logging from "../logging";
 class APIGatewayV1Wrapper extends APIGatewayBase {
     constructor() {
         super();
-        this.apiGateway = new APIGatewayClient({region: Globals.currentRegion});
+        this.apiGateway = new APIGatewayClient({region: Globals.getRegion()});
     }
 
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {

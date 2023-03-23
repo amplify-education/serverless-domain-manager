@@ -13,7 +13,7 @@ class ACMWrapper {
 
     constructor(endpointType: string) {
         const isEdge = endpointType === Globals.endpointTypes.edge;
-        this.acm = new ACMClient({region: isEdge ? Globals.defaultRegion : Globals.currentRegion});
+        this.acm = new ACMClient({region: isEdge ? Globals.defaultRegion : Globals.getRegion()});
     }
 
     public async getCertArn(domain: DomainConfig): Promise<string> {
@@ -23,7 +23,7 @@ class ACMWrapper {
         try {
             const response: ListCertificatesCommandOutput = await this.acm.send(
                 new ListCertificatesCommand({CertificateStatuses: certStatuses})
-            )
+            );
             // enhancement idea: weight the choice of cert so longer expires
             // and RenewalEligibility = ELIGIBLE is more preferable
             if (certificateName) {

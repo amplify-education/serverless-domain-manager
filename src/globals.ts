@@ -64,6 +64,10 @@ export default class Globals {
         return Globals.options.stage || Globals.serverless.service.provider.stage;
     }
 
+    public static getRegion() {
+        return Globals.options.region || Globals.currentRegion || Globals.defaultRegion;
+    }
+
     public static async getProfileCreds(profile: string) {
         return await fromIni({profile})();
     }

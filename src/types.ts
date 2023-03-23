@@ -63,8 +63,9 @@ export interface ServerlessInstance {
     addServiceOutputSection?(name: string, data: string[]);
 }
 
-export interface ServerlessOptions { // tslint:disable-line
+export interface ServerlessOptions {
     stage: string;
+    region?: string;
 }
 
 interface ServerlessProgress {

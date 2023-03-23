@@ -39,10 +39,11 @@ async function createTempDir(tempDir, folderName) {
 /**
  * Runs `sls create_domain` for the given folder
  * @param tempDir
+ * @param debug - enable loging
  * @returns {Promise<void>}
  */
-function slsCreateDomain(tempDir) {
-    return exec(`cd ${tempDir} && npx serverless create_domain`);
+function slsCreateDomain(tempDir, debug: boolean = false) {
+    return exec(`cd ${tempDir} && npx serverless create_domain --stage test --region us-east-1` + (debug ? " --verbose" : ""));
 }
 
 /**

@@ -15,10 +15,10 @@ class Route53Wrapper {
         if (credentials) {
             this.route53 = new Route53Client({
                 credentials,
-                region: region || Globals.currentRegion
+                region: region || Globals.getRegion()
             });
         } else {
-            this.route53 = new Route53Client({region: Globals.currentRegion});
+            this.route53 = new Route53Client({region: Globals.getRegion()});
         }
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "engines": {
     "node": ">=14"
   },
@@ -78,6 +78,6 @@
     "@aws-sdk/smithy-client": "^3.295.0"
   },
   "peerDependencies": {
-    "serverless": "^2.60 || 3"
+    "serverless": "^2.60 || ^3.0.0"
   }
 }

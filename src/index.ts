@@ -169,7 +169,9 @@ class ServerlessCustomDomain {
      * Init AWS current region
      */
     public async initAWSRegion(): Promise<void> {
-        Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+        if (!Globals.options.region) {
+            Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+        }
     }
 
     /**

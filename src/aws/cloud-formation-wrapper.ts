@@ -20,7 +20,7 @@ class CloudFormationWrapper {
 
     constructor() {
         const defaultStackName = Globals.serverless.service.service + "-" + Globals.getBaseStage();
-        this.cloudFormation = new CloudFormationClient({region: Globals.currentRegion});
+        this.cloudFormation = new CloudFormationClient({region: Globals.getRegion()});
         this.stackName = Globals.serverless.service.provider.stackName || defaultStackName;
     }
 
@@ -119,7 +119,7 @@ class CloudFormationWrapper {
         const response: ListExportsCommandOutput = await this.cloudFormation.send(
             new ListExportsCommand({})
         );
-        const exports = response.Exports || []
+        const exports = response.Exports || [];
         // filter Exports by names which we need
         const filteredExports = exports.filter((item) => names.indexOf(item.Name) !== -1);
         // converting a list of unique values to dict

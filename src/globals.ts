@@ -65,7 +65,8 @@ export default class Globals {
     }
 
     public static getRegion() {
-        return Globals.options.region || Globals.currentRegion || Globals.defaultRegion;
+        const slsRegion = Globals.options.region || Globals.serverless.service.provider.region;
+        return slsRegion || Globals.currentRegion || Globals.defaultRegion;
     }
 
     public static async getProfileCreds(profile: string) {

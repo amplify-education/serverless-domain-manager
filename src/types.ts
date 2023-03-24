@@ -40,6 +40,7 @@ export interface ServerlessInstance {
         service: string
         provider: {
             stage: string
+            region?: string
             stackName: string
             compiledCloudFormationTemplate: {
                 Outputs: any,

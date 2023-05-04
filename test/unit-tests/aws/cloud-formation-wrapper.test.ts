@@ -22,7 +22,7 @@ describe("Cloud Formation wrapper checks", () => {
     it("Initialization", async () => {
         const cloudFormationWrapper = new CloudFormationWrapper();
         const actualResult = await cloudFormationWrapper.cloudFormation.config.region();
-        expect(actualResult).to.equal(Globals.nodeRegion);
+        expect(actualResult).to.equal(Globals.currentRegion);
         expect(cloudFormationWrapper.stackName).to.equal(Globals.serverless.service.provider.stackName);
     });
 

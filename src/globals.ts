@@ -9,7 +9,7 @@ export default class Globals {
     public static options: ServerlessOptions;
     public static v3Utils: ServerlessUtils;
 
-    public static nodeRegion: string;
+    public static currentRegion: string;
     public static credentials: any;
 
     public static defaultRegion = "us-east-1";
@@ -67,7 +67,7 @@ export default class Globals {
 
     public static getRegion() {
         const slsRegion = Globals.options.region || Globals.serverless.service.provider.region;
-        return slsRegion || Globals.nodeRegion || Globals.defaultRegion;
+        return slsRegion || Globals.currentRegion || Globals.defaultRegion;
     }
 
     public static async getProfileCreds(profile: string) {

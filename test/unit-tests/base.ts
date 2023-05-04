@@ -95,7 +95,7 @@ const getV3Utils = () => {
     }
 }
 
-Globals.nodeRegion = "test_region";
+Globals.currentRegion = "test_region";
 Globals.options = {
     stage: "test"
 };

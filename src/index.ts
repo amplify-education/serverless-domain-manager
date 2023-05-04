@@ -179,7 +179,7 @@ class ServerlessCustomDomain {
      */
     public async initAWSRegion(): Promise<void> {
         try {
-            Globals.nodeRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+            Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
         } catch (err) {
             Logging.logInfo("Node region was not found.");
         }

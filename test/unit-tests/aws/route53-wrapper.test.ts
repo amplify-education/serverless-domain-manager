@@ -13,7 +13,7 @@ describe("Route53 wrapper checks", () => {
     it("Initialization", async () => {
         const route53Wrapper = new Route53Wrapper();
         const actualResult = await route53Wrapper.route53.config.region();
-        expect(actualResult).to.equal(Globals.currentRegion);
+        expect(actualResult).to.equal(Globals.nodeRegion);
     });
 
     it("Initialization profile", async () => {

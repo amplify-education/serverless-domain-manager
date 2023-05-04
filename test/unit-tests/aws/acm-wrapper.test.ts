@@ -32,7 +32,7 @@ describe("ACM Wrapper checks", () => {
     it("Initialization regional", async () => {
         const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
         const actualResult = await acmWrapper.acm.config.region();
-        expect(actualResult).to.equal(Globals.currentRegion);
+        expect(actualResult).to.equal(Globals.nodeRegion);
     });
 
     it("getCertArn by certificate name", async () => {

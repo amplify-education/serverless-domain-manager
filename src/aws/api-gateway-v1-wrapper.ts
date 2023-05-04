@@ -22,9 +22,12 @@ import APIGatewayBase = require("../models/apigateway-base");
 import Logging from "../logging";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
-    constructor() {
+    constructor(credentials?: any,) {
         super();
-        this.apiGateway = new APIGatewayClient({region: Globals.getRegion()});
+        this.apiGateway = new APIGatewayClient({
+            credentials,
+            region: Globals.getRegion()
+        });
     }
 
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {

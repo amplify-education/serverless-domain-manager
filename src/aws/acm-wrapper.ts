@@ -11,9 +11,12 @@ const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 class ACMWrapper {
     public acm: ACMClient;
 
-    constructor(endpointType: string) {
+    constructor(endpointType: string, credentials?: any) {
         const isEdge = endpointType === Globals.endpointTypes.edge;
-        this.acm = new ACMClient({region: isEdge ? Globals.defaultRegion : Globals.getRegion()});
+        this.acm = new ACMClient({
+            credentials,
+            region: isEdge ? Globals.defaultRegion : Globals.getRegion()
+        });
     }
 
     public async getCertArn(domain: DomainConfig): Promise<string> {

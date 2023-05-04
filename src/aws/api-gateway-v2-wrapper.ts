@@ -23,9 +23,12 @@ import Logging from "../logging";
 
 class APIGatewayV2Wrapper extends APIGatewayBase {
 
-    constructor() {
+    constructor(credentials?: any) {
         super();
-        this.apiGateway = new ApiGatewayV2Client({region: Globals.getRegion()});
+        this.apiGateway = new ApiGatewayV2Client({
+            credentials,
+            region: Globals.getRegion()
+        });
     }
 
     /**

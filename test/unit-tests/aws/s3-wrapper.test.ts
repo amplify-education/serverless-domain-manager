@@ -13,7 +13,7 @@ describe("S3 wrapper checks", () => {
     it("Initialization", async () => {
         const s3Wrapper = new S3Wrapper();
         const actualResult = await s3Wrapper.s3.config.region();
-        expect(actualResult).to.equal(Globals.currentRegion);
+        expect(actualResult).to.equal(Globals.nodeRegion);
     });
 
     it("Assert TlS cert object exists", async () => {

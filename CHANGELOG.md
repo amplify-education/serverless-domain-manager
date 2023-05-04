@@ -4,15 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.0.3] - 2023-05-05
+
+### Fixed
+- Managing of the Serverless `provider.profile` parameter from the serverless.yml.
+
 ## [7.0.2] - 2023-03-24
 
 ### Fixed
-- Manage the Serverless `provider.region` parameter from the serverless.yml.
+- Managing of the Serverless `provider.region` parameter from the serverless.yml.
 
 ## [7.0.1] - 2023-03-23
 
 ### Fixed
-- Manage the Serverless `region` parameter.
+- Managing of the Serverless `region` parameter.
 
 ## [7.0.0] - 2023-03-22
 

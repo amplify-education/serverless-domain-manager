@@ -6,8 +6,11 @@ import Globals from "../globals";
 class S3Wrapper {
     public s3: S3Client;
 
-    constructor() {
-        this.s3 = new S3Client({region: Globals.getRegion()});
+    constructor(credentials?: any) {
+        this.s3 = new S3Client({
+            credentials,
+            region: Globals.getRegion()
+        });
     }
 
     /**

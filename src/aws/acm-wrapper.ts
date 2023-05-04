@@ -11,7 +11,7 @@ const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 class ACMWrapper {
     public acm: ACMClient;
 
-    constructor(endpointType: string, credentials?: any) {
+    constructor(credentials: any, endpointType: string) {
         const isEdge = endpointType === Globals.endpointTypes.edge;
         this.acm = new ACMClient({
             credentials,

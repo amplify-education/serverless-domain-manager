@@ -24,13 +24,13 @@ const certTestData = {
 
 describe("ACM Wrapper checks", () => {
     it("Initialization edge", async () => {
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.edge);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.edge);
         const actualResult = await acmWrapper.acm.config.region();
         expect(actualResult).to.equal(Globals.defaultRegion);
     });
 
     it("Initialization regional", async () => {
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const actualResult = await acmWrapper.acm.config.region();
         expect(actualResult).to.equal(Globals.nodeRegion);
     });
@@ -39,7 +39,7 @@ describe("ACM Wrapper checks", () => {
         const ACMCMock = mockClient(ACMClient);
         ACMCMock.on(ListCertificatesCommand).resolves(certTestData);
 
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({
             certificateName: "cert_name"
         }));
@@ -52,7 +52,7 @@ describe("ACM Wrapper checks", () => {
         const ACMCMock = mockClient(ACMClient);
         ACMCMock.on(ListCertificatesCommand).resolves(certTestData);
 
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({
             domainName: "test_domain",
         }));
@@ -66,7 +66,7 @@ describe("ACM Wrapper checks", () => {
         ACMCMock.on(ListCertificatesCommand).resolves(certTestData);
 
         const certificateName = "not_existing_certificate"
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({certificateName}));
 
         let errored = false;
@@ -92,7 +92,7 @@ describe("ACM Wrapper checks", () => {
             }]
         });
 
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({
             domainName: "sub.test_domain",
         }));
@@ -106,7 +106,7 @@ describe("ACM Wrapper checks", () => {
         ACMCMock.on(ListCertificatesCommand).resolves(certTestData);
 
         const domainName = "not_existing_domain"
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({domainName}));
 
         let errored = false;
@@ -123,7 +123,7 @@ describe("ACM Wrapper checks", () => {
         const ACMCMock = mockClient(ACMClient);
         ACMCMock.on(ListCertificatesCommand).rejects();
 
-        const acmWrapper = new ACMWrapper(Globals.endpointTypes.regional);
+        const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({
             domainName: "test_domain",
         }));

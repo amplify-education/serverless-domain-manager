@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.0.3] - 2023-05-05
 
 ### Fixed
-- Managing of the Serverless `provider.profile` parameter from the serverless.yml.
+- Managing of the Serverless options `aws-profile` parameter and `provider.profile` parameter from the serverless.yml.
 
 ## [7.0.2] - 2023-03-24
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.0.1] - 2023-03-23
 
 ### Fixed
-- Managing of the Serverless `region` parameter.
+- Managing of the Serverless options `region` parameter.
 
 ## [7.0.0] - 2023-03-22
 

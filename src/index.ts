@@ -82,7 +82,7 @@ class ServerlessCustomDomain {
         // Validate the domain configurations
         this.validateDomainConfigs();
         // setup AWS resources
-        await this.initAWSCredentials();
+        await this.initSLSCredentials();
         await this.initAWSRegion();
         await this.initAWSResources();
 
@@ -169,8 +169,8 @@ class ServerlessCustomDomain {
     /**
      * Init AWS credentials based on sls `provider.profile`
      */
-    public async initAWSCredentials(): Promise<void> {
-        const slsProfile = Globals.serverless.service.provider.profile;
+    public async initSLSCredentials(): Promise<void> {
+        const slsProfile = Globals.options["aws-profile"] || Globals.serverless.service.provider.profile;
         Globals.credentials = slsProfile ? await Globals.getProfileCreds(slsProfile) : null;
     }
 

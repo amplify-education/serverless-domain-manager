@@ -82,6 +82,7 @@ class ServerlessCustomDomain {
         // Validate the domain configurations
         this.validateDomainConfigs();
         // setup AWS resources
+        await this.initSLSCredentials();
         await this.initAWSRegion();
         await this.initAWSResources();
 
@@ -166,11 +167,21 @@ class ServerlessCustomDomain {
     }
 
     /**
-     * Init AWS current region
+     * Init AWS credentials based on sls `provider.profile`
+     */
+    public async initSLSCredentials(): Promise<void> {
+        const slsProfile = Globals.options["aws-profile"] || Globals.serverless.service.provider.profile;
+        Globals.credentials = slsProfile ? await Globals.getProfileCreds(slsProfile) : null;
+    }
+
+    /**
+     * Init AWS current region based on Node options
      */
     public async initAWSRegion(): Promise<void> {
-        if (!Globals.options.region) {
+        try {
             Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+        } catch (err) {
+            Logging.logInfo("Node region was not found.");
         }
     }
 
@@ -178,10 +189,10 @@ class ServerlessCustomDomain {
      * Setup AWS resources
      */
     public async initAWSResources(): Promise<void> {
-        this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
-        this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
-        this.cloudFormationWrapper = new CloudFormationWrapper();
-        this.s3Wrapper = new S3Wrapper();
+        this.apiGatewayV1Wrapper = new APIGatewayV1Wrapper(Globals.credentials);
+        this.apiGatewayV2Wrapper = new APIGatewayV2Wrapper(Globals.credentials);
+        this.cloudFormationWrapper = new CloudFormationWrapper(Globals.credentials);
+        this.s3Wrapper = new S3Wrapper(Globals.credentials);
     }
 
     public getApiGateway(domain: DomainConfig): APIGatewayBase {
@@ -220,11 +231,11 @@ class ServerlessCustomDomain {
      */
     public async createDomain(domain: DomainConfig): Promise<void> {
         const creationProgress = Globals.v3Utils && Globals.v3Utils.progress.get(`create-${domain.givenDomainName}`);
+        const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : Globals.credentials;
 
         const apiGateway = this.getApiGateway(domain);
-        const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : null;
         const route53 = new Route53Wrapper(route53Creds, domain.route53Region);
-        const acm = new ACMWrapper(domain.endpointType);
+        const acm = new ACMWrapper(Globals.credentials, domain.endpointType);
 
         domain.domainInfo = await apiGateway.getCustomDomain(domain);
 

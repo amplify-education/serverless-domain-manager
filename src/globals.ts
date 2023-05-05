@@ -10,6 +10,7 @@ export default class Globals {
     public static v3Utils: ServerlessUtils;
 
     public static currentRegion: string;
+    public static credentials: any;
 
     public static defaultRegion = "us-east-1";
     public static defaultBasePath = "(none)";

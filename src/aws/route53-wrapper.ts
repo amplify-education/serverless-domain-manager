@@ -12,6 +12,7 @@ class Route53Wrapper {
     public route53: Route53Client;
 
     constructor(credentials?: any, region?: string) {
+        // not null and not undefined
         if (credentials) {
             this.route53 = new Route53Client({
                 credentials,

@@ -45,6 +45,11 @@ const constructPlugin = (domainConfig, options?: ServerlessOptions, v3Utils?: Se
                 consoleOutput.push(str);
             }
         },
+        providers: {
+            aws: {
+                getCredentials: () => null
+            }
+        },
         service: {
             custom: {
                 customDomain: isMultiple ? undefined : domainConfig,

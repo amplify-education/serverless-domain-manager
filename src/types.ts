@@ -58,6 +58,11 @@ export interface ServerlessInstance {
             customDomains?: CustomDomain[],
         },
     };
+    providers: {
+        aws: {
+            getCredentials(),
+        },
+    };
     cli: {
         log(str: string, entity?: string)
     };

@@ -121,7 +121,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.baseStage;
+        let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;
@@ -171,7 +171,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.baseStage;
+        let stage = domain.stage;
         if (domain.apiType === Globals.apiTypes.http) {
             // find a better way how to implement custom stage for the HTTP API type
             stage = Globals.defaultStage;

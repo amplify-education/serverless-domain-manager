@@ -34,7 +34,8 @@
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
     "integration-test": "npm run integration-basic && npm run integration-deploy",
     "lint": "tslint --project . && tslint --project tsconfig.json",
-    "build": "tsc --project ."
+    "build": "tsc --project .",
+    "prepare": "npm run build"
   },
   "files": [
     "*.js",

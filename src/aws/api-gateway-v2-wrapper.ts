@@ -121,19 +121,13 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.stage;
-        if (domain.apiType === Globals.apiTypes.http) {
-            // find a better way how to implement custom stage for the HTTP API type
-            stage = Globals.defaultStage;
-        }
-
         try {
             await this.apiGateway.send(
                 new CreateApiMappingCommand({
                     ApiId: domain.apiId,
                     ApiMappingKey: domain.basePath,
                     DomainName: domain.givenDomainName,
-                    Stage: stage,
+                    Stage: domain.stage,
                 })
             );
             Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
@@ -171,12 +165,6 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.stage;
-        if (domain.apiType === Globals.apiTypes.http) {
-            // find a better way how to implement custom stage for the HTTP API type
-            stage = Globals.defaultStage;
-        }
-
         try {
             await this.apiGateway.send(
                 new UpdateApiMappingCommand({
@@ -184,7 +172,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
                     ApiMappingId: domain.apiMapping.apiMappingId,
                     ApiMappingKey: domain.basePath,
                     DomainName: domain.givenDomainName,
-                    Stage: stage,
+                    Stage: domain.stage,
                 })
             );
             Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);

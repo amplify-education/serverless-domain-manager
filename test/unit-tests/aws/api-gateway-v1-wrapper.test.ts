@@ -303,7 +303,7 @@ describe("API Gateway V1 wrapper checks", () => {
                 basePath: dc.basePath,
                 domainName: dc.givenDomainName,
                 restApiId: dc.apiId,
-                stage: dc.baseStage,
+                stage: dc.stage,
             }
             const commandCalls = APIGatewayMock.commandCalls(CreateBasePathMappingCommand, expectedParams, true);
 

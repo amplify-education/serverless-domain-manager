@@ -14,7 +14,6 @@ export default class Globals {
 
     public static defaultRegion = "us-east-1";
     public static defaultBasePath = "(none)";
-    public static defaultStage = "$default";
 
     // https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html
     public static reservedBasePaths = ["ping", "sping"];

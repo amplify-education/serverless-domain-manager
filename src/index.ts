@@ -86,6 +86,21 @@ class ServerlessCustomDomain {
         await this.initAWSRegion();
         await this.initAWSResources();
 
+        // start of the legacy AWS SDK V2 creds support
+        // TODO: remove it in case serverless will add V3 support
+        const domain = this.domains[0];
+        if (domain) {
+            try {
+                await this.getApiGateway(domain).getCustomDomain(domain);
+            } catch (error) {
+                if (error.message.includes('Could not load credentials from any providers')) {
+                    Globals.credentials = this.serverless.providers.aws.getCredentials();
+                    await this.initAWSResources();
+                }
+            }
+        }
+        // end of the legacy AWS SDK V2 creds support
+
         return lifecycleFunc.call(this);
     }
 

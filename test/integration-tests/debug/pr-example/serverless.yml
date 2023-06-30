@@ -19,11 +19,18 @@ plugins:
 
 custom:
   customDomain:
-    autoDomain: true
-    basePath: ""
-    domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-    stage: "dev"
-    createRoute53Record: true
+    - rest:
+        autoDomain: true
+        basePath: "v1"
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        stage: "dev"
+        createRoute53Record: true
+    - rest:
+        autoDomain: true
+        basePath: "v2"
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        stage: "dev"
+        createRoute53Record: true
 
 package:
   patterns:

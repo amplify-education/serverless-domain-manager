@@ -12,7 +12,6 @@ import Logging from "../logging";
 class DomainConfig {
     public givenDomainName: string;
     public basePath: string | undefined;
-    public baseStage: string | undefined;
     public stage: string | undefined;
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
@@ -55,7 +54,6 @@ class DomainConfig {
         this.autoDomainWaitFor = config.autoDomainWaitFor;
         this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
         this.basePath = this._getBasePath(config.basePath);
-        this.baseStage = Globals.getBaseStage();
         this.stage = config.stage || Globals.getBaseStage();
         this.endpointType = this._getEndpointType(config.endpointType);
         this.apiType = this._getApiType(config.apiType);

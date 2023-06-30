@@ -19,6 +19,7 @@ class CloudFormationWrapper {
     public stackName: string;
 
     constructor(credentials?: any) {
+        // for the CloudFormation stack we should use the `base` stage not the plugin custom stage
         const defaultStackName = Globals.serverless.service.service + "-" + Globals.getBaseStage();
         this.stackName = Globals.serverless.service.provider.stackName || defaultStackName;
         this.cloudFormation = new CloudFormationClient({

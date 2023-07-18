@@ -125,7 +125,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         if (domain.apiType === Globals.apiTypes.http && domain.stage !== Globals.defaultStage) {
             Logging.logWarning(
                 `Using a HTTP API with a stage name other than '${Globals.defaultStage}'. ` +
-                `'HTTP APIs require a stage named '${Globals.defaultStage}. ` +
+                `HTTP APIs require a stage named '${Globals.defaultStage}'. ` +
                 'Please make sure that stage exists in the API Gateway. ' +
                 'See https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html'
             )

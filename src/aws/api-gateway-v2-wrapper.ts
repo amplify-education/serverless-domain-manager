@@ -122,10 +122,10 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        if (domain.apiType === Globals.apiTypes.http) {
+        if (domain.apiType === Globals.apiTypes.http && domain.stage !== Globals.defaultStage) {
             Logging.logWarning(
-                "Make sure the API Mapping with the `$default` stage already exists. " +
-                "More info here https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html"
+                `Make sure the API Mapping with the '${Globals.defaultStage}' stage already exists. ` +
+                'More info here https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html'
             )
         }
         try {

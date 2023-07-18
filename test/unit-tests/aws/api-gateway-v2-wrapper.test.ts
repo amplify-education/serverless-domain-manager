@@ -341,10 +341,7 @@ describe("API Gateway V2 wrapper checks", () => {
             const commandCalls = APIGatewayMock.commandCalls(CreateApiMappingCommand, expectedParams, true);
 
             expect(commandCalls.length).to.equal(1);
-            expect(consoleOutput[0]).to.contains(
-                `Make sure the API Mapping with the '${Globals.defaultStage}' stage already exists.`
-            );
-            expect(consoleOutput[1]).to.contains("V2 - Created API mapping");
+            expect(consoleOutput[0]).to.contains("V2 - Created API mapping");
         });
 
         it("create base path mapping failure", async () => {

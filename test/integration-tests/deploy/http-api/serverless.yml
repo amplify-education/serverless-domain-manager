@@ -20,7 +20,6 @@ custom:
     domainName: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     endpointType: REGIONAL
     apiType: http
-    stage: '$default'
 
 package:
   patterns:

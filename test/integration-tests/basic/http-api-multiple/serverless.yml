@@ -27,13 +27,11 @@ custom:
         basePath: ''
         endpointType: REGIONAL
         autoDomain: true
-        stage: '$default'
     - http:
         domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: REGIONAL
         autoDomain: true
-        stage: '$default'
 
 package:
   patterns:

@@ -76,7 +76,8 @@
     "@aws-sdk/config-resolver": "^3.329.0",
     "@aws-sdk/credential-providers": "^3.329.0",
     "@aws-sdk/node-config-provider": "^3.329.0",
-    "@aws-sdk/smithy-client": "^3.329.0"
+    "@aws-sdk/smithy-client": "^3.329.0",
+    "@aws-sdk/util-retry": "^3.329.0"
   },
   "peerDependencies": {
     "serverless": "^2.60 || ^3.0.0"

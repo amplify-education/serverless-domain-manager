@@ -8,12 +8,16 @@ import {
     GetResourcesCommand,
     GetResourcesCommandOutput
 } from "@aws-sdk/client-api-gateway";
+import APIGatewayBase = require("../../src/models/apigateway-base");
 
 export default class APIGatewayWrap {
     private client: APIGatewayClient;
 
     constructor(region: string) {
-        this.client = new APIGatewayClient({region});
+        this.client = new APIGatewayClient({
+            region,
+            retryStrategy: APIGatewayBase.getRetryStrategy()
+        });
     }
 
     /**

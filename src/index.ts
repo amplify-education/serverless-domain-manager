@@ -367,7 +367,7 @@ class ServerlessCustomDomain {
             if (!domain.apiMapping) {
                 if (domain.apiType === Globals.apiTypes.http) {
                     Logging.logWarning(
-                        "Make sure that the API Mapping with the `$default` stage already exists. " +
+                        "Make sure the API Mapping with the `$default` stage already exists. " +
                         "More info here https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html"
                     )
                 }

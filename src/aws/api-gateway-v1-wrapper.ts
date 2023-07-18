@@ -27,7 +27,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         this.apiGateway = new APIGatewayClient({
             credentials,
             region: Globals.getRegion(),
-            retryStrategy: APIGatewayBase.getRetryStrategy()
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 

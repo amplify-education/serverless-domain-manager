@@ -8,7 +8,7 @@ import {
     GetResourcesCommand,
     GetResourcesCommandOutput
 } from "@aws-sdk/client-api-gateway";
-import APIGatewayBase = require("../../src/models/apigateway-base");
+import Globals from "../../src/globals";
 
 export default class APIGatewayWrap {
     private client: APIGatewayClient;
@@ -16,7 +16,7 @@ export default class APIGatewayWrap {
     constructor(region: string) {
         this.client = new APIGatewayClient({
             region,
-            retryStrategy: APIGatewayBase.getRetryStrategy()
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 

@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.0] - 2023-07-18
 
-### Added 
+### Fixed 
 - Support for the custom stages.
 
 ## [7.0.4] - 2023-05-10

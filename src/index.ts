@@ -365,12 +365,6 @@ class ServerlessCustomDomain {
             domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
             if (!domain.apiMapping) {
-                if (domain.apiType === Globals.apiTypes.http) {
-                    Logging.logWarning(
-                        "Make sure the API Mapping with the `$default` stage already exists. " +
-                        "More info here https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html"
-                    )
-                }
                 await apiGateway.createBasePathMapping(domain);
             } else {
                 await apiGateway.updateBasePathMapping(domain);

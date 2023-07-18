@@ -50,9 +50,9 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
-    "@types/node": "^20.3.2",
+    "@types/node": "^20.4.2",
     "@types/shelljs": "^0.8.12",
-    "aws-sdk-client-mock": "^2.2.0",
+    "aws-sdk-client-mock": "^3.0.0",
     "chai": "^4.3.7",
     "chai-spies": "^1.0.0",
     "mocha": "^10.2.0",
@@ -67,17 +67,17 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@aws-sdk/client-acm": "^3.329.0",
-    "@aws-sdk/client-api-gateway": "^3.329.0",
-    "@aws-sdk/client-apigatewayv2": "^3.329.0",
-    "@aws-sdk/client-cloudformation": "^3.329.0",
-    "@aws-sdk/client-route-53": "^3.329.0",
-    "@aws-sdk/client-s3": "^3.329.0",
-    "@aws-sdk/config-resolver": "^3.329.0",
-    "@aws-sdk/credential-providers": "^3.329.0",
-    "@aws-sdk/node-config-provider": "^3.329.0",
-    "@aws-sdk/smithy-client": "^3.329.0",
-    "@aws-sdk/util-retry": "^3.329.0"
+    "@aws-sdk/client-acm": "^3.370.0",
+    "@aws-sdk/client-api-gateway": "^3.370.0",
+    "@aws-sdk/client-apigatewayv2": "^3.370.0",
+    "@aws-sdk/client-cloudformation": "^3.370.0",
+    "@aws-sdk/client-route-53": "^3.370.0",
+    "@aws-sdk/client-s3": "^3.370.0",
+    "@aws-sdk/config-resolver": "^3.370.0",
+    "@aws-sdk/credential-providers": "^3.370.0",
+    "@aws-sdk/node-config-provider": "^3.370.0",
+    "@aws-sdk/smithy-client": "^3.370.0",
+    "@aws-sdk/util-retry": "^3.370.0"
   },
   "peerDependencies": {
     "serverless": "^2.60 || ^3.0.0"

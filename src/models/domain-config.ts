@@ -12,7 +12,6 @@ import Logging from "../logging";
 class DomainConfig {
     public givenDomainName: string;
     public basePath: string | undefined;
-    public baseStage: string | undefined;
     public stage: string | undefined;
     public certificateName: string | undefined;
     public certificateArn: string | undefined;
@@ -55,15 +54,22 @@ class DomainConfig {
         this.autoDomainWaitFor = config.autoDomainWaitFor;
         this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
         this.basePath = this._getBasePath(config.basePath);
-        this.baseStage = Globals.getBaseStage();
-        this.stage = config.stage || Globals.getBaseStage();
-        this.endpointType = this._getEndpointType(config.endpointType);
         this.apiType = this._getApiType(config.apiType);
+        // apiType should be defined before stage
+        this.stage = this._getStage(config.stage, this.apiType);
+        this.endpointType = this._getEndpointType(config.endpointType);
         this.tlsTruststoreUri = this._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
         this.tlsTruststoreVersion = config.tlsTruststoreVersion;
         this.securityPolicy = this._getSecurityPolicy(config.securityPolicy);
         this.route53Params = this._getRoute53Params(config.route53Params, this.endpointType);
         this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
+    }
+
+    private _getStage(stage: string, apiType: string) {
+        if (apiType === Globals.apiTypes.http && !stage) {
+            return Globals.defaultStage;
+        }
+        return stage || Globals.getBaseStage()
     }
 
     private _getBasePath(basePath: string | undefined) {

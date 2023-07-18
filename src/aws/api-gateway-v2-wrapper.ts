@@ -27,7 +27,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         super();
         this.apiGateway = new ApiGatewayV2Client({
             credentials,
-            region: Globals.getRegion()
+            region: Globals.getRegion(),
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 
@@ -121,19 +122,21 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.baseStage;
-        if (domain.apiType === Globals.apiTypes.http) {
-            // find a better way how to implement custom stage for the HTTP API type
-            stage = Globals.defaultStage;
+        if (domain.apiType === Globals.apiTypes.http && domain.stage !== Globals.defaultStage) {
+            Logging.logWarning(
+                `Using a HTTP API with a stage name other than '${Globals.defaultStage}'. ` +
+                `HTTP APIs require a stage named '${Globals.defaultStage}'. ` +
+                'Please make sure that stage exists in the API Gateway. ' +
+                'See https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html'
+            )
         }
-
         try {
             await this.apiGateway.send(
                 new CreateApiMappingCommand({
                     ApiId: domain.apiId,
                     ApiMappingKey: domain.basePath,
                     DomainName: domain.givenDomainName,
-                    Stage: stage,
+                    Stage: domain.stage,
                 })
             );
             Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
@@ -171,12 +174,6 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      * @param domain: DomainConfig
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
-        let stage = domain.baseStage;
-        if (domain.apiType === Globals.apiTypes.http) {
-            // find a better way how to implement custom stage for the HTTP API type
-            stage = Globals.defaultStage;
-        }
-
         try {
             await this.apiGateway.send(
                 new UpdateApiMappingCommand({
@@ -184,7 +181,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
                     ApiMappingId: domain.apiMapping.apiMappingId,
                     ApiMappingKey: domain.basePath,
                     DomainName: domain.givenDomainName,
-                    Stage: stage,
+                    Stage: domain.stage,
                 })
             );
             Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);

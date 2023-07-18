@@ -310,7 +310,7 @@ describe("API Gateway V2 wrapper checks", () => {
                 ApiMappingKey: dc.basePath,
                 DomainName: dc.givenDomainName,
                 ApiId: dc.apiId,
-                Stage: dc.baseStage,
+                Stage: dc.stage,
             }
             const commandCalls = APIGatewayMock.commandCalls(CreateApiMappingCommand, expectedParams, true);
 
@@ -336,7 +336,7 @@ describe("API Gateway V2 wrapper checks", () => {
                 ApiMappingKey: dc.basePath,
                 DomainName: dc.givenDomainName,
                 ApiId: dc.apiId,
-                Stage: Globals.defaultStage,
+                Stage: dc.stage,
             }
             const commandCalls = APIGatewayMock.commandCalls(CreateApiMappingCommand, expectedParams, true);
 
@@ -472,7 +472,7 @@ describe("API Gateway V2 wrapper checks", () => {
                 ApiMappingId: dc.apiMapping.apiMappingId,
                 ApiMappingKey: dc.basePath,
                 DomainName: dc.givenDomainName,
-                Stage: Globals.defaultStage
+                Stage: dc.stage
             }
             const commandCalls = APIGatewayMock.commandCalls(UpdateApiMappingCommand, expectedParams, true);
 

@@ -464,7 +464,7 @@ class ServerlessCustomDomain {
         }
 
         // Remove all special characters
-        const safeStage = domain.stage.replace(/[^a-zA-Z\d]/g, "");
+        const safeStage = Globals.getBaseStage().replace(/[^a-zA-Z\d]/g, "");
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {
             Value: domain.givenDomainName,
             Export: {

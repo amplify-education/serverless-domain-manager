@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.1] - 2023-07-24
 
 ### Fixed 
-- Support for the custom stages.
+- Fixed compiledCloudFormationTemplate export names for the custom stages.
 
 ## [7.1.0] - 2023-07-18
 

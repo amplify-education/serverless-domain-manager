@@ -463,6 +463,7 @@ class ServerlessCustomDomain {
             hostedZoneIdOutputKey += "Websocket";
         }
 
+        // for the CloudFormation stack we should use the `base` stage not the plugin custom stage
         // Remove all special characters
         const safeStage = Globals.getBaseStage().replace(/[^a-zA-Z\d]/g, "");
         service.provider.compiledCloudFormationTemplate.Outputs[domainNameOutputKey] = {

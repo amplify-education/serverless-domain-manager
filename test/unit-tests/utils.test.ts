@@ -1,23 +1,35 @@
 import { expect } from "./base";
 import { getAWSPagedResults } from "../../src/utils";
 import { mockClient } from "aws-sdk-client-mock";
-import { ACMClient, ListCertificatesCommand } from "@aws-sdk/client-acm";
+import { ACMClient, CertificateSummary, ListCertificatesCommand, ListCertificatesCommandInput, ListCertificatesCommandOutput } from "@aws-sdk/client-acm";
 import { Client } from "@aws-sdk/smithy-client";
 import {
   APIGatewayClient,
+  BasePathMapping,
   GetBasePathMappingsCommand,
+  GetBasePathMappingsCommandInput,
+  GetBasePathMappingsCommandOutput
 } from "@aws-sdk/client-api-gateway";
 import {
   ApiGatewayV2Client,
+  ApiMapping,
   GetApiMappingsCommand,
+  GetApiMappingsCommandInput,
+  GetApiMappingsCommandOutput
 } from "@aws-sdk/client-apigatewayv2";
 import {
   CloudFormationClient,
+  Export,
   ListExportsCommand,
+  ListExportsCommandInput,
+  ListExportsCommandOutput
 } from "@aws-sdk/client-cloudformation";
 import {
+  HostedZone,
   ListHostedZonesCommand,
-  Route53Client,
+  ListHostedZonesCommandInput,
+  ListHostedZonesCommandOutput,
+  Route53Client
 } from "@aws-sdk/client-route-53";
 
 describe("Utils checks", () => {
@@ -48,7 +60,7 @@ describe("Utils checks", () => {
 
       const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
-      const certs = await getAWSPagedResults(
+      const certs = await getAWSPagedResults<CertificateSummary, ListCertificatesCommandInput, ListCertificatesCommandOutput>(
         ACMCMock as unknown as Client<any, any, any, any>,
         "CertificateSummaryList",
         "NextToken",
@@ -84,7 +96,7 @@ describe("Utils checks", () => {
           ],
         });
 
-      const items = await getAWSPagedResults(
+      const items = await getAWSPagedResults<BasePathMapping, GetBasePathMappingsCommandInput, GetBasePathMappingsCommandOutput>(
         APIGatewayCMock as unknown as Client<any, any, any, any>,
         "items",
         "position",
@@ -141,7 +153,7 @@ describe("Utils checks", () => {
           ],
         });
 
-      const items = await getAWSPagedResults(
+      const items = await getAWSPagedResults<ApiMapping, GetApiMappingsCommandInput, GetApiMappingsCommandOutput>(
         APIGatewayV2CMock as unknown as Client<any, any, any, any>,
         "Items",
         "NextToken",
@@ -181,7 +193,7 @@ describe("Utils checks", () => {
           ],
         });
 
-      const items = await getAWSPagedResults(
+      const items = await getAWSPagedResults<Export, ListExportsCommandInput, ListExportsCommandOutput>(
         CloudFormationCMock as unknown as Client<any, any, any, any>,
         "Exports",
         "NextToken",
@@ -227,7 +239,7 @@ describe("Utils checks", () => {
           ],
         });
 
-      const items = await getAWSPagedResults(
+      const items = await getAWSPagedResults<HostedZone, ListHostedZonesCommandInput, ListHostedZonesCommandOutput>(
         Route53CMock as unknown as Client<any, any, any, any>,
         "HostedZones",
         "Marker",

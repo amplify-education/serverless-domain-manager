@@ -1,4 +1,5 @@
 import { Client, Command } from "@smithy/smithy-client";
+import { MetadataBearer } from "@smithy/types";
 import Globals from "./globals";
 
 /**
@@ -47,7 +48,7 @@ function evaluateBoolean(value: any, defaultValue: boolean): boolean {
  * @param nextRequestTokenKey - The response key name that has the next paging token value
  * @param params - Parameters to send in the request
  */
-async function getAWSPagedResults<ClientOutput, ClientInputCommand, ClientOutputCommand>(
+async function getAWSPagedResults<ClientOutput, ClientInputCommand extends object, ClientOutputCommand extends MetadataBearer>(
   client: Client<any, any, any, any>,
   resultsKey: keyof ClientOutputCommand,
   nextTokenKey: keyof ClientInputCommand,

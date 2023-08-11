@@ -28,9 +28,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     constructor(credentials?: any) {
         super();
         this.apiGateway = new ApiGatewayV2Client({
-          credentials,
-          region: Globals.getRegion(),
-          retryStrategy: Globals.getRetryStrategy()
+            credentials,
+            region: Globals.getRegion(),
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 
@@ -40,29 +40,29 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      */
     public async createCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         const providerTags = {
-          ...Globals.serverless.service.provider.stackTags,
-          ...Globals.serverless.service.provider.tags
+            ...Globals.serverless.service.provider.stackTags,
+            ...Globals.serverless.service.provider.tags
         };
 
         const params: any = {
-          DomainName: domain.givenDomainName,
-          DomainNameConfigurations: [{
-              CertificateArn: domain.certificateArn,
-              EndpointType: domain.endpointType,
-              SecurityPolicy: domain.securityPolicy,
-          }],
-          Tags: providerTags
+            DomainName: domain.givenDomainName,
+            DomainNameConfigurations: [{
+                  CertificateArn: domain.certificateArn,
+                  EndpointType: domain.endpointType,
+                  SecurityPolicy: domain.securityPolicy,
+            }],
+            Tags: providerTags
         };
 
         const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
         if (!isEdgeType && domain.tlsTruststoreUri) {
-          params.MutualTlsAuthentication = {
-            TruststoreUri: domain.tlsTruststoreUri
-          };
+            params.MutualTlsAuthentication = {
+                TruststoreUri: domain.tlsTruststoreUri
+            };
         
-          if (domain.tlsTruststoreVersion) {
-            params.MutualTlsAuthentication.TruststoreVersion = domain.tlsTruststoreVersion;
-          }
+            if (domain.tlsTruststoreVersion) {
+                params.MutualTlsAuthentication.TruststoreVersion = domain.tlsTruststoreVersion;
+            }
         }
 
         try {
@@ -71,9 +71,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             );
             return new DomainInfo(domainInfo);
         } catch (err) {
-          throw new Error(
-            `V2 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 
@@ -84,19 +84,19 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     public async getCustomDomain(domain: DomainConfig): Promise<DomainInfo> {
         // Make API call
         try {
-          const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
-            new GetDomainNameCommand({
-              DomainName: domain.givenDomainName
-            })
-          );
-          return new DomainInfo(domainInfo);
-        } catch (err) {
-          if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
-            throw new Error(
-              `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
+            const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
+              new GetDomainNameCommand({
+                  DomainName: domain.givenDomainName
+              })
             );
-          }
-          Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`);
+            return new DomainInfo(domainInfo);
+        } catch (err) {
+            if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
+                throw new Error(
+                    `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
+                );
+            }
+            Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`);
         }
     }
 
@@ -107,15 +107,15 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     public async deleteCustomDomain(domain: DomainConfig): Promise<void> {
         // Make API call
         try {
-          await this.apiGateway.send(
-            new DeleteDomainNameCommand({
-              DomainName: domain.givenDomainName,
-            })
-          );
+            await this.apiGateway.send(
+              new DeleteDomainNameCommand({
+                  DomainName: domain.givenDomainName,
+              })
+            );
         } catch (err) {
-          throw new Error(
-            `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 
@@ -125,27 +125,27 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      */
     public async createBasePathMapping(domain: DomainConfig): Promise<void> {
         if (domain.apiType === Globals.apiTypes.http && domain.stage !== Globals.defaultStage) {
-          Logging.logWarning(
-              `Using a HTTP API with a stage name other than '${Globals.defaultStage}'. ` +
-              `HTTP APIs require a stage named '${Globals.defaultStage}'. ` +
-              'Please make sure that stage exists in the API Gateway. ' +
-              'See https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html'
-          )
+            Logging.logWarning(
+                `Using a HTTP API with a stage name other than '${Globals.defaultStage}'. ` +
+                `HTTP APIs require a stage named '${Globals.defaultStage}'. ` +
+                'Please make sure that stage exists in the API Gateway. ' +
+                'See https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html'
+            )
         }
         try {
-          await this.apiGateway.send(
-            new CreateApiMappingCommand({
-              ApiId: domain.apiId,
-              ApiMappingKey: domain.basePath,
-              DomainName: domain.givenDomainName,
-              Stage: domain.stage,
-            })
-          );
-          Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
+            await this.apiGateway.send(
+                new CreateApiMappingCommand({
+                    ApiId: domain.apiId,
+                    ApiMappingKey: domain.basePath,
+                    DomainName: domain.givenDomainName,
+                    Stage: domain.stage,
+                })
+            );
+            Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
         } catch (err) {
-          throw new Error(
-            `V2 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 
@@ -155,22 +155,22 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      */
     public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
-          const items = await getAWSPagedResults<ApiMapping, GetApiMappingsCommandInput, GetApiMappingsCommandOutput>(
-            this.apiGateway,
-            "Items",
-            "NextToken",
-            "NextToken",
-            new GetApiMappingsCommand({
-              DomainName: domain.givenDomainName
-            })
-          );
-          return items.map(
-              (item) => new ApiGatewayMap(item.ApiId, item.ApiMappingKey, item.Stage, item.ApiMappingId)
-          );
+            const items = await getAWSPagedResults<ApiMapping, GetApiMappingsCommandInput, GetApiMappingsCommandOutput>(
+              this.apiGateway,
+              "Items",
+              "NextToken",
+              "NextToken",
+              new GetApiMappingsCommand({
+                DomainName: domain.givenDomainName
+              })
+            );
+            return items.map(
+                (item) => new ApiGatewayMap(item.ApiId, item.ApiMappingKey, item.Stage, item.ApiMappingId)
+            );
         } catch (err) {
-          throw new Error(
-            `V2 - Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`
+            );
         }
     }
 
@@ -180,20 +180,20 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
      */
     public async updateBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
-          await this.apiGateway.send(
-            new UpdateApiMappingCommand({
-              ApiId: domain.apiId,
-              ApiMappingId: domain.apiMapping.apiMappingId,
-              ApiMappingKey: domain.basePath,
-              DomainName: domain.givenDomainName,
-              Stage: domain.stage,
-            })
-          );
-          Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
+            await this.apiGateway.send(
+                new UpdateApiMappingCommand({
+                    ApiId: domain.apiId,
+                    ApiMappingId: domain.apiMapping.apiMappingId,
+                    ApiMappingKey: domain.basePath,
+                    DomainName: domain.givenDomainName,
+                    Stage: domain.stage,
+                })
+            );
+            Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
         } catch (err) {
-          throw new Error(
-            `V2 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 
@@ -203,14 +203,14 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     public async deleteBasePathMapping(domain: DomainConfig): Promise<void> {
         try {
             await this.apiGateway.send(new DeleteApiMappingCommand({
-              ApiMappingId: domain.apiMapping.apiMappingId,
-              DomainName: domain.givenDomainName,
-                }));
+                ApiMappingId: domain.apiMapping.apiMappingId,
+                DomainName: domain.givenDomainName,
+            }));
             Logging.logInfo(`V2 - Removed API Mapping with id: '${domain.apiMapping.apiMappingId}'`);
         } catch (err) {
-          throw new Error(
-            `V2 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`
-          );
+            throw new Error(
+                `V2 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`
+            );
         }
     }
 }

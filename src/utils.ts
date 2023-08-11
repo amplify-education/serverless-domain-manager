@@ -23,17 +23,17 @@ async function sleep(seconds: number) {
  */
 function evaluateBoolean(value: any, defaultValue: boolean): boolean {
     if (value === undefined) {
-      return defaultValue;
+        return defaultValue;
     }
 
     const s = value.toString().toLowerCase().trim();
     const trueValues = ["true", "1"];
     const falseValues = ["false", "0"];
     if (trueValues.indexOf(s) >= 0) {
-      return true;
+        return true;
     }
     if (falseValues.indexOf(s) >= 0) {
-      return false;
+        return false;
     }
     throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
 }

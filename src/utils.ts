@@ -7,7 +7,7 @@ import Globals from "./globals";
  * @returns {Promise<void>} Resolves after given number of seconds.
  */
 async function sleep(seconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
+    return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
 /**
@@ -22,20 +22,20 @@ async function sleep(seconds: number) {
  * @returns {boolean} the parsed boolean from the config value, or the default value
  */
 function evaluateBoolean(value: any, defaultValue: boolean): boolean {
-  if (value === undefined) {
-    return defaultValue;
-  }
+    if (value === undefined) {
+      return defaultValue;
+    }
 
-  const s = value.toString().toLowerCase().trim();
-  const trueValues = ["true", "1"];
-  const falseValues = ["false", "0"];
-  if (trueValues.indexOf(s) >= 0) {
-    return true;
-  }
-  if (falseValues.indexOf(s) >= 0) {
-    return false;
-  }
-  throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
+    const s = value.toString().toLowerCase().trim();
+    const trueValues = ["true", "1"];
+    const falseValues = ["false", "0"];
+    if (trueValues.indexOf(s) >= 0) {
+      return true;
+    }
+    if (falseValues.indexOf(s) >= 0) {
+      return false;
+    }
+    throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
 }
 
 /**

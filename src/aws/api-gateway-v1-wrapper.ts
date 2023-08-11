@@ -133,7 +133,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
                 "position",
                 "position",
                 new GetBasePathMappingsCommand({
-                  domainName: domain.givenDomainName,
+                    domainName: domain.givenDomainName,
                 })
             );
             return items.map((item) => {

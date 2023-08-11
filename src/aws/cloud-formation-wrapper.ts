@@ -113,7 +113,7 @@ class CloudFormationWrapper {
         if (!response) {
             throw new Error(`Failed to find a stack ${this.stackName}\n`);
         }
-      
+
         const apiId = response.StackResourceDetail.PhysicalResourceId;
         if (!apiId) {
             throw new Error(`No ApiId associated with CloudFormation stack ${this.stackName}`);

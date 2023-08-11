@@ -47,9 +47,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         const params: any = {
             DomainName: domain.givenDomainName,
             DomainNameConfigurations: [{
-                  CertificateArn: domain.certificateArn,
-                  EndpointType: domain.endpointType,
-                  SecurityPolicy: domain.securityPolicy,
+                CertificateArn: domain.certificateArn,
+                EndpointType: domain.endpointType,
+                SecurityPolicy: domain.securityPolicy,
             }],
             Tags: providerTags
         };
@@ -59,7 +59,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
             params.MutualTlsAuthentication = {
                 TruststoreUri: domain.tlsTruststoreUri
             };
-        
+
             if (domain.tlsTruststoreVersion) {
                 params.MutualTlsAuthentication.TruststoreVersion = domain.tlsTruststoreVersion;
             }
@@ -85,9 +85,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         // Make API call
         try {
             const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
-              new GetDomainNameCommand({
-                  DomainName: domain.givenDomainName
-              })
+                new GetDomainNameCommand({
+                    DomainName: domain.givenDomainName
+                })
             );
             return new DomainInfo(domainInfo);
         } catch (err) {
@@ -108,9 +108,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         // Make API call
         try {
             await this.apiGateway.send(
-              new DeleteDomainNameCommand({
-                  DomainName: domain.givenDomainName,
-              })
+                new DeleteDomainNameCommand({
+                    DomainName: domain.givenDomainName,
+                })
             );
         } catch (err) {
             throw new Error(

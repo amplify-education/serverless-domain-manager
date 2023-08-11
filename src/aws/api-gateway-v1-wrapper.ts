@@ -60,9 +60,9 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
                     truststoreUri: domain.tlsTruststoreUri
                 };
 
-              if (domain.tlsTruststoreVersion) {
-                  params.mutualTlsAuthentication.truststoreVersion = domain.tlsTruststoreVersion;
-              }
+                if (domain.tlsTruststoreVersion) {
+                    params.mutualTlsAuthentication.truststoreVersion = domain.tlsTruststoreVersion;
+                }
             }
         }
 
@@ -82,16 +82,16 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         // Make API call
         try {
             const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
-              new GetDomainNameCommand({
-                  domainName: domain.givenDomainName,
-              })
+                new GetDomainNameCommand({
+                    domainName: domain.givenDomainName,
+                })
             );
             return new DomainInfo(domainInfo);
         } catch (err) {
             if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
-              throw new Error(
-                  `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
-              );
+                throw new Error(
+                    `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
+                );
             }
             Logging.logWarning(`V1 - '${domain.givenDomainName}' does not exist.`);
         }
@@ -158,7 +158,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
                         path: "/basePath",
                         value: domain.basePath,
                     }]
-                  }
+                }
             ));
             Logging.logInfo(`V1 - Updated API mapping from '${domain.apiMapping.basePath}'
                     to '${domain.basePath}' for '${domain.givenDomainName}'`);

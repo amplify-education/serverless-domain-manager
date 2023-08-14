@@ -5,8 +5,7 @@ import {mockClient} from "aws-sdk-client-mock";
 import {
     CloudFormationClient,
     DescribeStackResourceCommand, DescribeStacksCommand,
-    ListExportsCommand, ListExportsCommandOutput,
-    ResourceStatus, StackStatus
+    ListExportsCommand, ResourceStatus, StackStatus
 } from "@aws-sdk/client-cloudformation";
 
 describe("Cloud Formation wrapper checks", () => {
@@ -56,7 +55,7 @@ describe("Cloud Formation wrapper checks", () => {
         const commandCalls = CloudFormationMock.commandCalls(ListExportsCommand, expectedParams, true);
         expect(commandCalls.length).to.equal(1);
     });
-    
+
     it("findApiId for the rest api type via Fn::ImportValue paginated", async () => {
         const fnImportValue = "test-value";
         const CloudFormationMock = mockClient(CloudFormationClient);
@@ -67,12 +66,12 @@ describe("Cloud Formation wrapper checks", () => {
             ],
             NextToken: "NextToken"
         })
-        .resolves({
-            Exports: [
-                {Name: "test-name2", Value: "test-name2"},
-                {Name: "dummy-name2", Value: "dummy-value2"},
-            ]
-        });
+            .resolves({
+                Exports: [
+                    {Name: "test-name2", Value: "test-name2"},
+                    {Name: "dummy-name2", Value: "dummy-value2"},
+                ]
+            });
 
         const cloudFormationWrapper = new CloudFormationWrapper();
         Globals.serverless.service.provider.apiGateway.restApiId = {
@@ -297,7 +296,7 @@ describe("Cloud Formation wrapper checks", () => {
         const allCommandCalls = CloudFormationMock.commandCalls(DescribeStackResourceCommand);
         expect(allCommandCalls.length).to.equal(2);
     });
-    
+
     it("findApiId for the rest api type with paginated nested stacks", async () => {
         const physicalResourceId = "test_rest_api_id";
         const nestedStackName = "custom-stage-name-NestedStackTwo-U89W84TQIHJK";
@@ -335,16 +334,16 @@ describe("Cloud Formation wrapper checks", () => {
             ],
             NextToken: "NextToken"
         })
-        .resolves({
-            Stacks: [
-                {
-                    StackName: "custom-stage-name-NestedStackOne-U89W84TQ1235",
-                    RootId: "arn:aws:cloudformation:us-east-1:000000000000:stack/dummy-name2/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-                    CreationTime: null,
-                    StackStatus: StackStatus.CREATE_COMPLETE
-                }                
-            ],
-        });
+            .resolves({
+                Stacks: [
+                    {
+                        StackName: "custom-stage-name-NestedStackOne-U89W84TQ1235",
+                        RootId: "arn:aws:cloudformation:us-east-1:000000000000:stack/dummy-name2/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                        CreationTime: null,
+                        StackStatus: StackStatus.CREATE_COMPLETE
+                    }
+                ],
+            });
 
         const actualResult = await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest)
         expect(actualResult).to.equal(physicalResourceId);
@@ -359,7 +358,7 @@ describe("Cloud Formation wrapper checks", () => {
 
         const allCommandCalls = CloudFormationMock.commandCalls(DescribeStackResourceCommand);
         expect(allCommandCalls.length).to.equal(2);
-        
+
         const describeStacksCommandCalls = CloudFormationMock.commandCalls(DescribeStacksCommand);
         expect(describeStacksCommandCalls.length).to.equal(2);
     });

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.2] - 2023-08-14
+
+### Fixed 
+- Fixed not getting all paginated results from AWS clients calls. Thank you @sromic ([592](https://github.com/amplify-education/serverless-domain-manager/pull/592))
+
 ## [7.1.1] - 2023-07-24
 
 ### Fixed 

@@ -60,29 +60,29 @@ describe("ACM Wrapper checks", () => {
         const actualResult = await acmWrapper.getCertArn(dc);
         expect(actualResult).to.equal(testCertificateArnByDomain);
     });
-    
-    it("getCertArn by domain name by getting all paginated certificates from AWS", async () => { 
+
+    it("getCertArn by domain name by getting all paginated certificates from AWS", async () => {
         const ACMCMock = mockClient(ACMClient);
         ACMCMock.on(ListCertificatesCommand)
-        .resolvesOnce({
-          CertificateSummaryList: [
-            {
-              CertificateArn: "test_domain_arn",
-              DomainName: "test_domain",
-              Status: "ISSUED",
-            },
-          ],
-          NextToken: 'NextToken',
-        })
-        .resolves({
-          CertificateSummaryList: [
-            {
-              CertificateArn: "test_domain_arn2",
-              DomainName: "test_domain2",
-              Status: "ISSUED",
-            },
-          ],
-        });
+            .resolvesOnce({
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "test_domain_arn",
+                        DomainName: "test_domain",
+                        Status: "ISSUED",
+                    },
+                ],
+                NextToken: 'NextToken',
+            })
+            .resolves({
+                CertificateSummaryList: [
+                    {
+                        CertificateArn: "test_domain_arn2",
+                        DomainName: "test_domain2",
+                        Status: "ISSUED",
+                    },
+                ],
+            });
 
         const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
         const dc = new DomainConfig(getDomainConfig({

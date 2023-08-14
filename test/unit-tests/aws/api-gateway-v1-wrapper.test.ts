@@ -361,30 +361,30 @@ describe("API Gateway V1 wrapper checks", () => {
 
             expect(commandCalls.length).to.equal(1);
         });
-        
+
         it("get all base path mappings", async () => {
             const APIGatewayCMock = mockClient(APIGatewayClient);
             APIGatewayCMock.on(GetBasePathMappingsCommand)
-              .resolvesOnce({
-                items: [
-                  {
-                    restApiId: "test_rest_api_id",
-                    basePath: "test",
-                    stage: "test"
-                  },
-                ],
-                position: "position",
-              })
-              .resolves({
-                items: [
-                  {
-                    restApiId: "test_rest_api_id2",
-                    basePath: "test2",
-                    stage: "test",
-                  },
-                ],
-              });
-      
+                .resolvesOnce({
+                    items: [
+                        {
+                            restApiId: "test_rest_api_id",
+                            basePath: "test",
+                            stage: "test"
+                        },
+                    ],
+                    position: "position",
+                })
+                .resolves({
+                    items: [
+                        {
+                            restApiId: "test_rest_api_id2",
+                            basePath: "test2",
+                            stage: "test",
+                        },
+                    ],
+                });
+
             const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
             const dc = new DomainConfig(getDomainConfig({
                 domainName: "test_domain"

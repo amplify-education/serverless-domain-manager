@@ -395,7 +395,7 @@ describe("API Gateway V2 wrapper checks", () => {
 
             expect(commandCalls.length).to.equal(1);
         });
-        
+
         it("get all base path mappings", async () => {
             const APIGatewayMock = mockClient(ApiGatewayV2Client);
             APIGatewayMock.on(GetApiMappingsCommand).resolvesOnce({
@@ -407,14 +407,14 @@ describe("API Gateway V2 wrapper checks", () => {
                 }],
                 NextToken: "NextToken"
             })
-            .resolves({
-                Items: [{
-                    ApiId: "test_rest_api_id2",
-                    ApiMappingKey: "test2",
-                    Stage: "test",
-                    ApiMappingId: "test_id2"
-                }]
-            });
+                .resolves({
+                    Items: [{
+                        ApiId: "test_rest_api_id2",
+                        ApiMappingKey: "test2",
+                        Stage: "test",
+                        ApiMappingId: "test_id2"
+                    }]
+                });
 
             const apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
             const dc = new DomainConfig(getDomainConfig({

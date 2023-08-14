@@ -70,7 +70,7 @@ describe("Route53 wrapper checks", () => {
         actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
         expect(actualId).to.equal(dc.hostedZoneId);
     });
-    
+
     it("get route53 hosted zone id paginated", async () => {
         const testId = "test_host_id"
         const Route53Mock = mockClient(Route53Client);
@@ -91,51 +91,51 @@ describe("Route53 wrapper checks", () => {
                     Config: {PrivateZone: false},
                     Id: testId,
                     Name: "domain",
-                }                
-            ],
-            NextMarker: "NextMarker"
-        })
-        .resolvesOnce({
-            HostedZones: [
-                {
-                    CallerReference: "4",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "test_domain2",
-                }, {
-                    CallerReference: "5",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "dummy_test_domain2",
-                }, {
-                    CallerReference: "6",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "domain2",
                 }
             ],
             NextMarker: "NextMarker"
         })
-        .resolves({
-            HostedZones: [
-                {
-                    CallerReference: "7",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "test_domain3",
-                }, {
-                    CallerReference: "8",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "dummy_test_domain3",
-                }, {
-                    CallerReference: "9",
-                    Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "domain3",
-                }
-            ]
-        });
+            .resolvesOnce({
+                HostedZones: [
+                    {
+                        CallerReference: "4",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "test_domain2",
+                    }, {
+                        CallerReference: "5",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "dummy_test_domain2",
+                    }, {
+                        CallerReference: "6",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "domain2",
+                    }
+                ],
+                NextMarker: "NextMarker"
+            })
+            .resolves({
+                HostedZones: [
+                    {
+                        CallerReference: "7",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "test_domain3",
+                    }, {
+                        CallerReference: "8",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "dummy_test_domain3",
+                    }, {
+                        CallerReference: "9",
+                        Config: {PrivateZone: false},
+                        Id: testId,
+                        Name: "domain3",
+                    }
+                ]
+            });
 
         const dc = new DomainConfig(getDomainConfig({
             domainName: "test_domain"

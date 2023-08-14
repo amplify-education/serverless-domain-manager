@@ -361,6 +361,44 @@ describe("API Gateway V1 wrapper checks", () => {
 
             expect(commandCalls.length).to.equal(1);
         });
+        
+        it("get all base path mappings", async () => {
+            const APIGatewayCMock = mockClient(APIGatewayClient);
+            APIGatewayCMock.on(GetBasePathMappingsCommand)
+              .resolvesOnce({
+                items: [
+                  {
+                    restApiId: "test_rest_api_id",
+                    basePath: "test",
+                    stage: "test"
+                  },
+                ],
+                position: "position",
+              })
+              .resolves({
+                items: [
+                  {
+                    restApiId: "test_rest_api_id2",
+                    basePath: "test2",
+                    stage: "test",
+                  },
+                ],
+              });
+      
+            const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+            const dc = new DomainConfig(getDomainConfig({
+                domainName: "test_domain"
+            }));
+
+            const actualResult = await apiGatewayV1Wrapper.getBasePathMappings(dc);
+            const expectedResult = [
+                new ApiGatewayMap("test_rest_api_id", "test", "test", null),
+                new ApiGatewayMap("test_rest_api_id2", "test2", "test", null),
+            ]
+
+            expect(actualResult).to.eql(expectedResult);
+            expect(APIGatewayCMock.calls().length).to.equal(2);
+        });
 
         it("get base path mapping failure", async () => {
             const APIGatewayMock = mockClient(APIGatewayClient);

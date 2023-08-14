@@ -70,6 +70,87 @@ describe("Route53 wrapper checks", () => {
         actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
         expect(actualId).to.equal(dc.hostedZoneId);
     });
+    
+    it("get route53 hosted zone id paginated", async () => {
+        const testId = "test_host_id"
+        const Route53Mock = mockClient(Route53Client);
+        Route53Mock.on(ListHostedZonesCommand).resolvesOnce({
+            HostedZones: [
+                {
+                    CallerReference: "1",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "test_domain",
+                }, {
+                    CallerReference: "2",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "dummy_test_domain",
+                }, {
+                    CallerReference: "3",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "domain",
+                }                
+            ],
+            NextMarker: "NextMarker"
+        })
+        .resolvesOnce({
+            HostedZones: [
+                {
+                    CallerReference: "4",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "test_domain2",
+                }, {
+                    CallerReference: "5",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "dummy_test_domain2",
+                }, {
+                    CallerReference: "6",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "domain2",
+                }
+            ],
+            NextMarker: "NextMarker"
+        })
+        .resolves({
+            HostedZones: [
+                {
+                    CallerReference: "7",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "test_domain3",
+                }, {
+                    CallerReference: "8",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "dummy_test_domain3",
+                }, {
+                    CallerReference: "9",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "domain3",
+                }
+            ]
+        });
+
+        const dc = new DomainConfig(getDomainConfig({
+            domainName: "test_domain"
+        }));
+
+        let actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
+        expect(actualId).to.equal(testId);
+
+        const commandCalls = Route53Mock.commandCalls(ListHostedZonesCommand, {});
+        expect(commandCalls.length).to.equal(3);
+
+        dc.hostedZoneId = "test_id"
+        actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
+        expect(actualId).to.equal(dc.hostedZoneId);
+    });
 
     it("get route53 hosted zone id public", async () => {
         const testId = "test_host_id"
@@ -101,7 +182,7 @@ describe("Route53 wrapper checks", () => {
         expect(commandCalls.length).to.equal(1);
     });
 
-    it("get route53 hosted zone id privet", async () => {
+    it("get route53 hosted zone id private", async () => {
         const testId = "test_host_id"
         const Route53Mock = mockClient(Route53Client);
         Route53Mock.on(ListHostedZonesCommand).resolves({

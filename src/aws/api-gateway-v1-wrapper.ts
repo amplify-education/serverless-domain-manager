@@ -5,24 +5,27 @@ import DomainConfig = require("../models/domain-config");
 import DomainInfo = require("../models/domain-info");
 import Globals from "../globals";
 import {
-    APIGatewayClient,
-    CreateBasePathMappingCommand,
-    CreateDomainNameCommand,
-    CreateDomainNameCommandOutput,
-    DeleteBasePathMappingCommand,
-    DeleteDomainNameCommand,
-    GetBasePathMappingsCommand,
-    GetBasePathMappingsCommandOutput,
-    GetDomainNameCommand,
-    GetDomainNameCommandOutput,
-    UpdateBasePathMappingCommand,
+  APIGatewayClient,
+  BasePathMapping,
+  CreateBasePathMappingCommand,
+  CreateDomainNameCommand,
+  CreateDomainNameCommandOutput,
+  DeleteBasePathMappingCommand,
+  DeleteDomainNameCommand,
+  GetBasePathMappingsCommand,
+  GetBasePathMappingsCommandInput,
+  GetBasePathMappingsCommandOutput,
+  GetDomainNameCommand,
+  GetDomainNameCommandOutput,
+  UpdateBasePathMappingCommand
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
 import Logging from "../logging";
+import { getAWSPagedResults } from "../utils";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
-    constructor(credentials?: any,) {
+    constructor(credentials?: any) {
         super();
         this.apiGateway = new APIGatewayClient({
             credentials,
@@ -124,12 +127,15 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
     public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
-            const response: GetBasePathMappingsCommandOutput = await this.apiGateway.send(
+            const items = await getAWSPagedResults<BasePathMapping, GetBasePathMappingsCommandInput, GetBasePathMappingsCommandOutput>(
+                this.apiGateway,
+                "items",
+                "position",
+                "position",
                 new GetBasePathMappingsCommand({
-                    domainName: domain.givenDomainName
+                    domainName: domain.givenDomainName,
                 })
             );
-            const items = response.items || [];
             return items.map((item) => {
                     return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
                 }

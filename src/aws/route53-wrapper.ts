@@ -2,11 +2,14 @@ import Globals from "../globals";
 import DomainConfig = require("../models/domain-config");
 import Logging from "../logging";
 import {
-    ChangeResourceRecordSetsCommand,
-    ListHostedZonesCommand,
-    ListHostedZonesCommandOutput,
-    Route53Client
+  ChangeResourceRecordSetsCommand,
+  HostedZone,
+  ListHostedZonesCommand,
+  ListHostedZonesCommandInput,
+  ListHostedZonesCommandOutput,
+  Route53Client
 } from "@aws-sdk/client-route-53";
+import { getAWSPagedResults } from "../utils";
 
 class Route53Wrapper {
     public route53: Route53Client;
@@ -16,10 +19,14 @@ class Route53Wrapper {
         if (credentials) {
             this.route53 = new Route53Client({
                 credentials,
-                region: region || Globals.getRegion()
+                region: region || Globals.getRegion(),
+                retryStrategy: Globals.getRetryStrategy()
             });
         } else {
-            this.route53 = new Route53Client({region: Globals.getRegion()});
+            this.route53 = new Route53Client({
+                region: Globals.getRegion(),
+                retryStrategy: Globals.getRetryStrategy()
+            });
         }
     }
 
@@ -40,10 +47,13 @@ class Route53Wrapper {
 
         let hostedZones = [];
         try {
-            const response: ListHostedZonesCommandOutput = await this.route53.send(
-                new ListHostedZonesCommand({})
+            hostedZones = await getAWSPagedResults<HostedZone, ListHostedZonesCommandInput, ListHostedZonesCommandOutput>(
+              this.route53,
+              "HostedZones",
+              "Marker",
+              "NextMarker",
+              new ListHostedZonesCommand({})
             );
-            hostedZones = response.HostedZones || hostedZones;
         } catch (err) {
             throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
         }

@@ -1,10 +1,13 @@
 import {
-    ACMClient,
-    ListCertificatesCommand,
-    ListCertificatesCommandOutput,
+  ACMClient,
+  CertificateSummary,
+  ListCertificatesCommand,
+  ListCertificatesCommandInput,
+  ListCertificatesCommandOutput
 } from "@aws-sdk/client-acm";
 import Globals from "../globals";
 import DomainConfig = require("../models/domain-config");
+import { getAWSPagedResults } from "../utils";
 
 const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
 
@@ -15,7 +18,8 @@ class ACMWrapper {
         const isEdge = endpointType === Globals.endpointTypes.edge;
         this.acm = new ACMClient({
             credentials,
-            region: isEdge ? Globals.defaultRegion : Globals.getRegion()
+            region: isEdge ? Globals.defaultRegion : Globals.getRegion(),
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 
@@ -24,16 +28,20 @@ class ACMWrapper {
         let certificateName = domain.certificateName; // The certificate name
 
         try {
-            const response: ListCertificatesCommandOutput = await this.acm.send(
-                new ListCertificatesCommand({CertificateStatuses: certStatuses})
+            const certificates = await getAWSPagedResults<CertificateSummary, ListCertificatesCommandInput, ListCertificatesCommandOutput>(
+              this.acm,
+              "CertificateSummaryList",
+              "NextToken",
+              "NextToken",
+              new ListCertificatesCommand({ CertificateStatuses: certStatuses })
             );
             // enhancement idea: weight the choice of cert so longer expires
             // and RenewalEligibility = ELIGIBLE is more preferable
             if (certificateName) {
-                certificateArn = this.getCertArnByCertName(response.CertificateSummaryList, certificateName);
+                certificateArn = this.getCertArnByCertName(certificates, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
-                certificateArn = this.getCertArnByDomainName(response.CertificateSummaryList, certificateName);
+                certificateArn = this.getCertArnByDomainName(certificates, certificateName);
             }
         } catch (err) {
             throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);

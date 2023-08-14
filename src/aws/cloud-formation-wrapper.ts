@@ -2,17 +2,22 @@
  * Wrapper class for AWS CloudFormation provider
  */
 
+import {
+  CloudFormationClient,
+  DescribeStackResourceCommand,
+  DescribeStackResourceCommandOutput,
+  DescribeStacksCommand,
+  DescribeStacksCommandInput,
+  DescribeStacksCommandOutput,
+  Export,
+  ListExportsCommand,
+  ListExportsCommandInput,
+  ListExportsCommandOutput,
+  Stack
+} from "@aws-sdk/client-cloudformation";
 import Globals from "../globals";
 import Logging from "../logging";
-import {
-    CloudFormationClient,
-    DescribeStackResourceCommand,
-    DescribeStackResourceCommandOutput,
-    DescribeStacksCommand,
-    DescribeStacksCommandOutput,
-    ListExportsCommand,
-    ListExportsCommandOutput
-} from "@aws-sdk/client-cloudformation";
+import { getAWSPagedResults } from "../utils";
 
 class CloudFormationWrapper {
     public cloudFormation: CloudFormationClient;
@@ -24,7 +29,8 @@ class CloudFormationWrapper {
         this.stackName = Globals.serverless.service.provider.stackName || defaultStackName;
         this.cloudFormation = new CloudFormationClient({
             credentials,
-            region: Globals.getRegion()
+            region: Globals.getRegion(),
+            retryStrategy: Globals.getRetryStrategy()
         });
     }
 
@@ -120,10 +126,13 @@ class CloudFormationWrapper {
      * Gets values by names from cloudformation exports
      */
     public async getImportValues(names: string[]): Promise<any> {
-        const response: ListExportsCommandOutput = await this.cloudFormation.send(
-            new ListExportsCommand({})
+        const exports = await getAWSPagedResults<Export, ListExportsCommandInput, ListExportsCommandOutput>(
+          this.cloudFormation,
+          "Exports",
+          "NextToken",
+          "NextToken",
+          new ListExportsCommand({})
         );
-        const exports = response.Exports || [];
         // filter Exports by names which we need
         const filteredExports = exports.filter((item) => names.indexOf(item.Name) !== -1);
         // converting a list of unique values to dict
@@ -152,10 +161,13 @@ class CloudFormationWrapper {
      */
     public async getNestedStack(logicalResourceId: string, stackName: string) {
         // get all stacks from the CloudFormation
-        const response: DescribeStacksCommandOutput = await this.cloudFormation.send(
-            new DescribeStacksCommand({})
+        const stacks = await getAWSPagedResults<Stack, DescribeStacksCommandInput, DescribeStacksCommandOutput>(
+          this.cloudFormation,
+          "Stacks",
+          "NextToken",
+          "NextToken",
+          new DescribeStacksCommand({})
         );
-        const stacks = response.Stacks || [];
 
         // filter stacks by given stackName and check by nested stack RootId
         const regex = new RegExp("/" + stackName + "/");

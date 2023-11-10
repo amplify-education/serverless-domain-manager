@@ -9,7 +9,8 @@ class S3Wrapper {
     constructor(credentials?: any) {
         this.s3 = new S3Client({
             credentials,
-            region: Globals.getRegion()
+            region: Globals.getRegion(),
+            requestHandler: Globals.getRequestHandler(),
         });
     }
 

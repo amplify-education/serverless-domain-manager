@@ -30,7 +30,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         this.apiGateway = new ApiGatewayV2Client({
             credentials,
             region: Globals.getRegion(),
-            retryStrategy: Globals.getRetryStrategy()
+            retryStrategy: Globals.getRetryStrategy(),
+            requestHandler: Globals.getRequestHandler(),
         });
     }
 

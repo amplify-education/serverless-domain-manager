@@ -1,6 +1,8 @@
 import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {fromIni} from "@aws-sdk/credential-providers";
 import {ConfiguredRetryStrategy} from "@aws-sdk/util-retry";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { ProxyAgent } from "proxy-agent";
 
 export default class Globals {
 
@@ -82,5 +84,13 @@ export default class Globals {
             // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_retry.html#aws-sdkutil-retry
             (attempt: number) => backoff + attempt * delay // backoff function.
         )
+    }
+
+    public static getRequestHandler() {
+        const proxyAgent = new ProxyAgent();
+        return new NodeHttpHandler({
+            httpAgent: proxyAgent,
+            httpsAgent: proxyAgent
+        });
     }
 }

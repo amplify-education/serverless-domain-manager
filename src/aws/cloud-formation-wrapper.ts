@@ -30,7 +30,8 @@ class CloudFormationWrapper {
         this.cloudFormation = new CloudFormationClient({
             credentials,
             region: Globals.getRegion(),
-            retryStrategy: Globals.getRetryStrategy()
+            retryStrategy: Globals.getRetryStrategy(),
+            requestHandler: Globals.getRequestHandler(),
         });
     }
 

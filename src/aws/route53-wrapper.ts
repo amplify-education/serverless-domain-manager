@@ -20,12 +20,14 @@ class Route53Wrapper {
             this.route53 = new Route53Client({
                 credentials,
                 region: region || Globals.getRegion(),
-                retryStrategy: Globals.getRetryStrategy()
+                retryStrategy: Globals.getRetryStrategy(),
+                requestHandler: Globals.getRequestHandler(),
             });
         } else {
             this.route53 = new Route53Client({
                 region: Globals.getRegion(),
-                retryStrategy: Globals.getRetryStrategy()
+                retryStrategy: Globals.getRetryStrategy(),
+                requestHandler: Globals.getRequestHandler(),
             });
         }
     }

@@ -19,7 +19,8 @@ class ACMWrapper {
         this.acm = new ACMClient({
             credentials,
             region: isEdge ? Globals.defaultRegion : Globals.getRegion(),
-            retryStrategy: Globals.getRetryStrategy()
+            retryStrategy: Globals.getRetryStrategy(),
+            requestHandler: Globals.getRequestHandler(),
         });
     }
 

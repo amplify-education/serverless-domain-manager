@@ -85,7 +85,7 @@ class Route53Wrapper {
      */
     public async changeResourceRecordSet(action: ChangeAction, domain: DomainConfig): Promise<void> {
         if (domain.createRoute53Record === false) {
-            Logging.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
+            Logging.logInfo(`Skipping ${action === ChangeAction.DELETE ? "removal" : "creation"} of Route53 record.`);
             return;
         }
         // Set up parameters
@@ -124,7 +124,7 @@ class Route53Wrapper {
             hostedZoneIds = [route53HostedZoneId];
         }
 
-        const recordsToCreate = domain.createRoute53IPv6Record ? [RRType.AAAA] : [RRType.A];
+        const recordsToCreate = domain.createRoute53IPv6Record ? [RRType.A, RRType.AAAA] : [RRType.A];
         for (const hostedZoneId of hostedZoneIds) {
             const changes = recordsToCreate.map((Type) => ({
                 Action: action,

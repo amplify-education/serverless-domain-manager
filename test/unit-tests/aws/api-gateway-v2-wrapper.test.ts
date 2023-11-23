@@ -2,8 +2,8 @@ import {mockClient} from "aws-sdk-client-mock";
 import {
     ApiGatewayV2Client, CreateApiMappingCommand,
     CreateDomainNameCommand, DeleteApiMappingCommand,
-    DeleteDomainNameCommand, GetApiMappingsCommand,
-    GetDomainNameCommand, UpdateApiMappingCommand
+    DeleteDomainNameCommand, EndpointType, GetApiMappingsCommand,
+    GetDomainNameCommand, SecurityPolicy, UpdateApiMappingCommand
 } from "@aws-sdk/client-apigatewayv2";
 import {consoleOutput, expect, getDomainConfig} from "../base";
 import Globals from "../../../src/globals";
@@ -54,8 +54,8 @@ describe("API Gateway V2 wrapper checks", () => {
                 DomainNameConfigurations: [
                     {
                         CertificateArn: dc.certificateArn,
-                        EndpointType: dc.endpointType,
-                        SecurityPolicy: dc.securityPolicy
+                        EndpointType: EndpointType.EDGE,
+                        SecurityPolicy: SecurityPolicy.TLS_1_0
                     }
                 ],
                 Tags: {
@@ -97,8 +97,8 @@ describe("API Gateway V2 wrapper checks", () => {
                 DomainNameConfigurations: [
                     {
                         CertificateArn: dc.certificateArn,
-                        EndpointType: dc.endpointType,
-                        SecurityPolicy: dc.securityPolicy
+                        EndpointType: EndpointType.REGIONAL,
+                        SecurityPolicy: SecurityPolicy.TLS_1_0
                     }
                 ],
                 Tags: {
@@ -141,8 +141,8 @@ describe("API Gateway V2 wrapper checks", () => {
                 DomainNameConfigurations: [
                     {
                         CertificateArn: dc.certificateArn,
-                        EndpointType: dc.endpointType,
-                        SecurityPolicy: dc.securityPolicy
+                        EndpointType: EndpointType.REGIONAL,
+                        SecurityPolicy: SecurityPolicy.TLS_1_0
                     }
                 ],
                 Tags: {

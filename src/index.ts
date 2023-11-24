@@ -14,6 +14,7 @@ import APIGatewayBase = require("./models/apigateway-base");
 import Logging from "./logging";
 import {loadConfig} from "@aws-sdk/node-config-provider";
 import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@aws-sdk/config-resolver";
+import {ChangeAction} from "@aws-sdk/client-route-53";
 
 class ServerlessCustomDomain {
 
@@ -271,7 +272,7 @@ class ServerlessCustomDomain {
                 Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
             }
             Logging.logInfo(`Creating/updating route53 record for '${domain.givenDomainName}'.`);
-            await route53.changeResourceRecordSet("UPSERT", domain);
+            await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
         } catch (err) {
             throw new Error(`Unable to create domain '${domain.givenDomainName}':\n${err.message}`);
         } finally {
@@ -303,7 +304,7 @@ class ServerlessCustomDomain {
         try {
             if (domain.domainInfo) {
                 await apiGateway.deleteCustomDomain(domain);
-                await route53.changeResourceRecordSet("DELETE", domain);
+                await route53.changeResourceRecordSet(ChangeAction.DELETE, domain);
                 domain.domainInfo = null;
                 Logging.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
             } else {

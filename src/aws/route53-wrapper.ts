@@ -2,14 +2,14 @@ import Globals from "../globals";
 import DomainConfig = require("../models/domain-config");
 import Logging from "../logging";
 import {
-  ChangeResourceRecordSetsCommand,
-  HostedZone,
-  ListHostedZonesCommand,
-  ListHostedZonesCommandInput,
-  ListHostedZonesCommandOutput,
-  Route53Client
+    ChangeResourceRecordSetsCommand,
+    HostedZone,
+    ListHostedZonesCommand,
+    ListHostedZonesCommandInput,
+    ListHostedZonesCommandOutput,
+    Route53Client, RRType, ChangeAction
 } from "@aws-sdk/client-route-53";
-import { getAWSPagedResults } from "../utils";
+import {getAWSPagedResults} from "../utils";
 
 class Route53Wrapper {
     public route53: Route53Client;
@@ -50,11 +50,11 @@ class Route53Wrapper {
         let hostedZones = [];
         try {
             hostedZones = await getAWSPagedResults<HostedZone, ListHostedZonesCommandInput, ListHostedZonesCommandOutput>(
-              this.route53,
-              "HostedZones",
-              "Marker",
-              "NextMarker",
-              new ListHostedZonesCommand({})
+                this.route53,
+                "HostedZones",
+                "Marker",
+                "NextMarker",
+                new ListHostedZonesCommand({})
             );
         } catch (err) {
             throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
@@ -83,9 +83,9 @@ class Route53Wrapper {
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainInfo object containing info about custom domain
      */
-    public async changeResourceRecordSet(action: string, domain: DomainConfig): Promise<void> {
+    public async changeResourceRecordSet(action: ChangeAction, domain: DomainConfig): Promise<void> {
         if (domain.createRoute53Record === false) {
-            Logging.logInfo(`Skipping ${action === "DELETE" ? "removal" : "creation"} of Route53 record.`);
+            Logging.logInfo(`Skipping ${action === ChangeAction.DELETE ? "removal" : "creation"} of Route53 record.`);
             return;
         }
         // Set up parameters
@@ -124,7 +124,7 @@ class Route53Wrapper {
             hostedZoneIds = [route53HostedZoneId];
         }
 
-        const recordsToCreate = domain.createRoute53IPv6Record ? ["A", "AAAA"] : ["A"];
+        const recordsToCreate = domain.createRoute53IPv6Record ? [RRType.A, RRType.AAAA] : [RRType.A];
         for (const hostedZoneId of hostedZoneIds) {
             const changes = recordsToCreate.map((Type) => ({
                 Action: action,

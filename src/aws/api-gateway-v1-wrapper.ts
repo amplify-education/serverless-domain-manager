@@ -5,26 +5,28 @@ import DomainConfig = require("../models/domain-config");
 import DomainInfo = require("../models/domain-info");
 import Globals from "../globals";
 import {
-  APIGatewayClient,
-  BasePathMapping,
-  CreateBasePathMappingCommand,
-  CreateDomainNameCommand,
-  CreateDomainNameCommandOutput,
-  DeleteBasePathMappingCommand,
-  DeleteDomainNameCommand,
-  GetBasePathMappingsCommand,
-  GetBasePathMappingsCommandInput,
-  GetBasePathMappingsCommandOutput,
-  GetDomainNameCommand,
-  GetDomainNameCommandOutput,
-  UpdateBasePathMappingCommand
+    APIGatewayClient,
+    BasePathMapping,
+    CreateBasePathMappingCommand,
+    CreateDomainNameCommand,
+    CreateDomainNameCommandOutput,
+    DeleteBasePathMappingCommand,
+    DeleteDomainNameCommand,
+    GetBasePathMappingsCommand,
+    GetBasePathMappingsCommandInput,
+    GetBasePathMappingsCommandOutput,
+    GetDomainNameCommand,
+    GetDomainNameCommandOutput,
+    UpdateBasePathMappingCommand
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
 import Logging from "../logging";
-import { getAWSPagedResults } from "../utils";
+import {getAWSPagedResults} from "../utils";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
+    public readonly apiGateway: APIGatewayClient;
+
     constructor(credentials?: any) {
         super();
         this.apiGateway = new APIGatewayClient({

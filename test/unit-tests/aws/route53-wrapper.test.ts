@@ -2,7 +2,12 @@ import {consoleOutput, expect, getDomainConfig} from "../base";
 import Globals from "../../../src/globals";
 import Route53Wrapper = require("../../../src/aws/route53-wrapper");
 import {mockClient} from "aws-sdk-client-mock";
-import {ChangeResourceRecordSetsCommand, ListHostedZonesCommand, Route53Client} from "@aws-sdk/client-route-53";
+import {
+    ChangeAction,
+    ChangeResourceRecordSetsCommand,
+    ListHostedZonesCommand, ResourceRecordSetRegion,
+    Route53Client, RRType
+} from "@aws-sdk/client-route-53";
 import DomainConfig = require("../../../src/models/domain-config");
 
 describe("Route53 wrapper checks", () => {
@@ -263,7 +268,7 @@ describe("Route53 wrapper checks", () => {
             createRoute53Record: false
         }));
 
-        const actualResult = await new Route53Wrapper().changeResourceRecordSet("UPSERT", dc);
+        const actualResult = await new Route53Wrapper().changeResourceRecordSet(ChangeAction.UPSERT, dc);
         expect(actualResult).to.equal(undefined);
     });
 
@@ -283,13 +288,13 @@ describe("Route53 wrapper checks", () => {
             domainName: "test_domain"
         }));
 
-        await new Route53Wrapper().changeResourceRecordSet("UPSERT", dc);
+        await new Route53Wrapper().changeResourceRecordSet(ChangeAction.UPSERT, dc);
 
         const expectedParams = {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -297,11 +302,11 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "A",
+                            Type: RRType.A,
                         },
                     },
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -309,7 +314,7 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "AAAA",
+                            Type: RRType.AAAA,
                         },
                     },
                 ],
@@ -341,13 +346,13 @@ describe("Route53 wrapper checks", () => {
             }
         }));
 
-        await new Route53Wrapper().changeResourceRecordSet("UPSERT", dc);
+        await new Route53Wrapper().changeResourceRecordSet(ChangeAction.UPSERT, dc);
 
         const expectedParams = {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -355,13 +360,13 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "A",
-                            Region: 'test_region',
+                            Type: RRType.A,
+                            Region: ResourceRecordSetRegion.us_east_1,
                             SetIdentifier: 'test_domain'
                         },
                     },
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -369,8 +374,8 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "AAAA",
-                            Region: 'test_region',
+                            Type: RRType.AAAA,
+                            Region: ResourceRecordSetRegion.us_east_1,
                             SetIdentifier: 'test_domain'
                         },
                     },
@@ -404,13 +409,13 @@ describe("Route53 wrapper checks", () => {
             }
         }));
 
-        await new Route53Wrapper().changeResourceRecordSet("UPSERT", dc);
+        await new Route53Wrapper().changeResourceRecordSet(ChangeAction.UPSERT, dc);
 
         const expectedParams = {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -418,13 +423,13 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "A",
+                            Type: RRType.A,
                             Weight: 1,
                             SetIdentifier: 'test_domain'
                         },
                     },
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -432,7 +437,7 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: "test_host_id",
                             },
                             Name: "test_domain",
-                            Type: "AAAA",
+                            Type: RRType.AAAA,
                             Weight: 1,
                             SetIdentifier: 'test_domain'
                         },
@@ -472,13 +477,13 @@ describe("Route53 wrapper checks", () => {
             splitHorizonDns: true
         }));
 
-        await new Route53Wrapper().changeResourceRecordSet("UPSERT", dc);
+        await new Route53Wrapper().changeResourceRecordSet(ChangeAction.UPSERT, dc);
 
         const expectedParams1 = {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -486,11 +491,11 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: publicZone,
                             },
                             Name: "test_domain",
-                            Type: "A",
+                            Type: RRType.A,
                         },
                     },
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -498,7 +503,7 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: publicZone,
                             },
                             Name: "test_domain",
-                            Type: "AAAA",
+                            Type: RRType.AAAA,
                         },
                     },
                 ],
@@ -513,7 +518,7 @@ describe("Route53 wrapper checks", () => {
             ChangeBatch: {
                 Changes: [
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -521,11 +526,11 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: publicZone,
                             },
                             Name: "test_domain",
-                            Type: "A",
+                            Type: RRType.A
                         },
                     },
                     {
-                        Action: "UPSERT",
+                        Action: ChangeAction.UPSERT,
                         ResourceRecordSet: {
                             AliasTarget: {
                                 DNSName: "test_domain",
@@ -533,7 +538,7 @@ describe("Route53 wrapper checks", () => {
                                 HostedZoneId: publicZone,
                             },
                             Name: "test_domain",
-                            Type: "AAAA",
+                            Type: RRType.AAAA,
                         },
                     },
                 ],

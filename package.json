@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "7.1.2",
+  "version": "7.2.0",
   "engines": {
     "node": ">=14"
   },
@@ -49,35 +49,36 @@
     ]
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^20.4.2",
-    "@types/shelljs": "^0.8.12",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.9.4",
+    "@types/shelljs": "^0.8.15",
     "aws-sdk-client-mock": "^3.0.0",
-    "chai": "^4.3.7",
-    "chai-spies": "^1.0.0",
+    "chai": "^4.3.10",
+    "chai-spies": "^1.1.0",
     "mocha": "^10.2.0",
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
     "randomstring": "^1.3.0",
-    "serverless": "^3.33.0",
+    "serverless": "^3.37.0",
     "serverless-plugin-split-stacks": "^1.13.0",
     "shelljs": "^0.8.5",
     "ts-node": "^10.9.1",
     "tslint": "^6.1.3",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@aws-sdk/client-acm": "^3.370.0",
-    "@aws-sdk/client-api-gateway": "^3.370.0",
-    "@aws-sdk/client-apigatewayv2": "^3.370.0",
-    "@aws-sdk/client-cloudformation": "^3.370.0",
-    "@aws-sdk/client-route-53": "^3.370.0",
-    "@aws-sdk/client-s3": "^3.370.0",
-    "@aws-sdk/config-resolver": "^3.370.0",
-    "@aws-sdk/credential-providers": "^3.370.0",
-    "@aws-sdk/node-config-provider": "^3.370.0",
-    "@aws-sdk/smithy-client": "^3.370.0",
-    "@aws-sdk/util-retry": "^3.370.0",
+    "@aws-sdk/client-acm": "^3.374.0",
+    "@aws-sdk/client-api-gateway": "^3.374.0",
+    "@aws-sdk/client-apigatewayv2": "^3.374.0",
+    "@aws-sdk/client-cloudformation": "^3.374.0",
+    "@aws-sdk/client-route-53": "^3.374.0",
+    "@aws-sdk/client-s3": "^3.374.0",
+    "@aws-sdk/config-resolver": "^3.374.0",
+    "@aws-sdk/credential-providers": "^3.374.0",
+    "@aws-sdk/node-config-provider": "^3.374.0",
+    "@aws-sdk/smithy-client": "^3.374.0",
+    "@aws-sdk/util-retry": "^3.374.0",
+    "@smithy/node-http-handler": "^2.1.10",
     "proxy-agent": "^6.3.1"
   },
   "peerDependencies": {

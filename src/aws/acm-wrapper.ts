@@ -1,15 +1,20 @@
 import {
-  ACMClient,
-  CertificateSummary,
-  ListCertificatesCommand,
-  ListCertificatesCommandInput,
-  ListCertificatesCommandOutput
+    CertificateStatus,
+    ACMClient,
+    CertificateSummary,
+    ListCertificatesCommand,
+    ListCertificatesCommandInput,
+    ListCertificatesCommandOutput
 } from "@aws-sdk/client-acm";
 import Globals from "../globals";
 import DomainConfig = require("../models/domain-config");
-import { getAWSPagedResults } from "../utils";
+import {getAWSPagedResults} from "../utils";
 
-const certStatuses = ["PENDING_VALIDATION", "ISSUED", "INACTIVE"];
+const certStatuses = [
+    CertificateStatus.PENDING_VALIDATION,
+    CertificateStatus.ISSUED,
+    CertificateStatus.INACTIVE
+];
 
 class ACMWrapper {
     public acm: ACMClient;
@@ -30,11 +35,11 @@ class ACMWrapper {
 
         try {
             const certificates = await getAWSPagedResults<CertificateSummary, ListCertificatesCommandInput, ListCertificatesCommandOutput>(
-              this.acm,
-              "CertificateSummaryList",
-              "NextToken",
-              "NextToken",
-              new ListCertificatesCommand({ CertificateStatuses: certStatuses })
+                this.acm,
+                "CertificateSummaryList",
+                "NextToken",
+                "NextToken",
+                new ListCertificatesCommand({CertificateStatuses: certStatuses})
             );
             // enhancement idea: weight the choice of cert so longer expires
             // and RenewalEligibility = ELIGIBLE is more preferable

@@ -4,6 +4,7 @@ import spies = require("chai-spies");
 import Globals from "../../src/globals";
 import {ServerlessOptions, ServerlessUtils} from "../../src/types";
 import ServerlessCustomDomain = require("../../src");
+import {ResourceRecordSetRegion} from "@aws-sdk/client-route-53";
 
 chai.use(spies);
 
@@ -100,7 +101,7 @@ const getV3Utils = () => {
     }
 }
 
-Globals.currentRegion = "test_region";
+Globals.currentRegion = ResourceRecordSetRegion.us_east_1;
 Globals.options = {
     stage: "test"
 };

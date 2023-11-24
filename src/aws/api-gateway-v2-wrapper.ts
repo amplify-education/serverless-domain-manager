@@ -7,24 +7,26 @@ import Globals from "../globals";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
 import {
-  ApiGatewayV2Client,
-  ApiMapping,
-  CreateApiMappingCommand,
-  CreateDomainNameCommand,
-  CreateDomainNameCommandOutput,
-  DeleteApiMappingCommand,
-  DeleteDomainNameCommand,
-  GetApiMappingsCommand,
-  GetApiMappingsCommandInput,
-  GetApiMappingsCommandOutput,
-  GetDomainNameCommand,
-  GetDomainNameCommandOutput,
-  UpdateApiMappingCommand
+    ApiGatewayV2Client,
+    ApiMapping,
+    CreateApiMappingCommand,
+    CreateDomainNameCommand,
+    CreateDomainNameCommandOutput,
+    DeleteApiMappingCommand,
+    DeleteDomainNameCommand,
+    GetApiMappingsCommand,
+    GetApiMappingsCommandInput,
+    GetApiMappingsCommandOutput,
+    GetDomainNameCommand,
+    GetDomainNameCommandOutput,
+    UpdateApiMappingCommand
 } from "@aws-sdk/client-apigatewayv2";
 import Logging from "../logging";
-import { getAWSPagedResults } from "../utils";
+import {getAWSPagedResults} from "../utils";
 
 class APIGatewayV2Wrapper extends APIGatewayBase {
+    public readonly apiGateway: ApiGatewayV2Client;
+
     constructor(credentials?: any) {
         super();
         this.apiGateway = new ApiGatewayV2Client({
@@ -157,13 +159,13 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     public async getBasePathMappings(domain: DomainConfig): Promise<ApiGatewayMap[]> {
         try {
             const items = await getAWSPagedResults<ApiMapping, GetApiMappingsCommandInput, GetApiMappingsCommandOutput>(
-              this.apiGateway,
-              "Items",
-              "NextToken",
-              "NextToken",
-              new GetApiMappingsCommand({
-                DomainName: domain.givenDomainName
-              })
+                this.apiGateway,
+                "Items",
+                "NextToken",
+                "NextToken",
+                new GetApiMappingsCommand({
+                    DomainName: domain.givenDomainName
+                })
             );
             return items.map(
                 (item) => new ApiGatewayMap(item.ApiId, item.ApiMappingKey, item.Stage, item.ApiMappingId)

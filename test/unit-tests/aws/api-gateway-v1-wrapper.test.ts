@@ -3,7 +3,8 @@ import {
     APIGatewayClient, CreateBasePathMappingCommand,
     CreateDomainNameCommand, DeleteBasePathMappingCommand,
     DeleteDomainNameCommand, GetBasePathMappingsCommand,
-    GetDomainNameCommand, UpdateBasePathMappingCommand
+    GetDomainNameCommand, PatchOperation, UpdateBasePathMappingCommand,
+    Op, EndpointType, SecurityPolicy
 } from "@aws-sdk/client-api-gateway";
 import {consoleOutput, expect, getDomainConfig} from "../base";
 import Globals from "../../../src/globals";
@@ -11,6 +12,7 @@ import DomainConfig = require("../../../src/models/domain-config");
 import APIGatewayV1Wrapper = require("../../../src/aws/api-gateway-v1-wrapper");
 import DomainInfo = require("../../../src/models/domain-info");
 import ApiGatewayMap = require("../../../src/models/api-gateway-map");
+import {Type} from "@aws-sdk/client-s3";
 
 
 describe("API Gateway V1 wrapper checks", () => {
@@ -52,9 +54,9 @@ describe("API Gateway V1 wrapper checks", () => {
             const expectedParams = {
                 domainName: dc.givenDomainName,
                 endpointConfiguration: {
-                    types: [dc.endpointType],
+                    types: [EndpointType.EDGE],
                 },
-                securityPolicy: dc.securityPolicy,
+                securityPolicy: SecurityPolicy.TLS_1_0,
                 tags: {
                     ...Globals.serverless.service.provider.stackTags,
                     ...Globals.serverless.service.provider.tags,
@@ -93,9 +95,9 @@ describe("API Gateway V1 wrapper checks", () => {
             const expectedParams = {
                 domainName: dc.givenDomainName,
                 endpointConfiguration: {
-                    types: [dc.endpointType],
+                    types: [EndpointType.REGIONAL],
                 },
-                securityPolicy: dc.securityPolicy,
+                securityPolicy: SecurityPolicy.TLS_1_0,
                 tags: {
                     ...Globals.serverless.service.provider.stackTags,
                     ...Globals.serverless.service.provider.tags,
@@ -135,9 +137,9 @@ describe("API Gateway V1 wrapper checks", () => {
             const expectedParams = {
                 domainName: dc.givenDomainName,
                 endpointConfiguration: {
-                    types: [dc.endpointType],
+                    types: [EndpointType.REGIONAL],
                 },
-                securityPolicy: dc.securityPolicy,
+                securityPolicy: SecurityPolicy.TLS_1_0,
                 tags: {
                     ...Globals.serverless.service.provider.stackTags,
                     ...Globals.serverless.service.provider.tags,
@@ -437,12 +439,12 @@ describe("API Gateway V1 wrapper checks", () => {
             };
 
             await apiGatewayV1Wrapper.updateBasePathMapping(dc);
-
+            const a: PatchOperation = null;
             const expectedParams = {
                 basePath: dc.apiMapping.basePath,
                 domainName: dc.givenDomainName,
                 patchOperations: [{
-                    op: "replace",
+                    op: Op.replace,
                     path: "/basePath",
                     value: dc.basePath,
                 }]

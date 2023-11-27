@@ -40,7 +40,7 @@ class ServerlessCustomDomain {
         this.options = options;
         Globals.options = options;
 
-        if (v3Utils) {
+        if (v3Utils && v3Utils.log) {
             Globals.v3Utils = v3Utils;
         }
 

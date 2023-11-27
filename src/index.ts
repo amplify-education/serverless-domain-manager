@@ -15,6 +15,7 @@ import Logging from "./logging";
 import {loadConfig} from "@aws-sdk/node-config-provider";
 import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@aws-sdk/config-resolver";
 import {ChangeAction} from "@aws-sdk/client-route-53";
+import {log} from "util";
 
 class ServerlessCustomDomain {
 
@@ -40,7 +41,7 @@ class ServerlessCustomDomain {
         this.options = options;
         Globals.options = options;
 
-        if (v3Utils && v3Utils.log) {
+        if (v3Utils?.log) {
             Globals.v3Utils = v3Utils;
         }
 

@@ -15,7 +15,6 @@ import Logging from "./logging";
 import {loadConfig} from "@aws-sdk/node-config-provider";
 import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@aws-sdk/config-resolver";
 import {ChangeAction} from "@aws-sdk/client-route-53";
-import {log} from "util";
 
 class ServerlessCustomDomain {
 

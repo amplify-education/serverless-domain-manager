@@ -1,6 +1,6 @@
 import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {fromIni} from "@aws-sdk/credential-providers";
-import {ConfiguredRetryStrategy} from "@aws-sdk/util-retry";
+import {ConfiguredRetryStrategy} from "@smithy/util-retry";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { ProxyAgent } from "proxy-agent";
 

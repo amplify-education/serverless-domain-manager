@@ -12,8 +12,8 @@ import APIGatewayV1Wrapper = require("./aws/api-gateway-v1-wrapper");
 import APIGatewayV2Wrapper = require("./aws/api-gateway-v2-wrapper");
 import APIGatewayBase = require("./models/apigateway-base");
 import Logging from "./logging";
-import {loadConfig} from "@aws-sdk/node-config-provider";
-import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@aws-sdk/config-resolver";
+import {loadConfig} from "@smithy/node-config-provider";
+import {NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS} from "@smithy/config-resolver";
 import {ChangeAction} from "@aws-sdk/client-route-53";
 
 class ServerlessCustomDomain {

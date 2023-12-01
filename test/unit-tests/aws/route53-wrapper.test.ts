@@ -165,19 +165,24 @@ describe("Route53 wrapper checks", () => {
                 {
                     CallerReference: "",
                     Config: {PrivateZone: false},
-                    Id: testId,
-                    Name: "test_domain",
+                    Id: "no_valid",
+                    Name: "api.test_domain",
                 }, {
                     CallerReference: "",
                     Config: {PrivateZone: true},
                     Id: "dummy_host_id",
                     Name: "test_domain",
-                }
+                }, {
+                    CallerReference: "",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "test_domain",
+                },
             ]
         });
 
         const dc = new DomainConfig(getDomainConfig({
-            domainName: "test_domain"
+            domainName: "devapi.test_domain"
         }));
 
         const actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc, false);

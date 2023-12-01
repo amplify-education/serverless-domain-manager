@@ -22,8 +22,8 @@ custom:
     autoDomain: true
     basePath: ""
     domainName: ${env:PLUGIN_IDENTIFIER}-http-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
-    stage: "dev"
     createRoute53Record: true
+    endpointType: REGIONAL
 
 package:
   patterns:

@@ -261,8 +261,6 @@ class ServerlessCustomDomain {
                     await this.s3Wrapper.assertTlsCertObjectExists(domain);
                 }
                 if (!domain.certificateArn) {
-                    const searchName = domain.certificateName || domain.givenDomainName;
-                    Logging.logInfo(`Searching for a certificate with the '${searchName}' domain`);
                     domain.certificateArn = await acm.getCertArn(domain);
                 }
                 domain.domainInfo = await apiGateway.createCustomDomain(domain);

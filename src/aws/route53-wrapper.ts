@@ -56,17 +56,20 @@ class Route53Wrapper {
                 "NextMarker",
                 new ListHostedZonesCommand({})
             );
+            Logging.logInfo(`Founded hosted zones list: ${hostedZones.map(zone => zone.Name)}.`);
         } catch (err) {
             throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
         }
 
+        // removing the first part of the domain name, api.test.com => test.com
+        const domainNameHost = domain.givenDomainName.substring(domain.givenDomainName.indexOf(".") + 1);
         const targetHostedZone = hostedZones
             .filter((hostedZone) => {
                 return !isPrivateDefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
             })
             .filter((hostedZone) => {
                 const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
-                return domain.givenDomainName.endsWith(hostedZoneName);
+                return domainNameHost.endsWith(hostedZoneName);
             })
             .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
             .shift();

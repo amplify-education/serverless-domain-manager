@@ -9,6 +9,7 @@ import {
 import Globals from "../globals";
 import DomainConfig = require("../models/domain-config");
 import {getAWSPagedResults} from "../utils";
+import Logging from "../logging";
 
 const certStatuses = [
     CertificateStatus.PENDING_VALIDATION,
@@ -47,8 +48,9 @@ class ACMWrapper {
                 certificateArn = this.getCertArnByCertName(certificates, certificateName);
             } else {
                 certificateName = domain.givenDomainName;
-                certificateArn = this.getCertArnByDomainName(certificates, certificateName);
+                certificateArn = ACMWrapper.getCertArnByDomainName(certificates, certificateName);
             }
+            Logging.logInfo(`Found a certificate ARN: '${certificateArn}'`);
         } catch (err) {
             throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
         }
@@ -66,7 +68,7 @@ class ACMWrapper {
         return null;
     }
 
-    private getCertArnByDomainName(certificates, domainName): string {
+    private static getCertArnByDomainName(certificates, domainName): string {
         // The more specific name will be the longest
         let nameLength = 0;
         let certificateArn;

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.3.2] - 2023-12-07
+
+### Fixed 
+- Bugfix for the hosted zone filtering.
+- Switched `tslint` to `eslint`
+
 ## [7.3.1] - 2023-12-01
 
 ### Fixed 

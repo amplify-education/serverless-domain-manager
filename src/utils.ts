@@ -58,7 +58,7 @@ async function getAWSPagedResults<ClientOutput, ClientInputCommand extends objec
   let results = [];
   let response = await client.send(params);
   results = results.concat(response[resultsKey] || results);
-  while (nextRequestTokenKey in response && response[nextRequestTokenKey]) {
+  while ((nextRequestTokenKey in response) && response[nextRequestTokenKey]) {
     params.input[nextTokenKey] = response[nextRequestTokenKey];
     response = await client.send(params);
     results = results.concat(response[resultsKey]);

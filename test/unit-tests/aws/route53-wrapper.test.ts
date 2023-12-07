@@ -15,13 +15,13 @@ describe("Route53 wrapper checks", () => {
     consoleOutput.length = 0;
   });
 
-  it("Initialization", () => {
+  it("Initialization", async() => {
     const route53Wrapper = new Route53Wrapper();
-    const actualResult = route53Wrapper.route53.config[0].region;
+    const actualResult = await route53Wrapper.route53.config.region();
     expect(actualResult).to.equal(Globals.currentRegion);
   });
 
-  it("Initialization profile", () => {
+  it("Initialization profile", async () => {
     const credentials = {
       accessKeyId: "test_key_id",
       secretAccessKey: "test_access_key",
@@ -30,10 +30,10 @@ describe("Route53 wrapper checks", () => {
     const regionName = "test-region";
     const route53Wrapper = new Route53Wrapper(credentials, regionName);
 
-    const actualRegion = route53Wrapper.route53.config[0].region;
+    const actualRegion = await route53Wrapper.route53.config.region();
     expect(actualRegion).to.equal(regionName);
 
-    const actualCredentials = route53Wrapper.route53.config[0].credentials;
+    const actualCredentials = await route53Wrapper.route53.config.credentials();
     expect(actualCredentials).to.equal(credentials);
   });
 

@@ -29,12 +29,12 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
     constructor (credentials?: any) {
       super();
-      this.apiGateway = new APIGatewayClient([{
+      this.apiGateway = new APIGatewayClient({
         credentials,
         region: Globals.getRegion(),
         retryStrategy: Globals.getRetryStrategy(),
         requestHandler: Globals.getRequestHandler()
-      }]);
+      });
     }
 
     public async createCustomDomain (domain: DomainConfig): Promise<DomainInfo> {

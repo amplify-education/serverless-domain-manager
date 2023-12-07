@@ -22,12 +22,12 @@ class ACMWrapper {
 
     constructor (credentials: any, endpointType: string) {
       const isEdge = endpointType === Globals.endpointTypes.edge;
-      this.acm = new ACMClient([{
+      this.acm = new ACMClient({
         credentials,
         region: isEdge ? Globals.defaultRegion : Globals.getRegion(),
         retryStrategy: Globals.getRetryStrategy(),
         requestHandler: Globals.getRequestHandler()
-      }]);
+      });
     }
 
     public async getCertArn (domain: DomainConfig): Promise<string> {

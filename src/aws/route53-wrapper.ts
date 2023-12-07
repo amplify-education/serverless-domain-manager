@@ -19,19 +19,19 @@ class Route53Wrapper {
       // not null and not undefined
       if (credentials) {
         this.region = region || Globals.getRegion();
-        this.route53 = new Route53Client([{
+        this.route53 = new Route53Client({
           credentials,
           region: this.region,
           retryStrategy: Globals.getRetryStrategy(),
           requestHandler: Globals.getRequestHandler()
-        }]);
+        });
       } else {
         this.region = Globals.getRegion();
-        this.route53 = new Route53Client([{
+        this.route53 = new Route53Client({
           region: this.region,
           retryStrategy: Globals.getRetryStrategy(),
           requestHandler: Globals.getRequestHandler()
-        }]);
+        });
       }
     }
 

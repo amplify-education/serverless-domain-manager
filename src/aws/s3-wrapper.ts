@@ -7,11 +7,11 @@ class S3Wrapper {
     public s3: S3Client;
 
     constructor (credentials?: any) {
-      this.s3 = new S3Client([{
+      this.s3 = new S3Client({
         credentials,
         region: Globals.getRegion(),
         requestHandler: Globals.getRequestHandler()
-      }]);
+      });
     }
 
     /**

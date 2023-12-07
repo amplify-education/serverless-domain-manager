@@ -29,12 +29,12 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
 
     constructor (credentials?: any) {
       super();
-      this.apiGateway = new ApiGatewayV2Client([{
+      this.apiGateway = new ApiGatewayV2Client({
         credentials,
         region: Globals.getRegion(),
         retryStrategy: Globals.getRetryStrategy(),
         requestHandler: Globals.getRequestHandler()
-      }]);
+      });
     }
 
     /**

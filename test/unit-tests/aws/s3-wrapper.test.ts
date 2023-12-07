@@ -10,9 +10,9 @@ describe("S3 wrapper checks", () => {
     consoleOutput.length = 0;
   });
 
-  it("Initialization", () => {
+  it("Initialization", async () => {
     const s3Wrapper = new S3Wrapper();
-    const actualResult = s3Wrapper.s3.config[0].region;
+    const actualResult = await s3Wrapper.s3.config.region();
     expect(actualResult).to.equal(Globals.currentRegion);
   });
 

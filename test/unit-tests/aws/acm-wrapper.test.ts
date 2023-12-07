@@ -23,15 +23,15 @@ const certTestData = {
 };
 
 describe("ACM Wrapper checks", () => {
-  it("Initialization edge", () => {
+  it("Initialization edge", async () => {
     const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.edge);
-    const actualResult = acmWrapper.acm.config[0].region;
+    const actualResult = await acmWrapper.acm.config.region();
     expect(actualResult).to.equal(Globals.defaultRegion);
   });
 
-  it("Initialization regional", () => {
+  it("Initialization regional", async () => {
     const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
-    const actualResult = acmWrapper.acm.config[0].region;
+    const actualResult = await acmWrapper.acm.config.region();
     expect(actualResult).to.equal(Globals.currentRegion);
   });
 

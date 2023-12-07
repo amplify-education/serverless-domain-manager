@@ -18,9 +18,9 @@ describe("API Gateway V1 wrapper checks", () => {
     consoleOutput.length = 0;
   });
 
-  it("Initialization", () => {
+  it("Initialization", async () => {
     const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
-    const actualResult = apiGatewayV1Wrapper.apiGateway.config[0].region;
+    const actualResult = await apiGatewayV1Wrapper.apiGateway.config.region();
     expect(actualResult).to.equal(Globals.currentRegion);
   });
 

@@ -63,14 +63,12 @@ class Route53Wrapper {
 
       // removing the first part of the domain name, api.test.com => test.com
       const domainNameHost = domain.givenDomainName.substring(domain.givenDomainName.indexOf(".") + 1);
-      console.log(domain.givenDomainName);
       const targetHostedZone = hostedZones
         .filter((hostedZone) => {
           return !isPrivateDefined || isHostedZonePrivate === hostedZone.Config.PrivateZone;
         })
         .filter((hostedZone) => {
           const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
-          console.log(hostedZoneName, domain.givenDomainName === hostedZoneName);
           return domain.givenDomainName === hostedZoneName || domainNameHost.endsWith(hostedZoneName);
         })
         .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)

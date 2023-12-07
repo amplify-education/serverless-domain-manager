@@ -7,8 +7,8 @@ import Globals from "./globals";
  * @param seconds
  * @returns {Promise<void>} Resolves after given number of seconds.
  */
-async function sleep(seconds: number) {
-    return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
+async function sleep (seconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
 /**
@@ -22,21 +22,21 @@ async function sleep(seconds: number) {
  * @param {boolean} defaultValue the default value to return, if config value is undefined
  * @returns {boolean} the parsed boolean from the config value, or the default value
  */
-function evaluateBoolean(value: any, defaultValue: boolean): boolean {
-    if (value === undefined) {
-        return defaultValue;
-    }
+function evaluateBoolean (value: any, defaultValue: boolean): boolean {
+  if (value === undefined) {
+    return defaultValue;
+  }
 
-    const s = value.toString().toLowerCase().trim();
-    const trueValues = ["true", "1"];
-    const falseValues = ["false", "0"];
-    if (trueValues.indexOf(s) >= 0) {
-        return true;
-    }
-    if (falseValues.indexOf(s) >= 0) {
-        return false;
-    }
-    throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
+  const s = value.toString().toLowerCase().trim();
+  const trueValues = ["true", "1"];
+  const falseValues = ["false", "0"];
+  if (trueValues.indexOf(s) >= 0) {
+    return true;
+  }
+  if (falseValues.indexOf(s) >= 0) {
+    return false;
+  }
+  throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
 }
 
 /**
@@ -48,7 +48,7 @@ function evaluateBoolean(value: any, defaultValue: boolean): boolean {
  * @param nextRequestTokenKey - The response key name that has the next paging token value
  * @param params - Parameters to send in the request
  */
-async function getAWSPagedResults<ClientOutput, ClientInputCommand extends object, ClientOutputCommand extends MetadataBearer>(
+async function getAWSPagedResults<ClientOutput, ClientInputCommand extends object, ClientOutputCommand extends MetadataBearer> (
   client: Client<any, any, any, any>,
   resultsKey: keyof ClientOutputCommand,
   nextTokenKey: keyof ClientInputCommand,
@@ -58,10 +58,7 @@ async function getAWSPagedResults<ClientOutput, ClientInputCommand extends objec
   let results = [];
   let response = await client.send(params);
   results = results.concat(response[resultsKey] || results);
-  while (
-    response.hasOwnProperty(nextRequestTokenKey) &&
-    response[nextRequestTokenKey]
-  ) {
+  while (nextRequestTokenKey in response && response[nextRequestTokenKey]) {
     params.input[nextTokenKey] = response[nextRequestTokenKey];
     response = await client.send(params);
     results = results.concat(response[resultsKey]);

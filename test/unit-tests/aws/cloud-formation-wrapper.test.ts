@@ -18,9 +18,9 @@ describe("Cloud Formation wrapper checks", () => {
         Globals.serverless.service.provider.apiGateway.websocketApiId = null;
     });
 
-    it("Initialization", async () => {
+    it("Initialization", () => {
         const cloudFormationWrapper = new CloudFormationWrapper();
-        const actualResult = await cloudFormationWrapper.cloudFormation.config.region();
+        const actualResult = cloudFormationWrapper.cloudFormation.config[0].region;
         expect(actualResult).to.equal(Globals.currentRegion);
         expect(cloudFormationWrapper.stackName).to.equal(Globals.serverless.service.provider.stackName);
     });

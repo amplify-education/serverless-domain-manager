@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "7.3.1",
+  "version": "7.3.2",
   "engines": {
     "node": ">=14"
   },
@@ -33,7 +33,8 @@
     "test": "find ./test/unit-tests -name '*.test.ts' | xargs nyc mocha -r ts-node/register --project tsconfig.json --timeout 5000 && nyc report --reporter=text-summary",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
     "integration-test": "npm run integration-basic && npm run integration-deploy",
-    "lint": "tslint --project . && tslint --project tsconfig.json",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
     "build": "tsc --project .",
     "prepare": "npm run build"
   },
@@ -51,10 +52,17 @@
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.0",
+    "@types/randomstring": "^1.1.11",
     "@types/shelljs": "^0.8.15",
     "aws-sdk-client-mock": "^3.0.0",
     "chai": "^4.3.10",
     "chai-spies": "^1.1.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
     "mocha": "^10.2.0",
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
@@ -63,8 +71,7 @@
     "serverless-plugin-split-stacks": "^1.13.0",
     "shelljs": "^0.8.5",
     "ts-node": "^10.9.1",
-    "tslint": "^6.1.3",
-    "typescript": "^5.2.2"
+    "typescript": "^5.1.6 && <5.2"
   },
   "dependencies": {
     "@aws-sdk/client-acm": "^3.460.0",

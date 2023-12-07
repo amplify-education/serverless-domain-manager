@@ -13,19 +13,22 @@ import { getAWSPagedResults } from "../utils";
 
 class Route53Wrapper {
     public route53: Route53Client;
+    private readonly region: string;
 
     constructor (credentials?: any, region?: string) {
       // not null and not undefined
       if (credentials) {
+        this.region = region || Globals.getRegion();
         this.route53 = new Route53Client([{
           credentials,
-          region: region || Globals.getRegion(),
+          region: this.region,
           retryStrategy: Globals.getRetryStrategy(),
           requestHandler: Globals.getRequestHandler()
         }]);
       } else {
+        this.region = Globals.getRegion();
         this.route53 = new Route53Client([{
-          region: Globals.getRegion(),
+          region: this.region,
           retryStrategy: Globals.getRetryStrategy(),
           requestHandler: Globals.getRequestHandler()
         }]);
@@ -103,7 +106,7 @@ class Route53Wrapper {
       let routingOptions = {};
       if (route53Params.routingPolicy === Globals.routingPolicies.latency) {
         routingOptions = {
-          Region: await this.route53.config[0].region,
+          Region: this.region,
           SetIdentifier: route53Params.setIdentifier ?? domainInfo.domainName,
           ...route53healthCheck
         };

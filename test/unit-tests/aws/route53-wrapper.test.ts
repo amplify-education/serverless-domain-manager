@@ -38,7 +38,7 @@ describe("Route53 wrapper checks", () => {
   });
 
   it("get route53 hosted zone id", async () => {
-    const testId = "test_host_id"
+    const testId = "test_host_id";
     const Route53Mock = mockClient(Route53Client);
     Route53Mock.on(ListHostedZonesCommand).resolves({
       HostedZones: [
@@ -46,17 +46,17 @@ describe("Route53 wrapper checks", () => {
           CallerReference: "1",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "test_domain",
+          Name: "test_domain"
         }, {
           CallerReference: "2",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "dummy_test_domain",
+          Name: "dummy_test_domain"
         }, {
           CallerReference: "3",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "domain",
+          Name: "domain"
         }
       ]
     });
@@ -71,13 +71,13 @@ describe("Route53 wrapper checks", () => {
     const commandCalls = Route53Mock.commandCalls(ListHostedZonesCommand, {});
     expect(commandCalls.length).to.equal(1);
 
-    dc.hostedZoneId = "test_id"
+    dc.hostedZoneId = "test_id";
     actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
     expect(actualId).to.equal(dc.hostedZoneId);
   });
 
   it("get route53 hosted zone id paginated", async () => {
-    const testId = "test_host_id"
+    const testId = "test_host_id";
     const Route53Mock = mockClient(Route53Client);
     Route53Mock.on(ListHostedZonesCommand).resolvesOnce({
       HostedZones: [
@@ -85,17 +85,17 @@ describe("Route53 wrapper checks", () => {
           CallerReference: "1",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "test_domain",
+          Name: "test_domain"
         }, {
           CallerReference: "2",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "dummy_test_domain",
+          Name: "dummy_test_domain"
         }, {
           CallerReference: "3",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "domain",
+          Name: "domain"
         }
       ],
       NextMarker: "NextMarker"
@@ -106,17 +106,17 @@ describe("Route53 wrapper checks", () => {
             CallerReference: "4",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "test_domain2",
+            Name: "test_domain2"
           }, {
             CallerReference: "5",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "dummy_test_domain2",
+            Name: "dummy_test_domain2"
           }, {
             CallerReference: "6",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "domain2",
+            Name: "domain2"
           }
         ],
         NextMarker: "NextMarker"
@@ -127,17 +127,17 @@ describe("Route53 wrapper checks", () => {
             CallerReference: "7",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "test_domain3",
+            Name: "test_domain3"
           }, {
             CallerReference: "8",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "dummy_test_domain3",
+            Name: "dummy_test_domain3"
           }, {
             CallerReference: "9",
             Config: { PrivateZone: false },
             Id: testId,
-            Name: "domain3",
+            Name: "domain3"
           }
         ]
       });
@@ -152,13 +152,13 @@ describe("Route53 wrapper checks", () => {
     const commandCalls = Route53Mock.commandCalls(ListHostedZonesCommand, {});
     expect(commandCalls.length).to.equal(3);
 
-    dc.hostedZoneId = "test_id"
+    dc.hostedZoneId = "test_id";
     actualId = await new Route53Wrapper().getRoute53HostedZoneId(dc);
     expect(actualId).to.equal(dc.hostedZoneId);
   });
 
   it("get route53 hosted zone id public", async () => {
-    const testId = "test_host_id"
+    const testId = "test_host_id";
     const Route53Mock = mockClient(Route53Client);
     Route53Mock.on(ListHostedZonesCommand).resolves({
       HostedZones: [
@@ -166,17 +166,17 @@ describe("Route53 wrapper checks", () => {
           CallerReference: "",
           Config: { PrivateZone: false },
           Id: "no_valid",
-          Name: "api.test_domain",
+          Name: "api.test_domain"
         }, {
           CallerReference: "",
           Config: { PrivateZone: false },
           Id: testId,
-          Name: "devapi.test_domain",
+          Name: "devapi.test_domain"
         }, {
           CallerReference: "",
           Config: { PrivateZone: false },
           Id: "dummy_host_id",
-          Name: "test_domain",
+          Name: "test_domain"
         }
       ]
     });
@@ -193,7 +193,7 @@ describe("Route53 wrapper checks", () => {
   });
 
   it("get route53 hosted zone id private", async () => {
-    const testId = "test_host_id"
+    const testId = "test_host_id";
     const Route53Mock = mockClient(Route53Client);
     Route53Mock.on(ListHostedZonesCommand).resolves({
       HostedZones: [
@@ -201,12 +201,12 @@ describe("Route53 wrapper checks", () => {
           CallerReference: "",
           Config: { PrivateZone: false },
           Id: "dummy_host_id",
-          Name: "test_domain",
+          Name: "test_domain"
         }, {
           CallerReference: "",
           Config: { PrivateZone: true },
           Id: testId,
-          Name: "test_domain",
+          Name: "test_domain"
         }
       ]
     });
@@ -248,7 +248,7 @@ describe("Route53 wrapper checks", () => {
           CallerReference: "1",
           Config: { PrivateZone: false },
           Id: "test_host_id",
-          Name: "test_domain",
+          Name: "test_domain"
         }
       ]
     });
@@ -284,8 +284,8 @@ describe("Route53 wrapper checks", () => {
         CallerReference: "",
         Config: { PrivateZone: false },
         Id: "test_host_id",
-        Name: "test_domain",
-      }],
+        Name: "test_domain"
+      }]
     });
     Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
 
@@ -304,11 +304,11 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
-              Type: RRType.A,
-            },
+              Type: RRType.A
+            }
           },
           {
             Action: ChangeAction.UPSERT,
@@ -316,16 +316,16 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
-              Type: RRType.AAAA,
-            },
-          },
+              Type: RRType.AAAA
+            }
+          }
         ],
         Comment: `Record created by "${Globals.pluginName}"`
       },
-      HostedZoneId: "test_host_id",
+      HostedZoneId: "test_host_id"
     };
     const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams);
     expect(commandCalls.length).to.equal(1);
@@ -338,8 +338,8 @@ describe("Route53 wrapper checks", () => {
         CallerReference: "",
         Config: { PrivateZone: false },
         Id: "test_host_id",
-        Name: "test_domain",
-      }],
+        Name: "test_domain"
+      }]
     });
     Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
 
@@ -362,13 +362,13 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
               Type: RRType.A,
               Region: ResourceRecordSetRegion.us_east_1,
-              SetIdentifier: 'test_domain'
-            },
+              SetIdentifier: "test_domain"
+            }
           },
           {
             Action: ChangeAction.UPSERT,
@@ -376,18 +376,18 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
               Type: RRType.AAAA,
               Region: ResourceRecordSetRegion.us_east_1,
-              SetIdentifier: 'test_domain'
-            },
-          },
+              SetIdentifier: "test_domain"
+            }
+          }
         ],
         Comment: `Record created by "${Globals.pluginName}"`
       },
-      HostedZoneId: "test_host_id",
+      HostedZoneId: "test_host_id"
     };
     const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams);
     expect(commandCalls.length).to.equal(1);
@@ -400,8 +400,8 @@ describe("Route53 wrapper checks", () => {
         CallerReference: "",
         Config: { PrivateZone: false },
         Id: "test_host_id",
-        Name: "test_domain",
-      }],
+        Name: "test_domain"
+      }]
     });
     Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
 
@@ -425,13 +425,13 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
               Type: RRType.A,
               Weight: 1,
-              SetIdentifier: 'test_domain'
-            },
+              SetIdentifier: "test_domain"
+            }
           },
           {
             Action: ChangeAction.UPSERT,
@@ -439,18 +439,18 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: "test_host_id",
+                HostedZoneId: "test_host_id"
               },
               Name: "test_domain",
               Type: RRType.AAAA,
               Weight: 1,
-              SetIdentifier: 'test_domain'
-            },
-          },
+              SetIdentifier: "test_domain"
+            }
+          }
         ],
         Comment: `Record created by "${Globals.pluginName}"`
       },
-      HostedZoneId: "test_host_id",
+      HostedZoneId: "test_host_id"
     };
     const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams);
     expect(commandCalls.length).to.equal(1);
@@ -465,12 +465,12 @@ describe("Route53 wrapper checks", () => {
         CallerReference: "",
         Config: { PrivateZone: false },
         Id: publicZone,
-        Name: "test_domain",
+        Name: "test_domain"
       }, {
         CallerReference: "",
         Config: { PrivateZone: true },
         Id: privateZone,
-        Name: "test_domain",
+        Name: "test_domain"
       }
       ]
     });
@@ -493,11 +493,11 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: publicZone,
+                HostedZoneId: publicZone
               },
               Name: "test_domain",
-              Type: RRType.A,
-            },
+              Type: RRType.A
+            }
           },
           {
             Action: ChangeAction.UPSERT,
@@ -505,16 +505,16 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: publicZone,
+                HostedZoneId: publicZone
               },
               Name: "test_domain",
-              Type: RRType.AAAA,
-            },
-          },
+              Type: RRType.AAAA
+            }
+          }
         ],
         Comment: `Record created by "${Globals.pluginName}"`
       },
-      HostedZoneId: publicZone,
+      HostedZoneId: publicZone
     };
     const commandCalls1 = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams1, true);
     expect(commandCalls1.length).to.equal(1);
@@ -528,11 +528,11 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: publicZone,
+                HostedZoneId: publicZone
               },
               Name: "test_domain",
               Type: RRType.A
-            },
+            }
           },
           {
             Action: ChangeAction.UPSERT,
@@ -540,16 +540,16 @@ describe("Route53 wrapper checks", () => {
               AliasTarget: {
                 DNSName: "test_domain",
                 EvaluateTargetHealth: false,
-                HostedZoneId: publicZone,
+                HostedZoneId: publicZone
               },
               Name: "test_domain",
-              Type: RRType.AAAA,
-            },
-          },
+              Type: RRType.AAAA
+            }
+          }
         ],
         Comment: `Record created by "${Globals.pluginName}"`
       },
-      HostedZoneId: privateZone,
+      HostedZoneId: privateZone
     };
     const commandCalls2 = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams2, true);
     expect(commandCalls2.length).to.equal(1);
@@ -564,12 +564,12 @@ describe("Route53 wrapper checks", () => {
         CallerReference: "",
         Config: { PrivateZone: false },
         Id: publicZone,
-        Name: "test_domain",
+        Name: "test_domain"
       }, {
         CallerReference: "",
         Config: { PrivateZone: true },
         Id: privateZone,
-        Name: "test_domain",
+        Name: "test_domain"
       }]
     });
     Route53Mock.on(ChangeResourceRecordSetsCommand).rejects(null);

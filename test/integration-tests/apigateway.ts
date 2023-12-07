@@ -1,23 +1,23 @@
 import {
-    APIGatewayClient,
-    CreateRestApiCommand,
-    CreateRestApiCommandOutput,
-    DeleteRestApiCommand,
-    GetBasePathMappingsCommand,
-    GetBasePathMappingsCommandOutput, GetDomainNameCommand, GetDomainNameCommandOutput,
-    GetResourcesCommand,
-    GetResourcesCommandOutput
+  APIGatewayClient,
+  CreateRestApiCommand,
+  CreateRestApiCommandOutput,
+  DeleteRestApiCommand,
+  GetBasePathMappingsCommand,
+  GetBasePathMappingsCommandOutput, GetDomainNameCommand, GetDomainNameCommandOutput,
+  GetResourcesCommand,
+  GetResourcesCommandOutput
 } from "@aws-sdk/client-api-gateway";
 import Globals from "../../src/globals";
 
 export default class APIGatewayWrap {
     private client: APIGatewayClient;
 
-    constructor(region: string) {
-        this.client = new APIGatewayClient({
-            region,
-            retryStrategy: Globals.getRetryStrategy()
-        });
+    constructor (region: string) {
+      this.client = new APIGatewayClient({
+        region,
+        retryStrategy: Globals.getRetryStrategy()
+      });
     }
 
     /**
@@ -25,18 +25,18 @@ export default class APIGatewayWrap {
      * @param {string} restApiName
      * @return {Object} Contains restApiId and resourceId
      */
-    public async setupApiGatewayResources(restApiName) {
-        const restAPI: CreateRestApiCommandOutput = await this.client.send(
-            new CreateRestApiCommand({name: restApiName})
-        )
+    public async setupApiGatewayResources (restApiName) {
+      const restAPI: CreateRestApiCommandOutput = await this.client.send(
+        new CreateRestApiCommand({ name: restApiName })
+      );
 
-        const restApiId = restAPI.id;
-        const resources: GetResourcesCommandOutput = await this.client.send(
-            new GetResourcesCommand({restApiId})
-        )
+      const restApiId = restAPI.id;
+      const resources: GetResourcesCommandOutput = await this.client.send(
+        new GetResourcesCommand({ restApiId })
+      );
 
-        const resourceId = resources.items[0].id;
-        return {restApiId, resourceId};
+      const resourceId = resources.items[0].id;
+      return { restApiId, resourceId };
     }
 
     /**
@@ -44,10 +44,10 @@ export default class APIGatewayWrap {
      * @param {string} restApiId
      * @return {boolean} Returns true if deleted
      */
-    public async deleteApiGatewayResources(restApiId) {
-        return await this.client.send(
-            new DeleteRestApiCommand({restApiId})
-        );
+    public async deleteApiGatewayResources (restApiId) {
+      return await this.client.send(
+        new DeleteRestApiCommand({ restApiId })
+      );
     }
 
     /**
@@ -55,12 +55,12 @@ export default class APIGatewayWrap {
      * @param domainName
      * @returns {Promise<String>}
      */
-    public async getStage(domainName) {
-        const result: GetBasePathMappingsCommandOutput = await this.client.send(
-            new GetBasePathMappingsCommand({domainName})
-        )
+    public async getStage (domainName) {
+      const result: GetBasePathMappingsCommandOutput = await this.client.send(
+        new GetBasePathMappingsCommand({ domainName })
+      );
 
-        return result.items[0].stage;
+      return result.items[0].stage;
     }
 
     /**
@@ -68,12 +68,12 @@ export default class APIGatewayWrap {
      * @param domainName
      * @returns {Promise<String>}
      */
-    public async getBasePath(domainName) {
-        const result: GetBasePathMappingsCommandOutput = await this.client.send(
-            new GetBasePathMappingsCommand({domainName})
-        )
+    public async getBasePath (domainName) {
+      const result: GetBasePathMappingsCommandOutput = await this.client.send(
+        new GetBasePathMappingsCommand({ domainName })
+      );
 
-        return result.items[0].basePath;
+      return result.items[0].basePath;
     }
 
     /**
@@ -81,11 +81,11 @@ export default class APIGatewayWrap {
      * @param domainName
      * @returns {Promise<String>}
      */
-    public async getEndpointType(domainName) {
-        const result: GetDomainNameCommandOutput = await this.client.send(
-            new GetDomainNameCommand({domainName})
-        )
+    public async getEndpointType (domainName) {
+      const result: GetDomainNameCommandOutput = await this.client.send(
+        new GetDomainNameCommand({ domainName })
+      );
 
-        return result.endpointConfiguration.types[0];
+      return result.endpointConfiguration.types[0];
     }
 }

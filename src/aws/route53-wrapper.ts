@@ -69,7 +69,7 @@ class Route53Wrapper {
             })
             .filter((hostedZone) => {
                 const hostedZoneName = hostedZone.Name.replace(/\.$/, "");
-                return domainNameHost.endsWith(hostedZoneName);
+                return domain.givenDomainName === hostedZoneName || domainNameHost.endsWith(hostedZoneName);
             })
             .sort((zone1, zone2) => zone2.Name.length - zone1.Name.length)
             .shift();

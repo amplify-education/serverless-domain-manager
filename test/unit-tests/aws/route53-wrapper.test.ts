@@ -169,13 +169,13 @@ describe("Route53 wrapper checks", () => {
                     Name: "api.test_domain",
                 }, {
                     CallerReference: "",
-                    Config: {PrivateZone: true},
-                    Id: "dummy_host_id",
-                    Name: "test_domain",
+                    Config: {PrivateZone: false},
+                    Id: testId,
+                    Name: "devapi.test_domain",
                 }, {
                     CallerReference: "",
                     Config: {PrivateZone: false},
-                    Id: testId,
+                    Id: "dummy_host_id",
                     Name: "test_domain",
                 },
             ]

@@ -320,7 +320,7 @@ describe("Custom Domain Plugin", () => {
     it("Should throw an Error when mutual TLS uri is not an S3 uri", async () => {
       const plugin = constructPlugin(getDomainConfig({
         endpointType: "regional",
-        tlsTruststoreUri: "http://example.com"
+        tlsTruststoreUri: "https://example.com"
       }));
 
       let errored = false;
@@ -328,7 +328,7 @@ describe("Custom Domain Plugin", () => {
         await plugin.hookWrapper(null);
       } catch (err) {
         errored = true;
-        expect(err.message).to.equal("http://example.com is not a valid s3 uri, try something like s3://bucket-name/key-name.");
+        expect(err.message).to.equal("https://example.com is not a valid s3 uri, try something like s3://bucket-name/key-name.");
       }
       expect(errored).to.equal(true);
     });

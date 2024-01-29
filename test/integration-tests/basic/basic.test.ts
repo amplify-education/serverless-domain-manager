@@ -147,6 +147,19 @@ describe("Integration Tests", function () {
     }
   });
 
+  it("Deploys multi base path for the same domain", async () => {
+    const testName = "deploy-idempotent2";
+    const configFolder = `${CONFIGS_FOLDER}/${testName}`;
+    try {
+      await utilities.createTempDir(TEMP_DIR, configFolder);
+      await utilities.slsCreateDomain(TEMP_DIR);
+      await utilities.slsDeploy(TEMP_DIR);
+      await utilities.slsDeploy(TEMP_DIR);
+    } finally {
+      await utilities.destroyResources(testName);
+    }
+  });
+
   it("Deploy multi domains", async () => {
     const testName = "http-api-multiple";
     const configFolder = `${CONFIGS_FOLDER}/${testName}`;

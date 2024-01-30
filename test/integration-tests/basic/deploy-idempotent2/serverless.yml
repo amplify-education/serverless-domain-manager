@@ -22,12 +22,12 @@ custom:
     - rest:
       autoDomain: true
       basePath: "path1"
-      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       allowPathMatching: true
     - rest:
       autoDomain: true
       basePath: "path2"
-      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       allowPathMatching: true
 
 package:

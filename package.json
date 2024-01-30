@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "7.3.3",
+  "version": "7.3.4",
   "engines": {
     "node": ">=14"
   },
@@ -27,8 +27,8 @@
   "main": "dist/src/index.js",
   "bin": {},
   "scripts": {
-    "integration-basic": "nyc mocha -r ts-node/register --project tsconfig.json --parallel test/integration-tests/basic/basic.test.ts",
-    "integration-deploy": "nyc mocha -r ts-node/register --project tsconfig.json --parallel test/integration-tests/deploy/deploy.test.ts",
+    "integration-basic": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/basic/basic.test.ts",
+    "integration-deploy": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/deploy/deploy.test.ts",
     "integration-debug": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/debug/debug.test.ts",
     "test": "find ./test/unit-tests -name '*.test.ts' | xargs nyc mocha -r ts-node/register --project tsconfig.json --timeout 5000 && nyc report --reporter=text-summary",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
@@ -51,15 +51,15 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.10.0",
+    "@types/node": "^20.11.10",
     "@types/randomstring": "^1.1.11",
     "@types/shelljs": "^0.8.15",
-    "aws-sdk-client-mock": "^3.0.0",
-    "chai": "^4.3.10",
+    "aws-sdk-client-mock": "^3.0.1",
+    "chai": "^4.4.1",
     "chai-spies": "^1.1.0",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.2.0",
     "@typescript-eslint/parser": "^5.62.0",
@@ -71,7 +71,7 @@
     "serverless": "^3.38.0",
     "serverless-plugin-split-stacks": "^1.13.0",
     "shelljs": "^0.8.5",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.1.6 && <5.2"
   },
   "dependencies": {

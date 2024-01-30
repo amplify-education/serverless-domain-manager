@@ -168,4 +168,16 @@ describe("Integration Tests", function () {
       await utilities.destroyResources(testName);
     }
   });
+
+  it("Deploys multi base path for the same domain", async () => {
+    const testName = "deploy-idempotent2";
+    const configFolder = `${CONFIGS_FOLDER}/${testName}`;
+    try {
+      await utilities.createTempDir(TEMP_DIR, configFolder);
+      await utilities.slsDeploy(TEMP_DIR);
+      await utilities.slsDeploy(TEMP_DIR);
+    } finally {
+      await utilities.destroyResources(testName);
+    }
+  });
 });

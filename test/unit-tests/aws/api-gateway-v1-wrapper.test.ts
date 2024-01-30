@@ -449,7 +449,7 @@ describe("API Gateway V1 wrapper checks", () => {
       const commandCalls = APIGatewayMock.commandCalls(UpdateBasePathMappingCommand, expectedParams, true);
 
       expect(commandCalls.length).to.equal(1);
-      expect(consoleOutput[0]).to.contains("V1 - Updated API mapping from");
+      expect(consoleOutput[0]).to.contains(`V1 - Updating API mapping from '${dc.apiMapping.basePath}'`);
     });
 
     it("update base path mapping failure", async () => {

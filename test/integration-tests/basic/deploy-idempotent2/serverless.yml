@@ -1,4 +1,5 @@
-service: ${env:PLUGIN_IDENTIFIER}-pr-example
+# Deploying should be idempotent for the same domain and different paths
+service: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}
 provider:
   name: aws
   iam:
@@ -11,23 +12,22 @@ functions:
     handler: handler.helloWorld
     events:
       - http:
-          path: /hello-world
+          path: hello-world
           method: get
-
+          cors: true
 plugins:
   - serverless-domain-manager
-
 custom:
   customDomains:
     - rest:
       autoDomain: true
       basePath: "path1"
-      domainName: ${env:PLUGIN_IDENTIFIER}-rest-debug.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       allowPathMatching: true
     - rest:
       autoDomain: true
       basePath: "path2"
-      domainName: ${env:PLUGIN_IDENTIFIER}-rest-debug.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       allowPathMatching: true
 
 package:

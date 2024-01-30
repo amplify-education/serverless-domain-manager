@@ -152,6 +152,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     }
 
     public async updateBasePathMapping (domain: DomainConfig): Promise<void> {
+      Logging.logInfo(`V1 - Updating API mapping from '${domain.apiMapping.basePath}'
+            to '${domain.basePath}' for '${domain.givenDomainName}'`);
       try {
         await this.apiGateway.send(new UpdateBasePathMappingCommand({
           basePath: domain.apiMapping.basePath,
@@ -163,11 +165,9 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
           }]
         }
         ));
-        Logging.logInfo(`V1 - Updated API mapping from '${domain.apiMapping.basePath}'
-                    to '${domain.basePath}' for '${domain.givenDomainName}'`);
       } catch (err) {
         throw new Error(
-                `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
+          `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
         );
       }
     }

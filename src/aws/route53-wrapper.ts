@@ -94,6 +94,7 @@ class Route53Wrapper {
         Logging.logInfo(`Skipping ${action === ChangeAction.DELETE ? "removal" : "creation"} of Route53 record.`);
         return;
       }
+      Logging.logInfo(`Creating/updating route53 record for '${domain.givenDomainName}'.`);
       // Set up parameters
       const route53HostedZoneId = await this.getRoute53HostedZoneId(domain, domain.hostedZonePrivate);
       const route53Params = domain.route53Params;

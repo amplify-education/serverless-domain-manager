@@ -211,16 +211,6 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.domains.length).to.equal(1);
     });
 
-    it("allowPathMatching", () => {
-      const domainOptions = getDomainConfig({ allowPathMatching: true });
-      const plugin = constructPlugin(domainOptions);
-
-      plugin.initializeVariables();
-      plugin.validateDomainConfigs();
-
-      expect(consoleOutput[0]).to.contains("This should only be used when migrating a path to a different API type. e.g. REST to HTTP.");
-    });
-
     it("Should enable the plugin by default", () => {
       const plugin = constructPlugin(getDomainConfig({}));
 

@@ -19,8 +19,7 @@ describe("Integration Tests", function () {
       await utilities.slsDeploy(TEMP_DIR, true);
       await utilities.slsDeploy(TEMP_DIR, true);
     } finally {
-      await exec(`rm -rf ${TEMP_DIR}`);
-      // await utilities.destroyResources(testName);
+      await utilities.destroyResources(testName);
     }
   });
 });

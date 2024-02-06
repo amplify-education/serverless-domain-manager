@@ -16,6 +16,7 @@ describe("Integration Tests", function () {
       await utilities.createTempDir(TEMP_DIR, configFolder);
       await utilities.slsCreateDomain(TEMP_DIR, true);
       await utilities.slsDeploy(TEMP_DIR, true);
+      // run again to make sure the deployment is succeeded
       await utilities.slsDeploy(TEMP_DIR, true);
     } finally {
       await utilities.destroyResources(testName);

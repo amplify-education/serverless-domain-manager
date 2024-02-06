@@ -55,6 +55,7 @@ function slsCreateDomain (tempDir, debug: boolean = false) {
  * @returns {Promise<void>}
  */
 async function slsDeploy (tempDir, debug: boolean = false) {
+  // sleep to avoid `to many requests` error as we run a lot of tests one after another
   await sleep(5000);
   return exec(`cd ${tempDir} && npx serverless deploy` + (debug ? " --verbose" : ""));
 }

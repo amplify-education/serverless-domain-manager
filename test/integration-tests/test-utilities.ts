@@ -3,6 +3,8 @@
 import shell = require("shelljs");
 import { TEMP_DIR } from "./base";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Executes given shell command.
  * @param cmd shell command to execute
@@ -52,7 +54,9 @@ function slsCreateDomain (tempDir, debug: boolean = false) {
  * @param debug - enable loging
  * @returns {Promise<void>}
  */
-function slsDeploy (tempDir, debug: boolean = false) {
+async function slsDeploy (tempDir, debug: boolean = false) {
+  // sleep to avoid `to many requests` error as we run a lot of tests one after another
+  await sleep(5000);
   return exec(`cd ${tempDir} && npx serverless deploy` + (debug ? " --verbose" : ""));
 }
 

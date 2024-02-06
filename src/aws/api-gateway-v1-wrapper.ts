@@ -140,9 +140,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         })
       );
       return items.map((item) => {
-          return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
-        }
-      );
+        return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
+      });
     } catch (err) {
       throw new Error(
         `V1 - Make sure the '${domain.givenDomainName}' exists.
@@ -156,15 +155,14 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
             to '${domain.basePath}' for '${domain.givenDomainName}'`);
     try {
       await this.apiGateway.send(new UpdateBasePathMappingCommand({
-          basePath: domain.apiMapping.basePath,
-          domainName: domain.givenDomainName,
-          patchOperations: [{
-            op: "replace",
-            path: "/basePath",
-            value: domain.basePath
-          }]
-        }
-      ));
+        basePath: domain.apiMapping.basePath,
+        domainName: domain.givenDomainName,
+        patchOperations: [{
+          op: "replace",
+          path: "/basePath",
+          value: domain.basePath
+        }]
+      }));
     } catch (err) {
       throw new Error(
         `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`

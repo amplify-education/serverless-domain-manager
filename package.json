@@ -29,7 +29,6 @@
   "scripts": {
     "integration-basic": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/basic/basic.test.ts",
     "integration-deploy": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/deploy/deploy.test.ts",
-    "integration-debug": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/debug/debug.test.ts",
     "test": "find ./test/unit-tests -name '*.test.ts' | xargs nyc mocha -r ts-node/register --project tsconfig.json --timeout 5000 && nyc report --reporter=text-summary",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
     "integration-test": "npm run integration-basic && npm run integration-deploy",

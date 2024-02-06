@@ -54,8 +54,8 @@ class DomainConfig {
     this.preserveExternalPathMappings = evaluateBoolean(config.preserveExternalPathMappings, false);
     this.basePath = DomainConfig._getBasePath(config.basePath);
     this.apiType = DomainConfig._getApiType(config.apiType);
-    // apiType should be defined before stage
-    this.stage = DomainConfig._getStage(config.stage, this.apiType);
+    // apiType and basePath should be defined before stage
+    this.stage = DomainConfig._getStage(config.stage, this.apiType, this.basePath);
     this.endpointType = DomainConfig._getEndpointType(config.endpointType);
     this.tlsTruststoreUri = DomainConfig._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
     this.tlsTruststoreVersion = config.tlsTruststoreVersion;
@@ -64,8 +64,8 @@ class DomainConfig {
     this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
   }
 
-  private static _getStage (stage: string, apiType: string) {
-    if (apiType === Globals.apiTypes.http && !stage) {
+  private static _getStage (stage: string, apiType: string, basePath: string) {
+    if (apiType === Globals.apiTypes.http && (basePath === Globals.defaultBasePath || !stage)) {
       return Globals.defaultStage;
     }
     return stage || Globals.getBaseStage();

@@ -10,7 +10,7 @@ functions:
   helloWorld:
     handler: handler.helloWorld
     events:
-      - http:
+      - httpApi:
           path: /hello-world
           method: get
 
@@ -18,17 +18,14 @@ plugins:
   - serverless-domain-manager
 
 custom:
-  customDomains:
-    - rest:
-      autoDomain: true
-      basePath: "path1"
-      domainName: ${env:PLUGIN_IDENTIFIER}-rest-debug.${env:TEST_DOMAIN}
-      allowPathMatching: true
-    - rest:
-      autoDomain: true
-      basePath: "path2"
-      domainName: ${env:PLUGIN_IDENTIFIER}-rest-debug.${env:TEST_DOMAIN}
-      allowPathMatching: true
+  customDomain:
+    domainName: ${env:PLUGIN_IDENTIFIER}-pr-example.${env:TEST_DOMAIN}
+    basePath: ''
+    createRoute53Record: true
+    stage: 'production'
+    endpointType: 'regional'
+    apiType: http
+    autoDomain: true
 
 package:
   patterns:

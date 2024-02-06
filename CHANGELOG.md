@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.3.5] - 2023-02-06
+
+### Fixed 
+- Hardcoded `$default` stage for the HTTP API and default base path. More info [here](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-stages.html)
+
 ## [7.3.4] - 2023-01-30
 
 ### Fixed 

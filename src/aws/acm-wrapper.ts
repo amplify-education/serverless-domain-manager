@@ -55,7 +55,12 @@ class ACMWrapper {
       throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
     }
     if (certificateArn == null) {
-      throw Error(`Could not find an in-date certificate for '${certificateName}'.`);
+      let errorMessage = `Could not find an in-date certificate for '${certificateName}'.`;
+      if (domain.endpointType === Globals.endpointTypes.edge) {
+        errorMessage += ` The endpoint type '${Globals.endpointTypes.edge}' is used. ` +
+          `Make sure the needed ACM certificate exists in the '${Globals.defaultRegion}' region.`;
+      }
+      throw Error(errorMessage);
     }
     return certificateArn;
   }

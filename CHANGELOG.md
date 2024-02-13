@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.3.6] - 2023-02-13
+
+### Changed
+- Updated ACM get certificate error message for the endpoint type `EDGE`. More info https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-edge-optimized-custom-domain-name.html
+
 ## [7.3.5] - 2023-02-06
 
 ### Fixed 

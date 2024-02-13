@@ -76,7 +76,7 @@ export default class Globals {
       return await fromIni({ profile })();
     }
 
-    public static getRetryStrategy (attempts: number = 3, delay: number = 3000, backoff: number = 500) {
+    public static getRetryStrategy (attempts: number = 5, delay: number = 3000, backoff: number = 500) {
       return new ConfiguredRetryStrategy(
         attempts, // max attempts.
         // This example sets the backoff at 500ms plus 3s per attempt.

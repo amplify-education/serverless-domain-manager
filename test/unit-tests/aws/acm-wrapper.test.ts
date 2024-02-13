@@ -170,4 +170,23 @@ describe("ACM Wrapper checks", () => {
     }
     expect(errored).to.equal(true);
   });
+
+  it("getCertArn failure for Edge", async () => {
+    const ACMCMock = mockClient(ACMClient);
+    ACMCMock.on(ListCertificatesCommand).resolves({ CertificateSummaryList: [] });
+
+    const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.edge);
+    const dc = new DomainConfig(getDomainConfig({ domainName: "test_domain" }));
+
+    let errored = false;
+    try {
+      await acmWrapper.getCertArn(dc);
+    } catch (err) {
+      errored = true;
+      expect(err.message).to.contains(
+        `Make sure the needed ACM certificate exists in the '${Globals.defaultRegion}' region`
+      );
+    }
+    expect(errored).to.equal(true);
+  });
 });

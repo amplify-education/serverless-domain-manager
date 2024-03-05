@@ -139,7 +139,9 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
           domainName: domain.givenDomainName
         })
       );
-      return items.map((item) => {
+      return items.filter((item) => {
+        return item.stage === domain.stage;
+      }).map((item) => {
         return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
       });
     } catch (err) {

@@ -353,7 +353,7 @@ class ServerlessCustomDomain {
         return mapping.apiId === domain.apiId;
       });
       domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
-      domain.domainInfo = await apiGateway.getCustomDomain(domain);
+      domain.domainInfo = await apiGateway.getCustomDomain(domain, false);
 
       if (!domain.apiMapping) {
         await apiGateway.createBasePathMapping(domain);
@@ -385,7 +385,7 @@ class ServerlessCustomDomain {
             if (domain.allowPathMatching) {
               return mapping.basePath === domain.basePath;
             }
-            return mapping.apiId === domain.apiId;
+            return mapping.apiId === domain.apiId && mapping.stage === domain.stage;
           });
           if (domain.preserveExternalPathMappings) {
             externalBasePathExists = mappings.length > filteredMappings.length;

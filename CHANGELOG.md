@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.3.7] - 2023-03-06
 
 ### Fixed
-- Added filtering by stage for the `getBasePathMappings` method.
+- Added filtering by stage for removing API mappings. That filter is skipped in case `allowPathMatching` is enabled.
 
 ## [7.3.6] - 2023-02-13
 

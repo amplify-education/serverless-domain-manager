@@ -386,7 +386,6 @@ describe("API Gateway V2 wrapper checks", () => {
       }));
 
       const actualResult = await apiGatewayV2Wrapper.getBasePathMappings(dc);
-      // should be filtered by stage
       const expectedResult = [
         new ApiGatewayMap("test_rest_api_id", "test", "test", "test_id"),
         new ApiGatewayMap("test_rest_api_id2", "test2", "dummy", "test_id2")

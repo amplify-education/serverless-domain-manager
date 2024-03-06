@@ -81,7 +81,12 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     }
   }
 
-  public async getCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+  /**
+   * Get Custom Domain Info
+   * @param domain: DomainConfig
+   * @param silent: To issue an error or not. Not by default.
+   */
+  public async getCustomDomain (domain: DomainConfig, silent: boolean = true): Promise<DomainInfo> {
     // Make API call
     try {
       const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
@@ -91,7 +96,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       );
       return new DomainInfo(domainInfo);
     } catch (err) {
-      if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
+      if (!err.$metadata || err.$metadata.httpStatusCode !== 404 || !silent) {
         throw new Error(
           `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
         );
@@ -122,8 +127,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       Logging.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
     } catch (err) {
       throw new Error(
-        `V1 - Make sure the '${domain.givenDomainName}' exists.
-                 Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
       );
     }
   }

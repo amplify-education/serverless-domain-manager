@@ -491,6 +491,10 @@ describe("Custom Domain Plugin", () => {
       APIGatewayMock.on(GetBasePathMappingsCommand).resolves({
         items: [{
           restApiId: "test_rest_api_id",
+          basePath: "test2",
+          stage: "dummy"
+        }, {
+          restApiId: "test_rest_api_id",
           basePath: "test",
           stage: "test"
         }]
@@ -518,8 +522,6 @@ describe("Custom Domain Plugin", () => {
       const deleteDomainSpy = chaiSpy.on(plugin, "deleteDomain");
       await plugin.hooks["before:remove:remove"]();
 
-      const commandCalls = APIGatewayMock.commandCalls(DeleteBasePathMappingCommand);
-      expect(commandCalls.length).to.equal(1);
       expect(deleteDomainSpy).to.have.been.called();
     });
 

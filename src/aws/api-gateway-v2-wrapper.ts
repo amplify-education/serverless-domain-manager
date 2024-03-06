@@ -83,8 +83,9 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
   /**
    * Get Custom Domain Info
    * @param domain: DomainConfig
+   * @param silent: To issue an error or not. Not by default.
    */
-  public async getCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+  public async getCustomDomain (domain: DomainConfig, silent: boolean = true): Promise<DomainInfo> {
     // Make API call
     try {
       const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
@@ -94,7 +95,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       );
       return new DomainInfo(domainInfo);
     } catch (err) {
-      if (!err.$metadata || err.$metadata.httpStatusCode !== 404) {
+      if (!err.$metadata || err.$metadata.httpStatusCode !== 404 || !silent) {
         throw new Error(
           `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
         );

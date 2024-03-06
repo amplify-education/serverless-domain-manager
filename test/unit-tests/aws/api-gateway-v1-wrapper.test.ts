@@ -339,6 +339,10 @@ describe("API Gateway V1 wrapper checks", () => {
           restApiId: "test_rest_api_id",
           basePath: "test",
           stage: "test"
+        },{
+          restApiId: "test_rest_api_id2",
+          basePath: "test2",
+          stage: "dummy"
         }]
       });
 
@@ -349,7 +353,8 @@ describe("API Gateway V1 wrapper checks", () => {
 
       const actualResult = await apiGatewayV1Wrapper.getBasePathMappings(dc);
       const expectedResult = [
-        new ApiGatewayMap("test_rest_api_id", "test", "test", null)
+        new ApiGatewayMap("test_rest_api_id", "test", "test", null),
+        new ApiGatewayMap("test_rest_api_id2", "test2", "dummy", null)
       ];
 
       expect(actualResult).to.eql(expectedResult);

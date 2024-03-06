@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Added filtering by stage for removing API mappings. That filter is skipped in case `allowPathMatching` is enabled.
+- Added throwing an error for a non-existing custom domain during base path mappings setup.
 
 ## [7.3.6] - 2023-02-13
 

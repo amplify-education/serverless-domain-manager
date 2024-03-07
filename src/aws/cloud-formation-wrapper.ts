@@ -112,7 +112,10 @@ class CloudFormationWrapper {
     }
 
     if (!response) {
-      throw new Error(`Failed to find a stack ${this.stackName}\n`);
+      throw new Error(
+        `Failed to find logicalResourceId '${logicalResourceId}' for the stack ${this.stackName}\n` +
+        "Make sure the stack exists and the API gateway event is added"
+      );
     }
 
     const apiId = response.StackResourceDetail.PhysicalResourceId;

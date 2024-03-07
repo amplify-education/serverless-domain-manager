@@ -106,7 +106,8 @@ describe("Cloud Formation wrapper checks", () => {
       await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest);
     } catch (err) {
       errored = true;
-      expect(err.message).to.contains("Failed to find a stack");
+      expect(err.message).to.contains("Failed to find logicalResourceId");
+      expect(err.message).to.contains("Make sure the stack exists and the API gateway event is added");
     }
     expect(errored).to.equal(true);
 
@@ -159,7 +160,8 @@ describe("Cloud Formation wrapper checks", () => {
       await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest);
     } catch (err) {
       errored = true;
-      expect(err.message).to.contains("Failed to find a stack");
+      expect(err.message).to.contains("Failed to find logicalResourceId");
+      expect(err.message).to.contains("Make sure the stack exists and the API gateway event is added");
     }
     expect(errored).to.equal(true);
 
@@ -184,7 +186,8 @@ describe("Cloud Formation wrapper checks", () => {
       await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest);
     } catch (err) {
       errored = true;
-      expect(err.message).to.contains("Failed to find a stack");
+      expect(err.message).to.contains("Failed to find logicalResourceId");
+      expect(err.message).to.contains("Make sure the stack exists and the API gateway event is added");
     }
     expect(errored).to.equal(true);
     expect(consoleOutput[0]).to.contains("Unsupported apiGateway");
@@ -388,7 +391,8 @@ describe("Cloud Formation wrapper checks", () => {
       await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest);
     } catch (err) {
       errored = true;
-      expect(err.message).to.contains("Failed to find a stack");
+      expect(err.message).to.contains("Failed to find logicalResourceId");
+      expect(err.message).to.contains("Make sure the stack exists and the API gateway event is added");
     }
     expect(errored).to.equal(true);
     expect(consoleOutput[0]).to.contains("[WARNING] Failed to find CloudFormation resources with an error");

@@ -40,7 +40,6 @@ class CloudFormationWrapper {
    */
   public async findApiId (apiType: string): Promise<string> {
     const configApiId = await this.getConfigId(apiType);
-    console.log(`configApiId: ${configApiId}`);
     if (configApiId) {
       return configApiId;
     }

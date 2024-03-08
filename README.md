@@ -261,7 +261,7 @@ NOTE: Always test this process in a lower level staging or development environme
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.
-You can reach us at <github@amplify.com>
+You can reach us at `github@amplify.com`
 
 # Contributing
 We welcome pull requests! For your pull request to be accepted smoothly, we suggest that you:

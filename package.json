@@ -90,6 +90,6 @@
     "proxy-agent": "^6.4.0"
   },
   "peerDependencies": {
-    "serverless": "^2.60 || ^3.0.0"
+    "serverless": "^2.60 || ^3.0.0 || ^4.0.0"
   }
 }

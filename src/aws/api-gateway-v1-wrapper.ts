@@ -27,13 +27,15 @@ import { getAWSPagedResults } from "../utils";
 class APIGatewayV1Wrapper extends APIGatewayBase {
   public readonly apiGateway: APIGatewayClient;
 
+
   constructor (credentials?: any) {
     super();
     this.apiGateway = new APIGatewayClient({
       credentials,
       region: Globals.getRegion(),
       retryStrategy: Globals.getRetryStrategy(),
-      requestHandler: Globals.getRequestHandler()
+      requestHandler: Globals.getRequestHandler(),
+      endpoint: Globals.getServiceEndpoint("apigateway")
     });
   }
 

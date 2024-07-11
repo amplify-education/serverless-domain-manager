@@ -31,7 +31,8 @@ class CloudFormationWrapper {
       credentials,
       region: Globals.getRegion(),
       retryStrategy: Globals.getRetryStrategy(),
-      requestHandler: Globals.getRequestHandler()
+      requestHandler: Globals.getRequestHandler(),
+      endpoint: Globals.getServiceEndpoint("cloudformation")
     });
   }
 

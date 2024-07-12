@@ -68,9 +68,11 @@ export default class Globals {
     }
 
     public static getServiceEndpoint (service: string) {
-      if (!Globals.serverless.providers.aws.sdk) return null;
-      const config = Globals.serverless.providers.aws.sdk.config;
-      return config[service].endpoint || null;
+      if (Globals.serverless.providers.aws.sdk) {
+        const serviceConf = Globals.serverless.providers.aws.sdk.config[service];
+        return serviceConf.endpoint || null;
+      }
+      return null;
     }
 
     public static getRegion () {

@@ -48,7 +48,8 @@ const constructPlugin = (domainConfig, options?: ServerlessOptions, v3Utils?: Se
     },
     providers: {
       aws: {
-        getCredentials: () => null
+        getCredentials: () => null,
+        sdk: null
       }
     },
     service: {

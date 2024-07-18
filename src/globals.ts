@@ -67,6 +67,14 @@ export default class Globals {
       return Globals.options.stage || Globals.serverless.service.provider.stage;
     }
 
+    public static getServiceEndpoint (service: string) {
+      if (Globals.serverless.providers.aws.sdk) {
+        const serviceConf = Globals.serverless.providers.aws.sdk.config[service];
+        return serviceConf.endpoint || null;
+      }
+      return null;
+    }
+
     public static getRegion () {
       const slsRegion = Globals.options.region || Globals.serverless.service.provider.region;
       return slsRegion || Globals.currentRegion || Globals.defaultRegion;

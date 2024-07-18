@@ -26,7 +26,8 @@ class ACMWrapper {
       credentials,
       region: isEdge ? Globals.defaultRegion : Globals.getRegion(),
       retryStrategy: Globals.getRetryStrategy(),
-      requestHandler: Globals.getRequestHandler()
+      requestHandler: Globals.getRequestHandler(),
+      endpoint: Globals.getServiceEndpoint("acm")
     });
   }
 

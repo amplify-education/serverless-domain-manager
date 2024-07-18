@@ -17,20 +17,23 @@ class Route53Wrapper {
 
   constructor (credentials?: any, region?: string) {
     // not null and not undefined
+    const serviceEndpoint = Globals.getServiceEndpoint("route53");
     if (credentials) {
       this.region = region || Globals.getRegion();
       this.route53 = new Route53Client({
         credentials,
         region: this.region,
         retryStrategy: Globals.getRetryStrategy(),
-        requestHandler: Globals.getRequestHandler()
+        requestHandler: Globals.getRequestHandler(),
+        endpoint: serviceEndpoint
       });
     } else {
       this.region = Globals.getRegion();
       this.route53 = new Route53Client({
         region: this.region,
         retryStrategy: Globals.getRetryStrategy(),
-        requestHandler: Globals.getRequestHandler()
+        requestHandler: Globals.getRequestHandler(),
+        endpoint: serviceEndpoint
       });
     }
   }
@@ -59,7 +62,7 @@ class Route53Wrapper {
         "NextMarker",
         new ListHostedZonesCommand({})
       );
-      Logging.logInfo(`Founded hosted zones list: ${hostedZones.map((zone) => zone.Name)}.`);
+      Logging.logInfo(`Found hosted zones list: ${hostedZones.map((zone) => zone.Name)}.`);
     } catch (err) {
       throw new Error(`Unable to list hosted zones in Route53.\n${err.message}`);
     }

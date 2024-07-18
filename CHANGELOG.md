@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Updated Cloudformation find API id error message
 
+## [7.4.0] - 2024-07-18
+
+### Added 
+- Updated `peerDependencies` to support Serverless Framework v4. Thank you @czubocha ([633](https://github.com/amplify-education/serverless-domain-manager/pull/633))
+
+### Fixed
+- Fixed domain deleting when fail on not exist stack. Thank you @0vvland ([627](https://github.com/amplify-education/serverless-domain-manager/pull/627))
+- Added a fix to work with the LocalStack. Thank you @circulon ([634](https://github.com/amplify-education/serverless-domain-manager/pull/634))
+- Updated packages
+
+## [7.3.8] - 2023-03-07
+
+### Fixed
+- Updated Cloudformation find API id error message
+
 ## [7.3.7] - 2023-03-06
 
 ### Fixed

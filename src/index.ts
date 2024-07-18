@@ -408,6 +408,9 @@ class ServerlessCustomDomain {
             `Unable to remove base path mappings for '${domain.givenDomainName}':\n${err.message}`
           );
         }
+        if (domain.preserveExternalPathMappings) {
+          externalBasePathExists = true;
+        }
       }
 
       if (domain.autoDomain === true && !externalBasePathExists) {

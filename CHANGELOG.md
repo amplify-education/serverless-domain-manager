@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [7.4.0] - 2024-07-22
+## [7.4.0] - 2024-08-28
 
 ### Added 
 - Updated `peerDependencies` to support Serverless Framework v4. Thank you @czubocha ([633](https://github.com/amplify-education/serverless-domain-manager/pull/633))

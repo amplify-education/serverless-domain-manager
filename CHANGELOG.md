@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+## [7.4.0] - 2024-08-28
+
+### Added 
+- Updated `peerDependencies` to support Serverless Framework v4. Thank you @czubocha ([633](https://github.com/amplify-education/serverless-domain-manager/pull/633))
+
+### Fixed
+- Fixed domain deleting when fail on not exist stack. Thank you @0vvland ([627](https://github.com/amplify-education/serverless-domain-manager/pull/627))
+- Added a fix to work with the LocalStack. Thank you @circulon ([634](https://github.com/amplify-education/serverless-domain-manager/pull/634))
+- Updated packages
+
 ## [7.3.8] - 2023-03-07
 
 ### Fixed

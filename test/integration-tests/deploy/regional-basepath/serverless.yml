@@ -1,5 +1,8 @@
 # Enabled with regional endpoint, custom basePath
 service: ${env:PLUGIN_IDENTIFIER}-regional-basepath-${env:RANDOM_STRING}
+
+frameworkVersion: '4.4.7'
+
 provider:
   name: aws
   iam:

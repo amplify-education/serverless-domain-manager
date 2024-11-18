@@ -1,5 +1,8 @@
 # Enabled with custom basepath
 service: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}
+
+frameworkVersion: '4.4.7'
+
 provider:
   name: aws
   iam:

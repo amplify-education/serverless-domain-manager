@@ -1,6 +1,8 @@
 # APIGateway with export outputs
 service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
 
+frameworkVersion: '4.4.7'
+
 provider:
   name: aws
   iam:

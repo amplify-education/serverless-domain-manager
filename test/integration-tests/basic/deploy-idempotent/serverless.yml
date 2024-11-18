@@ -1,5 +1,8 @@
 # Deploying should be idempotent
 service: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent-${env:RANDOM_STRING}
+
+frameworkVersion: '4.4.7'
+
 provider:
   name: aws
   iam:

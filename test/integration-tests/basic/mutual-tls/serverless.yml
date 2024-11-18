@@ -1,4 +1,7 @@
 service: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}
+
+frameworkVersion: '4.4.7'
+
 provider:
   name: aws
   iam:

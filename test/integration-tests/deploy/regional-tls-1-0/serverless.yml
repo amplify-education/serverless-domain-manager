@@ -1,7 +1,7 @@
 # Test regional domains with TLS 1.0
 service: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}
 
-frameworkVersion: "4.2.5"
+frameworkVersion: "4.4.6"
 
 provider:
   name: aws

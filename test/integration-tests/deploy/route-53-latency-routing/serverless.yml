@@ -1,6 +1,6 @@
 service: ${env:PLUGIN_IDENTIFIER}-route-53-latency-routing-${env:RANDOM_STRING}
 
-frameworkVersion: "4.2.5"
+frameworkVersion: "4.4.6"
 
 provider:
   name: aws

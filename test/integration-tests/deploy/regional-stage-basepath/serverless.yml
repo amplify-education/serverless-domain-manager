@@ -1,7 +1,7 @@
 # Enabled with regional endpoint, custom stage, empty basepath
 service: ${env:PLUGIN_IDENTIFIER}-regional-stage-basepath-${env:RANDOM_STRING}
 
-frameworkVersion: "4.2.5"
+frameworkVersion: "4.4.6"
 
 provider:
   name: aws

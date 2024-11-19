@@ -1,7 +1,7 @@
 # APIGateway with import other CloudFormation stack outputs
 service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-import-${env:RANDOM_STRING}
 
-frameworkVersion: '4.3.3'
+frameworkVersion: "4.3.3"
 
 provider:
   name: aws

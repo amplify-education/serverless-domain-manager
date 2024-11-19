@@ -1,7 +1,7 @@
 # Creating a domain should be idempotent
 service: ${env:PLUGIN_IDENTIFIER}-route53-profile-${env:RANDOM_STRING}
 
-frameworkVersion: '4.3.3'
+frameworkVersion: "4.3.3"
 
 provider:
   name: aws

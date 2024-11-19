@@ -1,7 +1,7 @@
 # Enabled with custom basepath
 service: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}
 
-frameworkVersion: "4.4.6"
+frameworkVersion: "4.2.5"
 
 provider:
   name: aws

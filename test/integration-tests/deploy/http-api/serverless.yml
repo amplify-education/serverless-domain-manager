@@ -1,6 +1,6 @@
 service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
 
-frameworkVersion: "4.3.3"
+frameworkVersion: "4.2.5"
 
 provider:
   name: aws

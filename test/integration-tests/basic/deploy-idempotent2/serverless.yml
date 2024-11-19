@@ -1,7 +1,7 @@
 # Deploying should be idempotent for the same domain and different paths
 service: ${env:PLUGIN_IDENTIFIER}-deploy-idempotent2-${env:RANDOM_STRING}
 
-frameworkVersion: "4.3.3"
+frameworkVersion: "4.2.5"
 
 provider:
   name: aws

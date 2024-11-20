@@ -48,7 +48,7 @@ export default class Globals {
   public static CFFuncNames = {
     fnImport: "Fn::ImportValue",
     ref: "Ref"
-  }
+  };
 
   /* eslint camelcase: ["error", {allow: ["^tls_"]}] */
   public static tlsVersions = {

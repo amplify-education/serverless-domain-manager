@@ -1,5 +1,5 @@
 # Test regional domains with TLS 1.0
-service: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0
 
 frameworkVersion: "4.2.5"
 
@@ -24,7 +24,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-regional-tls-1-0.${env:TEST_DOMAIN}
     securityPolicy: tls_1_0
     endpointType: REGIONAL
 

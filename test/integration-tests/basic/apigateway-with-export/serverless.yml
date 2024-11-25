@@ -1,5 +1,5 @@
 # APIGateway with export outputs
-service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export
 
 frameworkVersion: "4.2.5"
 
@@ -27,7 +27,7 @@ resources:
       Value:
         Ref: ApiGatewayRestApi # Logical ID
       Export:
-        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-restApiId
+        Name: api-${self:provider.stage}-restApiId
     RootResource:
       Description: Main service's API Gateway Root Resource ID
       Value:
@@ -35,7 +35,7 @@ resources:
           - ApiGatewayRestApi # Logical ID
           - RootResourceId # Logical ID
       Export:
-        Name: api-${self:provider.stage}-${env:RANDOM_STRING}-RootResourceId
+        Name: api-${self:provider.stage}-RootResourceId
 
 plugins:
   - serverless-domain-manager
@@ -43,7 +43,7 @@ plugins:
 custom:
   customDomain:
     stage: ${self:provider.stage}
-    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world
     endpointType: REGIONAL

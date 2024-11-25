@@ -1,5 +1,5 @@
 # APIGateway with import other CloudFormation stack outputs
-service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-import-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-apigateway-with-import
 
 frameworkVersion: "4.2.5"
 
@@ -12,9 +12,9 @@ provider:
   stage: test
   apiGateway:
     restApiId:
-      Fn::ImportValue: api-${self:provider.stage}-${env:RANDOM_STRING}-restApiId
+      Fn::ImportValue: api-${self:provider.stage}-restApiId
     restApiRootResourceId:
-      Fn::ImportValue: api-${self:provider.stage}-${env:RANDOM_STRING}-RootResourceId
+      Fn::ImportValue: api-${self:provider.stage}-RootResourceId
 functions:
   helloWorld:
     handler: handler.helloWorld

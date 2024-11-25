@@ -1,5 +1,5 @@
 # Enabled with default values
-service: ${env:PLUGIN_IDENTIFIER}-custom-apigateway-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-custom-apigateway
 
 frameworkVersion: "4.2.5"
 
@@ -27,7 +27,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-custom-apigateway-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-custom-apigateway.${env:TEST_DOMAIN}
 
 package:
   patterns:

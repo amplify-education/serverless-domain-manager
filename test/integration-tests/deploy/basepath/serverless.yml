@@ -1,5 +1,5 @@
 # Enabled with custom basepath
-service: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-basepath
 
 frameworkVersion: "4.2.5"
 
@@ -22,7 +22,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-basepath.${env:TEST_DOMAIN}
     basePath: 'api'
 
 package:

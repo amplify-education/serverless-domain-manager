@@ -1,4 +1,4 @@
-service: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-mutual-tls
 
 frameworkVersion: "4.2.5"
 
@@ -22,7 +22,7 @@ plugins:
 
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-mutual-tls-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-mutual-tls.${env:TEST_DOMAIN}
     autoDomain: true
     endpointType: REGIONAL
     tlsTruststoreUri: ${env:TLS_TRUSTSTORE_URI}

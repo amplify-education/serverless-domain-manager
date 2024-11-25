@@ -1,5 +1,5 @@
 # Enabled and testing basepath mapping
-service: ${env:PLUGIN_IDENTIFIER}-basepath-mapping-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-basepath-mapping
 
 frameworkVersion: "4.2.5"
 
@@ -27,7 +27,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-mapping-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-mapping.${env:TEST_DOMAIN}
     basePath: 'api'
 
 package:

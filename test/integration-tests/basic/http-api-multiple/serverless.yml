@@ -1,4 +1,4 @@
-service: ${env:PLUGIN_IDENTIFIER}-http-api-${env:RANDOM_STRING}
+service: ${env:PLUGIN_IDENTIFIER}-http-api
 
 frameworkVersion: "4.2.5"
 
@@ -26,12 +26,12 @@ plugins:
 custom:
   customDomains:
     - http:
-        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-multi.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: REGIONAL
         autoDomain: true
     - http:
-        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+        domainName: ${env:PLUGIN_IDENTIFIER}-http-api-milti2.${env:TEST_DOMAIN}
         basePath: ''
         endpointType: REGIONAL
         autoDomain: true

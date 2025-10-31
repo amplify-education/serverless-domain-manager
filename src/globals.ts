@@ -23,7 +23,8 @@ export default class Globals {
 
   public static endpointTypes = {
     edge: "EDGE",
-    regional: "REGIONAL"
+    regional: "REGIONAL",
+    private: "PRIVATE"
   };
 
   public static apiTypes = {

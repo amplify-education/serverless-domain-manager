@@ -17,6 +17,9 @@ import {
   GetBasePathMappingsCommandOutput,
   GetDomainNameCommand,
   GetDomainNameCommandOutput,
+  GetDomainNamesCommand,
+  GetDomainNamesCommandInput,
+  GetDomainNamesCommandOutput,
   UpdateBasePathMappingCommand
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
@@ -54,7 +57,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     };
 
     const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-    if (isEdgeType) {
+    const isPrivateType = domain.endpointType === Globals.endpointTypes.private;
+    if (isEdgeType || isPrivateType) {
       params.certificateArn = domain.certificateArn;
     } else {
       params.regionalCertificateArn = domain.certificateArn;
@@ -88,12 +92,36 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
    * @param silent: To issue an error or not. Not by default.
    */
   public async getCustomDomain (domain: DomainConfig, silent: boolean = true): Promise<DomainInfo> {
+    const isPrivateType = domain.endpointType === Globals.endpointTypes.private;
+    
+    // For private domains, we need to fetch domainNameId first
+    let domainNameId: string | undefined;
+    if (isPrivateType) {
+      domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      if (!domainNameId) {
+        if (!silent) {
+          throw new Error(
+            `V1 - Unable to find domainNameId for private domain '${domain.givenDomainName}'`
+          );
+        }
+        Logging.logWarning(`V1 - '${domain.givenDomainName}' does not exist or is not a private domain.`);
+        return;
+      }
+    }
+
     // Make API call
     try {
+      const commandParams: any = {
+        domainName: domain.givenDomainName
+      };
+      
+      // Add domainNameId for private domains
+      if (isPrivateType && domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
       const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
-        new GetDomainNameCommand({
-          domainName: domain.givenDomainName
-        })
+        new GetDomainNameCommand(commandParams)
       );
       return new DomainInfo(domainInfo);
     } catch (err) {
@@ -106,12 +134,59 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     }
   }
 
+  /**
+   * Helper method to get domainNameId for private custom domains
+   * First checks domainInfo if available, otherwise fetches it
+   * @param domain: DomainConfig
+   * @returns Promise<string | undefined> The domainNameId if found, undefined otherwise
+   */
+  private async getDomainNameIdForPrivateDomain (domain: DomainConfig): Promise<string | undefined> {
+    const isPrivateType = domain.endpointType === Globals.endpointTypes.private;
+    if (!isPrivateType) {
+      return undefined;
+    }
+
+    // First try to get it from domainInfo if available
+    if (domain.domainInfo?.domainNameId) {
+      return domain.domainInfo.domainNameId;
+    }
+
+    // Otherwise, fetch it by listing domains
+    try {
+      const items = await getAWSPagedResults<{ domainName: string; domainNameId?: string; endpointConfiguration?: { types?: string[] } }, GetDomainNamesCommandInput, GetDomainNamesCommandOutput>(
+        this.apiGateway,
+        "items",
+        "position",
+        "position",
+        new GetDomainNamesCommand({})
+      );
+      
+      const matchingDomain = items.find(
+        (item) => item.domainName === domain.givenDomainName && 
+                  item.endpointConfiguration?.types?.includes(Globals.endpointTypes.private)
+      );
+      
+      return matchingDomain?.domainNameId;
+    } catch (err) {
+      Logging.logWarning(`V1 - Unable to list domain names to find domainNameId: ${err.message}`);
+      return undefined;
+    }
+  }
+
   public async deleteCustomDomain (domain: DomainConfig): Promise<void> {
     // Make API call
     try {
-      await this.apiGateway.send(new DeleteDomainNameCommand({
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const commandParams: any = {
         domainName: domain.givenDomainName
-      }));
+      };
+      
+      // Add domainNameId for private domains
+      if (domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
+      await this.apiGateway.send(new DeleteDomainNameCommand(commandParams));
     } catch (err) {
       throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
     }
@@ -119,12 +194,20 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
   public async createBasePathMapping (domain: DomainConfig): Promise<void> {
     try {
-      await this.apiGateway.send(new CreateBasePathMappingCommand({
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const commandParams: any = {
         basePath: domain.basePath,
         domainName: domain.givenDomainName,
         restApiId: domain.apiId,
         stage: domain.stage
-      }));
+      };
+      
+      // Add domainNameId for private domains
+      if (domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
+      await this.apiGateway.send(new CreateBasePathMappingCommand(commandParams));
       Logging.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
     } catch (err) {
       throw new Error(
@@ -135,14 +218,22 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
   public async getBasePathMappings (domain: DomainConfig): Promise<ApiGatewayMap[]> {
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const commandParams: any = {
+        domainName: domain.givenDomainName
+      };
+      
+      // Add domainNameId for private domains
+      if (domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
       const items = await getAWSPagedResults<BasePathMapping, GetBasePathMappingsCommandInput, GetBasePathMappingsCommandOutput>(
         this.apiGateway,
         "items",
         "position",
         "position",
-        new GetBasePathMappingsCommand({
-          domainName: domain.givenDomainName
-        })
+        new GetBasePathMappingsCommand(commandParams)
       );
       return items.map((item) => {
         return new ApiGatewayMap(item.restApiId, item.basePath, item.stage, null);
@@ -159,7 +250,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     Logging.logInfo(`V1 - Updating API mapping from '${domain.apiMapping.basePath}'
             to '${domain.basePath}' for '${domain.givenDomainName}'`);
     try {
-      await this.apiGateway.send(new UpdateBasePathMappingCommand({
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const commandParams: any = {
         basePath: domain.apiMapping.basePath,
         domainName: domain.givenDomainName,
         patchOperations: [{
@@ -167,7 +259,14 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
           path: "/basePath",
           value: domain.basePath
         }]
-      }));
+      };
+      
+      // Add domainNameId for private domains
+      if (domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
+      await this.apiGateway.send(new UpdateBasePathMappingCommand(commandParams));
     } catch (err) {
       throw new Error(
         `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
@@ -177,11 +276,19 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
 
   public async deleteBasePathMapping (domain: DomainConfig): Promise<void> {
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const commandParams: any = {
+        basePath: domain.apiMapping.basePath,
+        domainName: domain.givenDomainName
+      };
+      
+      // Add domainNameId for private domains
+      if (domainNameId) {
+        commandParams.domainNameId = domainNameId;
+      }
+
       await this.apiGateway.send(
-        new DeleteBasePathMappingCommand({
-          basePath: domain.apiMapping.basePath,
-          domainName: domain.givenDomainName
-        })
+        new DeleteBasePathMappingCommand(commandParams)
       );
       Logging.logInfo(`V1 - Removed '${domain.apiMapping.basePath}' base path mapping`);
     } catch (err) {

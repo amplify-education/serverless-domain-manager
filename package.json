@@ -1,8 +1,8 @@
 {
   "name": "serverless-domain-manager",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "description": "Serverless plugin for managing custom domains with API Gateways.",
   "author": "Amplify Education Inc",
@@ -32,7 +32,7 @@
     "test": "find ./test/unit-tests -name '*.test.ts' | xargs nyc mocha -r ts-node/register --project tsconfig.json --timeout 5000 && nyc report --reporter=text-summary",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
     "integration-test": "npm run integration-basic && npm run integration-deploy",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --project .",
     "prepare": "npm run build"
@@ -49,23 +49,24 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/chai": "^4.3.20",
     "@types/chai-spies": "^1.0.6",
-    "@types/mocha": "^10.0.9",
-    "@types/node": "^22.9.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.7",
     "@types/randomstring": "^1.3.0",
     "@types/shelljs": "^0.8.15",
-    "@typescript-eslint/eslint-plugin": "^8.14.0",
-    "@typescript-eslint/parser": "^8.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
     "aws-sdk-client-mock": "^4.1.0",
     "chai": "^4.5.0",
     "chai-spies": "^1.1.0",
-    "eslint": "^8.57.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.6.0",
-    "mocha": "^10.8.2",
+    "eslint": "^9.17.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^17.15.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "globals": "^15.14.0",
+    "mocha": "^11.7.5",
     "mocha-param": "^2.0.1",
     "nyc": "^17.1.0",
     "randomstring": "^1.3.0",
@@ -73,23 +74,23 @@
     "serverless-plugin-split-stacks": "^1.14.0",
     "shelljs": "^0.8.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@aws-sdk/client-acm": "^3.693.0",
-    "@aws-sdk/client-api-gateway": "^3.693.0",
-    "@aws-sdk/client-apigatewayv2": "^3.693.0",
-    "@aws-sdk/client-cloudformation": "^3.693.0",
-    "@aws-sdk/client-route-53": "^3.693.0",
-    "@aws-sdk/client-s3": "^3.693.0",
-    "@aws-sdk/credential-providers": "^3.693.0",
-    "@smithy/config-resolver": "^3.0.12",
-    "@smithy/node-config-provider": "^3.1.11",
-    "@smithy/node-http-handler": "^3.3.1",
-    "@smithy/smithy-client": "^3.4.4",
-    "@smithy/types": "^3.7.1",
-    "@smithy/util-retry": "^3.0.10",
-    "proxy-agent": "^6.4.0"
+    "@aws-sdk/client-acm": "^3.899.0",
+    "@aws-sdk/client-api-gateway": "^3.899.0",
+    "@aws-sdk/client-apigatewayv2": "^3.899.0",
+    "@aws-sdk/client-cloudformation": "^3.899.0",
+    "@aws-sdk/client-route-53": "^3.899.0",
+    "@aws-sdk/client-s3": "^3.899.0",
+    "@aws-sdk/credential-providers": "^3.899.0",
+    "@smithy/config-resolver": "^4.4.6",
+    "@smithy/node-config-provider": "^4.3.8",
+    "@smithy/node-http-handler": "^4.4.8",
+    "@smithy/smithy-client": "^4.10.12",
+    "@smithy/types": "^4.12.0",
+    "@smithy/util-retry": "^4.2.8",
+    "proxy-agent": "^6.5.0"
   },
   "peerDependencies": {
     "serverless": ">=3"

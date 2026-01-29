@@ -1,56 +1,24 @@
 "use strict";
 
-import { spawn } from "child_process";
+import { exec as execCmd } from "child_process";
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Executes given shell command.
- * This function is only used internally by integration tests with hardcoded commands.
- * No user input is passed to these commands.
+ * Executes given shell command (internal test utility, no user input).
  * @param cmd shell command to execute
- * @returns {Promise<string>} Resolves with stdout if successfully executed, else rejects with stderr
+ * @returns {Promise<string>} Resolves with stdout if successful, rejects with stderr
  */
 async function exec (cmd: string): Promise<string> {
-  // Validate that cmd is a non-empty string (defense in depth for internal test code)
-  if (typeof cmd !== "string" || cmd.trim().length === 0) {
-    throw new Error("Command must be a non-empty string");
-  }
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
-    // NOSONAR: shell is required for command chaining (&&) and subshells $(pwd).
-    // This is internal test code with no external user input.
-    const child = spawn(cmd, {
-      shell: true, // NOSONAR
-      stdio: ["inherit", "pipe", "pipe"],
-      env: { ...process.env }
-    });
-
-    let stdout = "";
-    let stderr = "";
-
-    child.stdout?.on("data", (data) => {
-      const str = data.toString();
-      stdout += str;
-      process.stdout.write(str);
-    });
-
-    child.stderr?.on("data", (data) => {
-      const str = data.toString();
-      stderr += str;
-      process.stderr.write(str);
-    });
-
-    child.on("close", (code) => {
-      if (code !== 0) {
-        return reject(stderr || `Command failed with exit code ${code}`);
+    // NOSONAR: shell needed for && and $(pwd); internal test code only
+    execCmd(cmd, { env: { ...process.env } }, (error, stdout, stderr) => {
+      if (error) {
+        return reject(stderr || error.message);
       }
       return resolve(stdout);
-    });
-
-    child.on("error", (error) => {
-      reject(error.message);
     });
   });
 }

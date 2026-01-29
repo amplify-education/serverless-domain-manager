@@ -7,14 +7,22 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Executes given shell command.
+ * This function is only used internally by integration tests with hardcoded commands.
+ * No user input is passed to these commands.
  * @param cmd shell command to execute
  * @returns {Promise<string>} Resolves with stdout if successfully executed, else rejects with stderr
  */
 async function exec (cmd: string): Promise<string> {
+  // Validate that cmd is a non-empty string (defense in depth for internal test code)
+  if (typeof cmd !== "string" || cmd.trim().length === 0) {
+    throw new Error("Command must be a non-empty string");
+  }
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
+    // NOSONAR: shell is required for command chaining (&&) and subshells $(pwd).
+    // This is internal test code with no external user input.
     const child = spawn(cmd, {
-      shell: true,
+      shell: true, // NOSONAR
       stdio: ["inherit", "pipe", "pipe"],
       env: { ...process.env }
     });

@@ -109,7 +109,7 @@ async function destroyResources (url?) {
     console.log(`\tCleaning Up Resources for ${url}`);
     await slsRemove(TEMP_DIR, true);
     console.log("\tslsDeleteDomain");
-    // await slsDeleteDomain(TEMP_DIR, true);
+    await slsDeleteDomain(TEMP_DIR, true);
     console.log("\trm -rf");
     await exec(`rm -rf ${TEMP_DIR}`);
     console.log("\tResources Cleaned Up");

@@ -1,6 +1,6 @@
 "use strict";
 
-import { exec as execCmd } from "child_process";
+import { spawn } from "child_process";
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,12 +13,29 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function exec (cmd: string): Promise<string> {
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
+    let stdout = "";
+    let stderr = "";
     // NOSONAR: shell needed for && and $(pwd); internal test code only
-    execCmd(cmd, { env: { ...process.env } }, (error, stdout, stderr) => {
-      if (error) {
-        return reject(stderr || error.message);
+    const child = spawn(cmd, { shell: true, env: { ...process.env } });
+
+    child.stdout.on("data", (data) => {
+      stdout += data;
+      process.stdout.write(data);
+    });
+
+    child.stderr.on("data", (data) => {
+      stderr += data;
+      process.stderr.write(data);
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        console.error(`\n\x1b[31m✖ Command failed with exit code ${code}\x1b[0m`);
+        console.error(`\x1b[31m  Command: ${cmd}\x1b[0m`);
+        if (stderr) console.error(`\x1b[31m  Error: ${stderr}\x1b[0m`);
+        return reject(new Error(stderr || `Exit code ${code}`));
       }
-      return resolve(stdout);
+      resolve(stdout);
     });
   });
 }
@@ -35,6 +52,7 @@ async function createTempDir (tempDir, folderName) {
   await exec(`ln -s $(pwd) ${tempDir}/node_modules/`);
 
   await exec(`ln -s $(pwd)/node_modules/serverless ${tempDir}/node_modules/`);
+  await exec(`ln -s $(pwd)/node_modules/serverless-plugin-split-stacks ${tempDir}/node_modules/`);
   // we use npx running the local serverless in case not exists the global serverless will be used
   await exec(`ln -s $(pwd)/node_modules/serverless/bin/serverless.js ${tempDir}/node_modules/.bin/serverless`);
 }

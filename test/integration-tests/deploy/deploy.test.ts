@@ -1,7 +1,6 @@
 import "mocha";
 import chai = require("chai");
 import itParam = require("mocha-param");
-import shell = require("shelljs");
 import utilities = require("../test-utilities");
 import APIGatewayWrap from "../apigateway";
 import { TEST_DOMAIN, PLUGIN_IDENTIFIER, RANDOM_STRING } from "../base";
@@ -139,8 +138,8 @@ describe("Integration Tests", function () {
       if (value.restApiName) {
         restApiInfo = await apiGatewayClient.setupApiGatewayResources(value.restApiName);
 
-        shell.env.REST_API_ID = restApiInfo.restApiId;
-        shell.env.RESOURCE_ID = restApiInfo.resourceId;
+        process.env.REST_API_ID = restApiInfo.restApiId;
+        process.env.RESOURCE_ID = restApiInfo.resourceId;
       }
       try {
         await utilities.createResources(value.testFolder, value.testDomain);
@@ -157,8 +156,8 @@ describe("Integration Tests", function () {
         if (value.restApiName) {
           await apiGatewayClient.deleteApiGatewayResources(restApiInfo.restApiId);
 
-          delete shell.env.REST_API_ID;
-          delete shell.env.RESOURCE_ID;
+          delete process.env.REST_API_ID;
+          delete process.env.RESOURCE_ID;
         }
       }
     });

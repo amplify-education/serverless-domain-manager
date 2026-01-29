@@ -1,6 +1,6 @@
 "use strict";
 
-import shell = require("shelljs");
+import { spawn } from "child_process";
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -8,16 +8,41 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * Executes given shell command.
  * @param cmd shell command to execute
- * @returns {Promise<void>} Resolves if successfully executed, else rejects
+ * @returns {Promise<string>} Resolves with stdout if successfully executed, else rejects with stderr
  */
-async function exec (cmd) {
+async function exec (cmd: string): Promise<string> {
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
-    shell.exec(cmd, { silent: false }, (errCode, stdout, stderr) => {
-      if (errCode) {
-        return reject(stderr);
+    const child = spawn(cmd, {
+      shell: true,
+      stdio: ["inherit", "pipe", "pipe"],
+      env: { ...process.env }
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout?.on("data", (data) => {
+      const str = data.toString();
+      stdout += str;
+      process.stdout.write(str);
+    });
+
+    child.stderr?.on("data", (data) => {
+      const str = data.toString();
+      stderr += str;
+      process.stderr.write(str);
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        return reject(stderr || `Command failed with exit code ${code}`);
       }
       return resolve(stdout);
+    });
+
+    child.on("error", (error) => {
+      reject(error.message);
     });
   });
 }

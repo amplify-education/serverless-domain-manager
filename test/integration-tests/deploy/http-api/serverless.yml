@@ -20,7 +20,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-http-api.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-http-api${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     endpointType: REGIONAL
     apiType: http
     # the stage should be set to $default for the base path (none)

@@ -22,7 +22,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-stage-basepath.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-stage-basepath${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     stage: test
     basePath: ''
 

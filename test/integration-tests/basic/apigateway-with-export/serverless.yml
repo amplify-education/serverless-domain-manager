@@ -43,7 +43,7 @@ plugins:
 custom:
   customDomain:
     stage: ${self:provider.stage}
-    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-apigateway-with-export${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     autoDomain: true
     basePath: hello-world
     endpointType: REGIONAL

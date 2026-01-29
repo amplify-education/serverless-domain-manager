@@ -1,6 +1,6 @@
 "use strict";
 
-import { exec as execCallback } from "child_process";
+import shell = require("shelljs");
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,8 +13,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function exec (cmd) {
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
-    execCallback(cmd, (error, stdout, stderr) => {
-      if (error) {
+    shell.exec(cmd, { silent: false }, (errCode, stdout, stderr) => {
+      if (errCode) {
         return reject(stderr);
       }
       return resolve(stdout);
@@ -63,19 +63,21 @@ async function slsDeploy (tempDir, debug: boolean = false) {
 /**
  * Runs `sls delete_domain` for the given folder
  * @param tempDir
+ * @param debug
  * @returns {Promise<void>}
  */
-function slsDeleteDomain (tempDir) {
-  return exec(`cd ${tempDir} && npx serverless delete_domain`);
+function slsDeleteDomain (tempDir, debug: boolean = false) {
+  return exec(`cd ${tempDir} && npx serverless delete_domain` + (debug ? " --verbose" : ""));
 }
 
 /**
  * Runs `sls remove` for the given folder
  * @param tempDir
+ * @param debug
  * @returns {Promise<void>}
  */
-function slsRemove (tempDir) {
-  return exec(`cd ${tempDir} && npx serverless remove`);
+function slsRemove (tempDir, debug: boolean = false) {
+  return exec(`cd ${tempDir} && npx serverless remove` + (debug ? " --verbose" : ""));
 }
 
 /**
@@ -88,8 +90,8 @@ async function createResources (folderName, url) {
   console.debug(`\tCreating Resources for ${url} \tUsing tmp directory ${TEMP_DIR}`);
   try {
     await createTempDir(TEMP_DIR, folderName);
-    await slsCreateDomain(TEMP_DIR);
-    await slsDeploy(TEMP_DIR);
+    await slsCreateDomain(TEMP_DIR, true);
+    await slsDeploy(TEMP_DIR, true);
     console.debug("\tResources Created");
   } catch (e) {
     console.debug("\tResources Failed to Create");
@@ -104,9 +106,9 @@ async function createResources (folderName, url) {
 async function destroyResources (url?) {
   try {
     console.log(`\tCleaning Up Resources for ${url}`);
-    await slsRemove(TEMP_DIR);
+    await slsRemove(TEMP_DIR, true);
     console.log("\tslsDeleteDomain");
-    await slsDeleteDomain(TEMP_DIR);
+    // await slsDeleteDomain(TEMP_DIR, true);
     console.log("\trm -rf");
     await exec(`rm -rf ${TEMP_DIR}`);
     console.log("\tResources Cleaned Up");

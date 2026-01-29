@@ -20,7 +20,7 @@ plugins:
 custom:
   customDomain:
     websocket:
-      domainName: ${env:PLUGIN_IDENTIFIER}-web-socket${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+      domainName: ${env:PLUGIN_IDENTIFIER}-web-socket-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
       basePath: ''
       endpointType: REGIONAL
 

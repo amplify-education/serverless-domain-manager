@@ -23,7 +23,7 @@ plugins:
   - serverless-plugin-split-stacks
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-nested-stack${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-basepath-nested-stack-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: 'api'
     stage: ${self:provider.stage}
     createRoute53Record: true

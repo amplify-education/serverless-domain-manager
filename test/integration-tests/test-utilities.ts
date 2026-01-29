@@ -1,6 +1,6 @@
 "use strict";
 
-import shell = require("shelljs");
+import { exec as execCallback } from "child_process";
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,8 +13,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function exec (cmd) {
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
-    shell.exec(cmd, { silent: false }, (errCode, stdout, stderr) => {
-      if (errCode) {
+    execCallback(cmd, (error, stdout, stderr) => {
+      if (error) {
         return reject(stderr);
       }
       return resolve(stdout);

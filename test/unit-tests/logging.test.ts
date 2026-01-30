@@ -81,7 +81,7 @@ describe("Logging checks", () => {
       });
 
       Logging.printDomainSummary([dc]);
-      expect(consoleOutput[3]).to.equal("Serverless Domain Manager");
+      expect(consoleOutput[3]).to.match(/^(Serverless Domain Manager - )(\{?[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}\}?)$/i);
     });
   });
 });

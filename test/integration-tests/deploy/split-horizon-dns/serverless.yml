@@ -22,7 +22,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-split-horizon-dns.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-split-horizon-dns-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     endpointType: REGIONAL
     splitHorizonDns: true
 package:

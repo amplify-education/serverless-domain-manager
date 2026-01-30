@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [9.0.0] - 2026-01-30
+
+### Changed
+- Dropped Node16 support.
+- Migrated from ESLint legacy config to flat config (eslint.config.mjs).
+- Updated packages.
+
 ## [8.0.0] - 2024-11-20
 
 ### Changed
@@ -24,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.3.8] - 2023-03-07
 
 ### Fixed
-- Updated Cloudformation find API id error message
+- Updated CloudFormation find API id error message
 
 ## [7.3.7] - 2023-03-06
 
@@ -45,7 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.3.4] - 2023-01-30
 
 ### Fixed 
-- Fixed bathPathMapping filtering with the `allowPathMatching` enabled.
+- Fixed basePathMapping filtering with the `allowPathMatching` enabled.
 
 ## [7.3.3] - 2023-12-07
 
@@ -71,7 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.2.1] - 2023-11-27
 
 ### Fixed 
-- Fixed log is undefined when plugin is added programatically
+- Fixed log is undefined when plugin is added programmatically
 - Updated packages
 
 ## [7.2.0] - 2023-11-24
@@ -268,7 +275,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with disabling createRoute53Record. Thank you @albinlundmark ([476](https://github.com/amplify-education/serverless-domain-manager/pull/476))
 
 ### Changed
-- Cleaned up getRoute53HostedZoneId. Thatnk you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
+- Cleaned up getRoute53HostedZoneId. Thank you @codyseibert ([261](https://github.com/amplify-education/serverless-domain-manager/pull/261))
 
 ## [5.4.1] - 2022-01-21
 
@@ -467,7 +474,7 @@ for up to 3 domain names in a single Serverless config. Thanks @TehNrd ([#319](h
 - Fix Travis configuration
 
 ## [3.0.1] - 2019-02-04
-- Version bump to fix NPM versioning issue that occured while testing.
+- Version bump to fix NPM versioning issue that occurred while testing.
 
 ## [3.0.0] - 2019-02-04
 

@@ -22,7 +22,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-route-53-weighted-routing-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     endpointType: REGIONAL
     route53Params:
       routingPolicy: weighted

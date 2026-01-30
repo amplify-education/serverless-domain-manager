@@ -27,7 +27,7 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: ${env:PLUGIN_IDENTIFIER}-null-basepath-mapping.${env:TEST_DOMAIN}
+    domainName: ${env:PLUGIN_IDENTIFIER}-null-basepath-mapping-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
     basePath: ''
 
 package:

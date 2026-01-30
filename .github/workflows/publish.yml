@@ -6,7 +6,7 @@ on:
 jobs:
   main:
     name: Release and publish Node package
-    runs-on: [self-hosted, account=023225265359, region=us-west-2, env=devops]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,6 +53,8 @@ jobs:
         with:
           tag_name: 'v${{ steps.extract_version.outputs.version }}'
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish new version
         if: env.VERSION_CHANGED == 'true'

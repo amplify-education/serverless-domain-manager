@@ -53,6 +53,8 @@ jobs:
         with:
           tag_name: 'v${{ steps.extract_version.outputs.version }}'
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish new version
         if: env.VERSION_CHANGED == 'true'

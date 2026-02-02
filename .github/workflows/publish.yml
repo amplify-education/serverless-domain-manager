@@ -1,8 +1,16 @@
+# https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
 name: Test, Lint, Release and Publish
+
 on:
   push:
     branches:
       - main
+
+# https://docs.npmjs.com/trusted-publishers
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   main:
     name: Release and publish Node package
@@ -58,8 +66,4 @@ jobs:
 
       - name: Publish new version
         if: env.VERSION_CHANGED == 'true'
-        # Note: Setting NODE_AUTH_TOKEN as job|workspace wide env var won't work
-        #       as it appears actions/setup-node sets own value
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --verbose

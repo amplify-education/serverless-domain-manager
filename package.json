@@ -70,20 +70,24 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@aws-sdk/client-acm": "^3.899.0",
-    "@aws-sdk/client-api-gateway": "^3.899.0",
-    "@aws-sdk/client-apigatewayv2": "^3.899.0",
-    "@aws-sdk/client-cloudformation": "^3.899.0",
-    "@aws-sdk/client-route-53": "^3.899.0",
-    "@aws-sdk/client-s3": "^3.899.0",
-    "@aws-sdk/credential-providers": "^3.899.0",
+    "@aws-sdk/client-acm": "^3.980.0",
+    "@aws-sdk/client-api-gateway": "^3.980.0",
+    "@aws-sdk/client-apigatewayv2": "^3.980.0",
+    "@aws-sdk/client-cloudformation": "^3.980.0",
+    "@aws-sdk/client-route-53": "^3.980.0",
+    "@aws-sdk/client-s3": "^3.980.0",
+    "@aws-sdk/credential-providers": "^3.980.0",
     "@smithy/config-resolver": "^4.4.6",
     "@smithy/node-config-provider": "^4.3.8",
     "@smithy/node-http-handler": "^4.4.8",
-    "@smithy/smithy-client": "^4.10.12",
+    "@smithy/smithy-client": "^4.11.1",
     "@smithy/types": "^4.12.0",
     "@smithy/util-retry": "^4.2.8",
     "proxy-agent": "^6.5.0"
+  },
+  "overrides": {
+    "fast-xml-parser": "5.3.4",
+    "diff": "8.0.3"
   },
   "peerDependencies": {
     "serverless": ">=3"

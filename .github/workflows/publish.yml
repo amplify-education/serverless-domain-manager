@@ -9,7 +9,7 @@ on:
 # https://docs.npmjs.com/trusted-publishers
 permissions:
   id-token: write  # Required for OIDC
-  contents: read
+  contents: write  # Required for the release and tag creation
 
 jobs:
   main:

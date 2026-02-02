@@ -66,4 +66,4 @@ jobs:
 
       - name: Publish new version
         if: env.VERSION_CHANGED == 'true'
-        run: npm publish --verbose
+        run: npm publish --provenance --access public --verbose

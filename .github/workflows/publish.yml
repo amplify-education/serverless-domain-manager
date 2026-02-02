@@ -6,7 +6,7 @@ on:
 jobs:
   main:
     name: Release and publish Node package
-    runs-on: [self-hosted, account=023225265359, region=us-west-2, env=devops]
+    runs-on: github-hosted-static-ip
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

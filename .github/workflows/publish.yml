@@ -8,8 +8,9 @@ on:
 
 # https://docs.npmjs.com/trusted-publishers
 permissions:
-  id-token: write  # Required for OIDC
-  contents: write  # Required for the release and tag creation
+  id-token: write    # Required for OIDC
+  contents: write    # Required for the release and tag creation
+  workflows: write   # Required for pushing workflow file changes
 
 jobs:
   main:

@@ -24,7 +24,7 @@ jobs:
       - name: Install and test
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
       - run: npm run build

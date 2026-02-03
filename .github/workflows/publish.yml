@@ -66,8 +66,6 @@ jobs:
 
       - name: Publish new version
         if: env.VERSION_CHANGED == 'true'
-        run: |
-          # Create clean .npmrc for OIDC (no auth token, just registry)
-          echo "registry=https://registry.npmjs.org/" > ~/.npmrc
-          # Publish with OIDC provenance
-          npm publish --provenance --access public --verbose
+        env:
+          NPM_CONFIG_PROVENANCE: true
+        run: npm publish --access public --verbose

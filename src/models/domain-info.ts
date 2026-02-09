@@ -34,7 +34,7 @@ class DomainInfo {
       (data.DomainNameConfigurations && data.DomainNameConfigurations[0].SecurityPolicy) ||
       this.defaultSecurityPolicy;
 
-    this.domainNameId = data.domainNameId || this.defaultDomainNameId;
+    this.domainNameId = data.domainNameId || data.DomainNameId || this.defaultDomainNameId;
   }
 }
 

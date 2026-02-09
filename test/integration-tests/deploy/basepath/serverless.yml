@@ -1,13 +1,13 @@
 # Enabled with custom basepath
 service: ${env:PLUGIN_IDENTIFIER}-basepath
 
-frameworkVersion: "4.2.5"
+frameworkVersion: "4"
 
 provider:
   name: aws
   iam:
     role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
-  runtime: nodejs18.x
+  runtime: nodejs24.x
   region: us-west-2
   stage: test
 functions:

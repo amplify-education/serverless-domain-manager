@@ -155,7 +155,7 @@ custom:
 | createRoute53IPv6Record | `true` | Toggles whether or not the plugin will create an AAAA Alias record in Route53 mapping the `domainName` to the generated distribution domain name. If false, does not create a record.                                                                                                                                                                                  |
 | route53Profile | `(none)` | Profile to use for accessing Route53 resources when Route53 records are in a different account                                                                                                                                                                                                                                                                         |
 | route53Region | `(none)` | Region to send Route53 services requests to (only applicable if also using route53Profile option)                                                                                                                                                                                                                                                                      |
-| endpointType | `EDGE` | Defines the endpoint type, accepts `PRIVATE`, `REGIONAL` or `EDGE`.                                                                                                                                                                                                                                                                                                               |
+| endpointType | `EDGE` | Defines the endpoint type, accepts `REGIONAL`, `EDGE`, or `PRIVATE`. Note: `PRIVATE` endpoints are only supported with REST APIs and can only be accessed from within a VPC. Private endpoints do not support HTTP APIs, WebSocket APIs, mutual TLS, or non-simple routing policies. |
 | apiType | rest | Defines the api type, accepts `rest`, `http` or `websocket`.                                                                                                                                                                                                                                                                                                           |
 | tlsTruststoreUri | `undefined` | An Amazon S3 url that specifies the truststore for mutual TLS authentication, for example `s3://bucket-name/key-name`. The truststore can contain certificates from public or private certificate authorities. Be aware mutual TLS is only available for `regional` APIs.                                                                                              |
 | tlsTruststoreVersion | `undefined` | The version of the S3 object that contains your truststore. To specify a version, you must have versioning enabled for the S3 bucket.                                                                                                                                                                                                                                  |
@@ -212,7 +212,9 @@ npm test
 To run integration tests, set an environment variable `TEST_DOMAIN` to the domain you will be testing for (i.e. `example.com` if creating a domain for `api.example.com`). 
 And `ROUTE53_PROFILE` for creating route53 record in one AWS account and deploy in another. Then,
 ```
+export SERVERLESS_LICENSE_KEY=<license_key>
 export TEST_DOMAIN=example.com
+export VPC_NAME=vpc_name
 export ROUTE53_PROFILE=default
 export TLS_TRUSTSTORE_URI=s3://bucket-name/key-name
 export TLS_TRUSTSTORE_VERSION=default

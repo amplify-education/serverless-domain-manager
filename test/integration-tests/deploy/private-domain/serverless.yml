@@ -1,0 +1,59 @@
+# Private custom domain integration test
+# Note: Private domains require a VPC endpoint for execute-api to be accessible
+# This test validates the domain creation and configuration, not accessibility
+service: ${env:PLUGIN_IDENTIFIER}-private-domain
+
+frameworkVersion: "4"
+
+provider:
+  name: aws
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
+  runtime: nodejs24.x
+  region: us-west-2
+  endpointType: PRIVATE
+  stage: test
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: '*'
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*
+        Condition:
+          IpAddress:
+            aws:SourceIp: ${ssm:/meta/all_internal_ips}
+
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: ${env:PLUGIN_IDENTIFIER}-private-domain-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+    basePath: 'api'
+    endpointType: PRIVATE
+    # Private domains are not publicly accessible, so we don't create Route53 records
+    createRoute53Record: false
+    createRoute53IPv6Record: false
+  vpcDiscovery:
+    vpcName: ${VPC_NAME}
+    subnets:
+      - tagKey: meta_network
+        tagValues:
+          - 'intranet'
+    securityGroups:
+      - tagKey: meta_network
+        tagValues:
+          - 'intranet'
+package:
+  patterns:
+    - '!node_modules/**'

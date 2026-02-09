@@ -3,7 +3,7 @@ import {
   APIGatewayClient, CreateBasePathMappingCommand,
   CreateDomainNameCommand, DeleteBasePathMappingCommand,
   DeleteDomainNameCommand, GetBasePathMappingsCommand,
-  GetDomainNameCommand, UpdateBasePathMappingCommand,
+  GetDomainNameCommand, GetDomainNamesCommand, UpdateBasePathMappingCommand,
   Op, EndpointType, SecurityPolicy
 } from "@aws-sdk/client-api-gateway";
 import { consoleOutput, expect, getDomainConfig } from "../base";
@@ -282,6 +282,277 @@ describe("API Gateway V1 wrapper checks", () => {
         expect(err.message).to.contains("V1 - Failed to delete custom domain");
       }
       expect(errored).to.equal(true);
+    });
+  });
+
+  describe("Private custom domain", () => {
+    it("create custom domain private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(CreateDomainNameCommand).resolves({
+        domainName: "foo",
+        domainNameId: "test_domain_name_id",
+        securityPolicy: "TLS_1_2"
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "test_basepath",
+        endpointType: Globals.endpointTypes.private,
+        securityPolicy: "tls_1_2",
+        certificateArn: "test_arn"
+      }));
+
+      const actualResult = await apiGatewayV1Wrapper.createCustomDomain(dc);
+      const expectedResult = new DomainInfo({
+        domainName: "foo",
+        domainNameId: "test_domain_name_id",
+        securityPolicy: "TLS_1_2"
+      });
+
+      expect(actualResult).to.eql(expectedResult);
+
+      const expectedParams = {
+        domainName: dc.givenDomainName,
+        endpointConfiguration: {
+          types: [EndpointType.PRIVATE]
+        },
+        securityPolicy: SecurityPolicy.TLS_1_2,
+        tags: {
+          ...Globals.serverless.service.provider.stackTags,
+          ...Globals.serverless.service.provider.tags
+        },
+        certificateArn: dc.certificateArn
+      };
+      const commandCalls = APIGatewayMock.commandCalls(CreateDomainNameCommand, expectedParams, true);
+
+      expect(commandCalls.length).to.equal(1);
+    });
+
+    it("get custom domain private with domainInfo", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        domainNameId: "test_domain_name_id",
+        regionalHostedZoneId: "test_id"
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.private
+      }));
+      // Simulate domain info already being set (e.g., from previous create)
+      dc.domainInfo = new DomainInfo({
+        domainName: "test_domain",
+        domainNameId: "test_domain_name_id"
+      });
+
+      const actualResult = await apiGatewayV1Wrapper.getCustomDomain(dc);
+      const expectedResult = new DomainInfo({
+        domainName: "test_domain",
+        domainNameId: "test_domain_name_id",
+        regionalHostedZoneId: "test_id"
+      });
+
+      expect(actualResult).to.eql(expectedResult);
+
+      // Should include domainNameId in the request
+      const commandCalls = APIGatewayMock.commandCalls(GetDomainNameCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
+    });
+
+    it("get custom domain private by listing domains", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        domainNameId: "test_domain_name_id",
+        regionalHostedZoneId: "test_id"
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.private
+      }));
+
+      const actualResult = await apiGatewayV1Wrapper.getCustomDomain(dc);
+      expect(actualResult.domainNameId).to.equal("test_domain_name_id");
+
+      // Should have called GetDomainNamesCommand to find domainNameId
+      const listCalls = APIGatewayMock.commandCalls(GetDomainNamesCommand);
+      expect(listCalls.length).to.equal(1);
+    });
+
+    it("get custom domain private not found when listing", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: []
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.private
+      }));
+
+      const result = await apiGatewayV1Wrapper.getCustomDomain(dc);
+      expect(result).to.be.undefined;
+      expect(consoleOutput[0]).to.contains("does not exist or is not a private domain");
+    });
+
+    it("delete custom domain private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(DeleteDomainNameCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.private
+      }));
+
+      await apiGatewayV1Wrapper.deleteCustomDomain(dc);
+
+      const commandCalls = APIGatewayMock.commandCalls(DeleteDomainNameCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
+    });
+
+    it("create base path mapping private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "test_basepath",
+        apiId: "test_rest_api_id",
+        endpointType: Globals.endpointTypes.private
+      }));
+
+      await apiGatewayV1Wrapper.createBasePathMapping(dc);
+
+      const commandCalls = APIGatewayMock.commandCalls(CreateBasePathMappingCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
+      expect(consoleOutput[0]).to.contains("V1 - Created API mapping");
+    });
+
+    it("get base path mapping private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(GetBasePathMappingsCommand).resolves({
+        items: [{
+          restApiId: "test_rest_api_id",
+          basePath: "test",
+          stage: "test"
+        }]
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.private
+      }));
+
+      const actualResult = await apiGatewayV1Wrapper.getBasePathMappings(dc);
+      expect(actualResult.length).to.equal(1);
+
+      const commandCalls = APIGatewayMock.commandCalls(GetBasePathMappingsCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
+    });
+
+    it("update base path mapping private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(UpdateBasePathMappingCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "test_basepath",
+        apiId: "test_rest_api_id",
+        endpointType: Globals.endpointTypes.private
+      }));
+      dc.apiMapping = {
+        apiId: "old_api_id",
+        basePath: "old_basepath",
+        stage: "test",
+        apiMappingId: null
+      };
+
+      await apiGatewayV1Wrapper.updateBasePathMapping(dc);
+
+      const commandCalls = APIGatewayMock.commandCalls(UpdateBasePathMappingCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
+    });
+
+    it("delete base path mapping private", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNamesCommand).resolves({
+        items: [{
+          domainName: "test_domain",
+          domainNameId: "test_domain_name_id",
+          endpointConfiguration: { types: [EndpointType.PRIVATE] }
+        }]
+      });
+      APIGatewayMock.on(DeleteBasePathMappingCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "test_basepath",
+        apiId: "test_rest_api_id",
+        endpointType: Globals.endpointTypes.private
+      }));
+      dc.apiMapping = {
+        apiId: "old_api_id",
+        basePath: "old_basepath",
+        stage: "test",
+        apiMappingId: null
+      };
+
+      await apiGatewayV1Wrapper.deleteBasePathMapping(dc);
+
+      const commandCalls = APIGatewayMock.commandCalls(DeleteBasePathMappingCommand);
+      expect(commandCalls.length).to.equal(1);
+      expect(commandCalls[0].args[0].input.domainNameId).to.equal("test_domain_name_id");
     });
   });
 

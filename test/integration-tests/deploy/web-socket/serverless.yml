@@ -1,6 +1,8 @@
 service: ${env:PLUGIN_IDENTIFIER}-web-socket
 
-frameworkVersion: "4"
+# lock the version to avoid using deployment-bucket it is not necessary for no
+# https://www.serverless.com/framework/docs/guides/deployment-bucket
+frameworkVersion: "4.2.5"
 
 provider:
   name: aws

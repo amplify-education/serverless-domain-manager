@@ -4,7 +4,11 @@ import {
   CreateRestApiCommandOutput,
   DeleteRestApiCommand,
   GetBasePathMappingsCommand,
-  GetBasePathMappingsCommandOutput, GetDomainNameCommand, GetDomainNameCommandOutput,
+  GetBasePathMappingsCommandOutput,
+  GetDomainNameCommand,
+  GetDomainNameCommandOutput,
+  GetDomainNamesCommand,
+  GetDomainNamesCommandOutput,
   GetResourcesCommand,
   GetResourcesCommandOutput
 } from "@aws-sdk/client-api-gateway";
@@ -79,13 +83,82 @@ export default class APIGatewayWrap {
     /**
      * Gets endpoint type of given URL from AWS
      * @param domainName
+     * @param isPrivate - whether this is a private domain
      * @returns {Promise<String>}
      */
-    public async getEndpointType (domainName) {
+    public async getEndpointType (domainName: string, isPrivate: boolean = false): Promise<string> {
+      let domainNameId: string | undefined;
+      if (isPrivate) {
+        domainNameId = await this.getDomainNameIdForPrivateDomain(domainName);
+      }
+
       const result: GetDomainNameCommandOutput = await this.client.send(
-        new GetDomainNameCommand({ domainName })
+        new GetDomainNameCommand({
+          domainName,
+          ...(domainNameId && { domainNameId })
+        } as any)
       );
 
       return result.endpointConfiguration.types[0];
+    }
+
+    /**
+     * Gets stage of given URL from AWS for private domains
+     * @param domainName
+     * @returns {Promise<String>}
+     */
+    public async getStageForPrivateDomain (domainName: string): Promise<string> {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domainName);
+      if (!domainNameId) {
+        throw new Error(`Could not find domainNameId for private domain: ${domainName}`);
+      }
+
+      const result: GetBasePathMappingsCommandOutput = await this.client.send(
+        new GetBasePathMappingsCommand({
+          domainName,
+          domainNameId
+        } as any)
+      );
+
+      return result.items[0].stage;
+    }
+
+    /**
+     * Gets basePath of given URL from AWS for private domains
+     * @param domainName
+     * @returns {Promise<String>}
+     */
+    public async getBasePathForPrivateDomain (domainName: string): Promise<string> {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domainName);
+      if (!domainNameId) {
+        throw new Error(`Could not find domainNameId for private domain: ${domainName}`);
+      }
+
+      const result: GetBasePathMappingsCommandOutput = await this.client.send(
+        new GetBasePathMappingsCommand({
+          domainName,
+          domainNameId
+        } as any)
+      );
+
+      return result.items[0].basePath;
+    }
+
+    /**
+     * Gets the domainNameId for a private custom domain
+     * @param domainName
+     * @returns {Promise<string | undefined>}
+     */
+    public async getDomainNameIdForPrivateDomain (domainName: string): Promise<string | undefined> {
+      const result: GetDomainNamesCommandOutput = await this.client.send(
+        new GetDomainNamesCommand({})
+      );
+
+      const matchingDomain = result.items?.find(
+        (item) => item.domainName === domainName &&
+                  item.endpointConfiguration?.types?.includes("PRIVATE")
+      );
+
+      return matchingDomain?.domainNameId;
     }
 }

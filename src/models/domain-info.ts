@@ -3,6 +3,7 @@
  */
 class DomainInfo {
   public domainName: string;
+  public domainNameId: string;
   public hostedZoneId: string;
   public securityPolicy: string;
 
@@ -15,6 +16,7 @@ class DomainInfo {
    */
   private defaultHostedZoneId: string = "Z2FDTNDATAQYW2";
   private defaultSecurityPolicy: string = "TLS_1_2";
+  private defaultDomainNameId: string = "";
 
   constructor (data: any) {
     this.domainName = data.distributionDomainName ||
@@ -31,6 +33,8 @@ class DomainInfo {
     this.securityPolicy = data.securityPolicy ||
       (data.DomainNameConfigurations && data.DomainNameConfigurations[0].SecurityPolicy) ||
       this.defaultSecurityPolicy;
+
+    this.domainNameId = data.domainNameId || data.DomainNameId || this.defaultDomainNameId;
   }
 }
 

@@ -88,7 +88,7 @@ class DomainConfig {
     const endpointTypeWithDefault = endpointType || Globals.endpointTypes.edge;
     const endpointTypeToUse = Globals.endpointTypes[endpointTypeWithDefault.toLowerCase()];
     if (!endpointTypeToUse) {
-      throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use EDGE or REGIONAL.`);
+      throw new Error(`${endpointTypeWithDefault} is not supported endpointType, use EDGE, REGIONAL, or PRIVATE.`);
     }
     return endpointTypeToUse;
   }
@@ -104,7 +104,7 @@ class DomainConfig {
 
   private static _getTLSTruststoreUri (tlsTruststoreUri: string | undefined, endpointType: string) {
     if (tlsTruststoreUri) {
-      if (endpointType === Globals.endpointTypes.edge) {
+      if (endpointType === Globals.endpointTypes.edge || endpointType === Globals.endpointTypes.private) {
         throw new Error(
           endpointType + " APIs do not support mutual TLS, " +
           "remove tlsTruststoreUri or change to a regional API."
@@ -140,9 +140,9 @@ class DomainConfig {
       throw new Error(`${routingPolicy} is not a supported routing policy, use simple, latency, or weighted.`);
     }
 
-    if (routingPolicyToUse !== Globals.routingPolicies.simple && endpointType === Globals.endpointTypes.edge) {
+    if (routingPolicyToUse !== Globals.routingPolicies.simple && (endpointType === Globals.endpointTypes.edge || endpointType === Globals.endpointTypes.private)) {
       throw new Error(
-        `${routingPolicy} routing is not intended to be used with edge endpoints. ` +
+        `${routingPolicy} routing is not intended to be used with ${endpointType} endpoints. ` +
         "Use a regional endpoint instead."
       );
     }

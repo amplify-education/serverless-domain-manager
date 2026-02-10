@@ -57,7 +57,7 @@ describe("Custom Domain Plugin", () => {
         plugin.initializeVariables();
       } catch (err) {
         errored = true;
-        expect(err.message).to.equal("notSupported is not supported endpointType, use EDGE or REGIONAL.");
+        expect(err.message).to.equal("notSupported is not supported endpointType, use EDGE, REGIONAL, or PRIVATE.");
       }
       expect(errored).to.equal(true);
     });
@@ -167,7 +167,7 @@ describe("Custom Domain Plugin", () => {
         plugin.validateDomainConfigs();
       } catch (err) {
         errored = true;
-        expect(err.message).to.contains("'EDGE' endpointType is not compatible with HTTP APIs");
+        expect(err.message).to.contains("'EDGE' or 'PRIVATE' endpointType is not compatible with HTTP APIs");
       }
       expect(errored).to.equal(true);
     });
@@ -182,13 +182,57 @@ describe("Custom Domain Plugin", () => {
         plugin.validateDomainConfigs();
       } catch (err) {
         errored = true;
-        expect(err.message).to.equal("'EDGE' endpointType is not compatible with WebSocket APIs");
+        expect(err.message).to.equal("'EDGE' or 'PRIVATE' endpointType is not compatible with WebSocket APIs");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Unsupported HTTP PRIVATE endpoint configuration", () => {
+      const domainOptions = getDomainConfig({ apiType: "http", endpointType: "private" });
+      const plugin = constructPlugin(domainOptions);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+        plugin.validateDomainConfigs();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.contains("'PRIVATE' endpointType is not compatible with HTTP APIs");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Unsupported WS PRIVATE endpoint configuration", () => {
+      const domainOptions = getDomainConfig({ apiType: "websocket", endpointType: "private" });
+      const plugin = constructPlugin(domainOptions);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+        plugin.validateDomainConfigs();
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.contains("'PRIVATE' endpointType is not compatible with WebSocket APIs");
       }
       expect(errored).to.equal(true);
     });
 
     it("Lowercase edge endpoint type without errors", () => {
       const domainOptions = getDomainConfig({ endpointType: "edge" });
+      const plugin = constructPlugin(domainOptions);
+
+      let errored = false;
+      try {
+        plugin.initializeVariables();
+        plugin.validateDomainConfigs();
+      } catch (err) {
+        errored = true;
+      }
+      expect(errored).to.equal(false);
+    });
+
+    it("Lowercase private endpoint type without errors", () => {
+      const domainOptions = getDomainConfig({ endpointType: "private" });
       const plugin = constructPlugin(domainOptions);
 
       let errored = false;
@@ -303,6 +347,22 @@ describe("Custom Domain Plugin", () => {
       } catch (err) {
         errored = true;
         expect(err.message).to.equal("EDGE APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.");
+      }
+      expect(errored).to.equal(true);
+    });
+
+    it("Should throw an Error when mutual TLS is enabled for private APIs", async () => {
+      const plugin = constructPlugin(getDomainConfig({
+        endpointType: "private",
+        tlsTruststoreUri: "s3://bucket-name/key-name"
+      }));
+
+      let errored = false;
+      try {
+        await plugin.hookWrapper(null);
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("PRIVATE APIs do not support mutual TLS, remove tlsTruststoreUri or change to a regional API.");
       }
       expect(errored).to.equal(true);
     });

@@ -1,12 +1,14 @@
 service: ${env:PLUGIN_IDENTIFIER}-route-53-latency-routing
 
+# lock the version to avoid using deployment-bucket it is not necessary for no
+# https://www.serverless.com/framework/docs/guides/deployment-bucket
 frameworkVersion: "4.2.5"
 
 provider:
   name: aws
   iam:
     role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
-  runtime: nodejs18.x
+  runtime: nodejs24.x
   region: us-west-2
   endpointType: REGIONAL
   stage: test

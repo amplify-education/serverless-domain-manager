@@ -18,7 +18,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-auto-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/auto-domain`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -26,7 +27,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-default-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/default`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     restApiName: "rest-api-custom",
@@ -35,7 +37,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-custom-apigateway-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/custom-apigateway`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "api",
@@ -43,7 +46,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/basepath`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -51,7 +55,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/stage-basepath`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "api",
@@ -59,7 +64,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-regional-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/regional-basepath`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -67,7 +73,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-regional-stage-basepath-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/regional-stage-basepath`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -75,7 +82,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-web-socket-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/web-socket`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -83,7 +91,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-http-api-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/http-api`,
-    testStage: "$default"
+    testStage: "$default",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -91,7 +100,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-regional-tls-1-0-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/regional-tls-1-0`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "api",
@@ -99,7 +109,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-basepath-nested-stack-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "EDGE",
     testFolder: `${CONFIGS_FOLDER}/basepath-nested-stack`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -107,7 +118,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-route-53-latency-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/route-53-latency-routing`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -115,7 +127,8 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-route-53-weighted-routing-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/route-53-weighted-routing`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
   },
   {
     testBasePath: "(none)",
@@ -123,7 +136,17 @@ const testCases = [
     testDomain: `${PLUGIN_IDENTIFIER}-split-horizon-dns-${RANDOM_STRING}.${TEST_DOMAIN}`,
     testEndpoint: "REGIONAL",
     testFolder: `${CONFIGS_FOLDER}/split-horizon-dns`,
-    testStage: "test"
+    testStage: "test",
+    isPrivate: false
+  },
+  {
+    testBasePath: "api",
+    testDescription: "Deploy with private endpoint",
+    testDomain: `${PLUGIN_IDENTIFIER}-private-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
+    testEndpoint: "PRIVATE",
+    testFolder: `${CONFIGS_FOLDER}/private-domain`,
+    testStage: "test",
+    isPrivate: true
   }
 ];
 
@@ -131,8 +154,7 @@ describe("Integration Tests", function () {
   this.timeout(TIMEOUT_MINUTES);
 
   describe("Configuration Tests", () => {
-    // @ts-ignore
-    // eslint-disable-next-line no-template-curly-in-string
+    // @ts-expect-error mocha-param types don't resolve with heterogeneous test case objects
     itParam("${value.testDescription}", testCases, async (value) => {
       let restApiInfo;
       if (value.restApiName) {
@@ -143,13 +165,21 @@ describe("Integration Tests", function () {
       }
       try {
         await utilities.createResources(value.testFolder, value.testDomain);
-        const stage = await apiGatewayClient.getStage(value.testDomain);
-        expect(stage).to.equal(value.testStage);
 
-        const basePath = await apiGatewayClient.getBasePath(value.testDomain);
+        // Use different methods for private domains since they require domainNameId
+        let stage: string;
+        let basePath: string;
+        if (value.isPrivate) {
+          stage = await apiGatewayClient.getStageForPrivateDomain(value.testDomain);
+          basePath = await apiGatewayClient.getBasePathForPrivateDomain(value.testDomain);
+        } else {
+          stage = await apiGatewayClient.getStage(value.testDomain);
+          basePath = await apiGatewayClient.getBasePath(value.testDomain);
+        }
+        expect(stage).to.equal(value.testStage);
         expect(basePath).to.equal(value.testBasePath);
 
-        const endpoint = await apiGatewayClient.getEndpointType(value.testDomain);
+        const endpoint = await apiGatewayClient.getEndpointType(value.testDomain, value.isPrivate);
         expect(endpoint).to.equal(value.testEndpoint);
       } finally {
         await utilities.destroyResources(value.testDomain);

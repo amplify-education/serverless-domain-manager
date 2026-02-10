@@ -19,12 +19,16 @@ import {
   GetApiMappingsCommandOutput,
   GetDomainNameCommand,
   GetDomainNameCommandOutput,
+  GetDomainNamesCommand,
+  GetDomainNamesCommandInput,
+  GetDomainNamesCommandOutput,
   UpdateApiMappingCommand
 } from "@aws-sdk/client-apigatewayv2";
 import Logging from "../logging";
 import { getAWSPagedResults } from "../utils";
 
 class APIGatewayV2Wrapper extends APIGatewayBase {
+  protected readonly versionPrefix = "V2";
   public readonly apiGateway: ApiGatewayV2Client;
 
   constructor (credentials?: any) {
@@ -59,7 +63,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     };
 
     const isEdgeType = domain.endpointType === Globals.endpointTypes.edge;
-    if (!isEdgeType && domain.tlsTruststoreUri) {
+    const isPrivateType = domain.endpointType === Globals.endpointTypes.private;
+    if (!isEdgeType && !isPrivateType && domain.tlsTruststoreUri) {
       params.MutualTlsAuthentication = {
         TruststoreUri: domain.tlsTruststoreUri
       };
@@ -87,11 +92,15 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    * @param silent: To issue an error or not. Not by default.
    */
   public async getCustomDomain (domain: DomainConfig, silent: boolean = true): Promise<DomainInfo> {
+    const domainNameId = await this.resolvePrivateDomainNameId(domain, silent);
+    if (domainNameId === null) return;
+
     // Make API call
     try {
       const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
         new GetDomainNameCommand({
-          DomainName: domain.givenDomainName
+          DomainName: domain.givenDomainName,
+          ...(domainNameId && { DomainNameId: domainNameId })
         })
       );
       return new DomainInfo(domainInfo);
@@ -105,6 +114,34 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     }
   }
 
+  protected async fetchPrivateDomainNameId (domain: DomainConfig): Promise<string | undefined> {
+    try {
+      type DomainNameItem = {
+        DomainName: string;
+        DomainNameId?: string;
+        DomainNameConfigurations?: Array<{ EndpointType?: string }>;
+      };
+
+      const items = await getAWSPagedResults<DomainNameItem, GetDomainNamesCommandInput, GetDomainNamesCommandOutput>(
+        this.apiGateway,
+        "Items",
+        "NextToken",
+        "NextToken",
+        new GetDomainNamesCommand({})
+      );
+
+      const matchingDomain = items.find(
+        (item) => item.DomainName === domain.givenDomainName &&
+                  item.DomainNameConfigurations?.some((config) => config.EndpointType === Globals.endpointTypes.private)
+      );
+
+      return matchingDomain?.DomainNameId;
+    } catch (err) {
+      Logging.logWarning(`V2 - Unable to list domain names to find domainNameId: ${err.message}`);
+      return undefined;
+    }
+  }
+
   /**
    * Delete Custom Domain Name
    * @param domain: DomainConfig
@@ -112,9 +149,11 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
   public async deleteCustomDomain (domain: DomainConfig): Promise<void> {
     // Make API call
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       await this.apiGateway.send(
         new DeleteDomainNameCommand({
-          DomainName: domain.givenDomainName
+          DomainName: domain.givenDomainName,
+          ...(domainNameId && { DomainNameId: domainNameId })
         })
       );
     } catch (err) {
@@ -138,12 +177,14 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       );
     }
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       await this.apiGateway.send(
         new CreateApiMappingCommand({
           ApiId: domain.apiId,
           ApiMappingKey: domain.basePath,
           DomainName: domain.givenDomainName,
-          Stage: domain.stage
+          Stage: domain.stage,
+          ...(domainNameId && { DomainNameId: domainNameId })
         })
       );
       Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
@@ -160,13 +201,15 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   public async getBasePathMappings (domain: DomainConfig): Promise<ApiGatewayMap[]> {
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       const items = await getAWSPagedResults<ApiMapping, GetApiMappingsCommandInput, GetApiMappingsCommandOutput>(
         this.apiGateway,
         "Items",
         "NextToken",
         "NextToken",
         new GetApiMappingsCommand({
-          DomainName: domain.givenDomainName
+          DomainName: domain.givenDomainName,
+          ...(domainNameId && { DomainNameId: domainNameId })
         })
       );
       return items.map(
@@ -185,13 +228,15 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   public async updateBasePathMapping (domain: DomainConfig): Promise<void> {
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       await this.apiGateway.send(
         new UpdateApiMappingCommand({
           ApiId: domain.apiId,
           ApiMappingId: domain.apiMapping.apiMappingId,
           ApiMappingKey: domain.basePath,
           DomainName: domain.givenDomainName,
-          Stage: domain.stage
+          Stage: domain.stage,
+          ...(domainNameId && { DomainNameId: domainNameId })
         })
       );
       Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
@@ -207,9 +252,11 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
    */
   public async deleteBasePathMapping (domain: DomainConfig): Promise<void> {
     try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       await this.apiGateway.send(new DeleteApiMappingCommand({
         ApiMappingId: domain.apiMapping.apiMappingId,
-        DomainName: domain.givenDomainName
+        DomainName: domain.givenDomainName,
+        ...(domainNameId && { DomainNameId: domainNameId })
       }));
       Logging.logInfo(`V2 - Removed API Mapping with id: '${domain.apiMapping.apiMappingId}'`);
     } catch (err) {

@@ -156,19 +156,23 @@ class ServerlessCustomDomain {
     this.domains.forEach((domain) => {
       if (domain.apiType === Globals.apiTypes.rest) {
         // No validation for REST API types
-      } else if (domain.apiType === Globals.apiTypes.http) {
+      }
+
+      if (domain.apiType === Globals.apiTypes.http) {
         // HTTP APIs do not support edge domains
-        if (domain.endpointType === Globals.endpointTypes.edge) {
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.endpointType === Globals.endpointTypes.private) {
           // https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html
           throw Error(
-            "'EDGE' endpointType is not compatible with HTTP APIs\n" +
+            "'EDGE' or 'PRIVATE' endpointType is not compatible with HTTP APIs\n" +
             "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html"
           );
         }
-      } else if (domain.apiType === Globals.apiTypes.websocket) {
+      }
+
+      if (domain.apiType === Globals.apiTypes.websocket) {
         // Websocket APIs do not support edge domains
-        if (domain.endpointType === Globals.endpointTypes.edge) {
-          throw Error("'EDGE' endpointType is not compatible with WebSocket APIs");
+        if (domain.endpointType === Globals.endpointTypes.edge || domain.endpointType === Globals.endpointTypes.private) {
+          throw Error("'EDGE' or 'PRIVATE' endpointType is not compatible with WebSocket APIs");
         }
       }
     });

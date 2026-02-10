@@ -49,7 +49,7 @@ async function createTempDir (tempDir, folderName) {
   await exec(`rm -rf ${tempDir}`);
   await exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${folderName}/. ${tempDir}`);
   await exec(`mkdir -p ${tempDir}/node_modules/.bin`);
-  await exec(`ln -s $(pwd) ${tempDir}/node_modules/`);
+  await exec(`ln -s $(pwd) ${tempDir}/node_modules/serverless-domain-manager`);
 
   await exec(`ln -s $(pwd)/node_modules/serverless ${tempDir}/node_modules/`);
   await exec(`ln -s $(pwd)/node_modules/serverless-plugin-split-stacks ${tempDir}/node_modules/`);

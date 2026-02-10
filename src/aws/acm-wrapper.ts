@@ -61,6 +61,10 @@ class ACMWrapper {
         errorMessage += ` The endpoint type '${Globals.endpointTypes.edge}' is used. ` +
           `Make sure the needed ACM certificate exists in the '${Globals.defaultRegion}' region.`;
       }
+      if (domain.endpointType === Globals.endpointTypes.private) {
+        errorMessage += ` The endpoint type '${Globals.endpointTypes.private}' is used. ` +
+          `Make sure the needed ACM certificate exists in the '${Globals.getRegion()}' region.`;
+      }
       throw Error(errorMessage);
     }
     return certificateArn;

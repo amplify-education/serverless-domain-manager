@@ -28,6 +28,7 @@ import Logging from "../logging";
 import { getAWSPagedResults } from "../utils";
 
 class APIGatewayV1Wrapper extends APIGatewayBase {
+  protected readonly versionPrefix = "V1";
   public readonly apiGateway: APIGatewayClient;
 
   constructor (credentials?: any) {
@@ -92,29 +93,15 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
    * @param silent: To issue an error or not. Not by default.
    */
   public async getCustomDomain (domain: DomainConfig, silent: boolean = true): Promise<DomainInfo> {
-    const isPrivateType = domain.endpointType === Globals.endpointTypes.private;
-    
-    // For private domains, we need to fetch domainNameId first
-    let domainNameId: string | undefined;
-    if (isPrivateType) {
-      domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
-      if (!domainNameId) {
-        if (!silent) {
-          throw new Error(
-            `V1 - Unable to find domainNameId for private domain '${domain.givenDomainName}'`
-          );
-        }
-        Logging.logWarning(`V1 - '${domain.givenDomainName}' does not exist or is not a private domain.`);
-        return;
-      }
-    }
+    const domainNameId = await this.resolvePrivateDomainNameId(domain, silent);
+    if (domainNameId === null) return;
 
     // Make API call
     try {
       const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
         new GetDomainNameCommand({
           domainName: domain.givenDomainName,
-          ...(isPrivateType && domainNameId && { domainNameId })
+          ...(domainNameId && { domainNameId })
         })
       );
       return new DomainInfo(domainInfo);
@@ -128,25 +115,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     }
   }
 
-  /**
-   * Helper method to get domainNameId for private custom domains.
-   * Private domains require a domainNameId for all API operations.
-   * First checks domainInfo if available, otherwise fetches by listing all domains.
-   * @param domain: DomainConfig
-   * @returns Promise<string | undefined> The domainNameId if found, undefined otherwise
-   */
-  private async getDomainNameIdForPrivateDomain (domain: DomainConfig): Promise<string | undefined> {
-    // Only applicable for private endpoints
-    if (domain.endpointType !== Globals.endpointTypes.private) {
-      return undefined;
-    }
-
-    // First try to get it from domainInfo if already fetched
-    if (domain.domainInfo?.domainNameId) {
-      return domain.domainInfo.domainNameId;
-    }
-
-    // Otherwise, fetch it by listing domains and finding the matching private domain
+  protected async fetchPrivateDomainNameId (domain: DomainConfig): Promise<string | undefined> {
     try {
       type DomainNameItem = {
         domainName: string;

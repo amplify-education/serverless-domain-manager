@@ -12,7 +12,7 @@ const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
 const apiGatewayClient = new APIGatewayWrap("us-west-2");
 
 const testCases = [
-/*  {
+  {
     testBasePath: "(none)",
     testDescription: "Creates domain as part of deploy",
     testDomain: `${PLUGIN_IDENTIFIER}-auto-domain-${RANDOM_STRING}.${TEST_DOMAIN}`,
@@ -138,7 +138,7 @@ const testCases = [
     testFolder: `${CONFIGS_FOLDER}/split-horizon-dns`,
     testStage: "test",
     isPrivate: false
-  },*/
+  },
   {
     testBasePath: "api",
     testDescription: "Deploy with private endpoint",

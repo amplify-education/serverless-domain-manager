@@ -260,6 +260,7 @@ NOTE: Always test this process in a lower level staging or development environme
 * (2/12/2019) Users who upgraded from 2.x.x to version 3.0.4 (now unpublished) and then reverted back to 2.x.x will be unable to deploy because of a bug that will be fixed in 3.1.0. The workaround is to delete the basepath mapping manually, which will let them successfully revert back to 2.x.x.
 * (1/20/2022) Using `route53Profile` option requires having hosted zone for the domain in this profile and ACM certificate in the main profile (where functions are deployed).
 * (2/13/2024) ACM certificate must exist in the `us-east-1` for the `EDGE` endpoint type. https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-edge-optimized-custom-domain-name.html
+* (2/10/2026) Private API Gateway custom domains use a different ARN format that includes the AWS account ID (e.g. `arn:aws:apigateway:<region>:<account_id>:/domainnames/name+id`). If you get `AccessDeniedException` when using private endpoint types, ensure your IAM policy includes the policy with the account ID.
 
 # Responsible Disclosure
 If you have any security issue to report, contact project maintainers privately.

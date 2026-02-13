@@ -150,15 +150,24 @@ export default class APIGatewayWrap {
      * @returns {Promise<string | undefined>}
      */
     public async getDomainNameIdForPrivateDomain (domainName: string): Promise<string | undefined> {
-      const result: GetDomainNamesCommandOutput = await this.client.send(
-        new GetDomainNamesCommand({})
-      );
+      let position: string | undefined;
+      do {
+        const result: GetDomainNamesCommandOutput = await this.client.send(
+          new GetDomainNamesCommand({ position })
+        );
 
-      const matchingDomain = result.items?.find(
-        (item) => item.domainName === domainName &&
-                  item.endpointConfiguration?.types?.includes("PRIVATE")
-      );
+        const matchingDomain = result.items?.find(
+          (item) => item.domainName === domainName &&
+                    item.endpointConfiguration?.types?.includes("PRIVATE")
+        );
 
-      return matchingDomain?.domainNameId;
+        if (matchingDomain?.domainNameId) {
+          return matchingDomain.domainNameId;
+        }
+
+        position = result.position;
+      } while (position);
+
+      return undefined;
     }
 }

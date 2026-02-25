@@ -56,7 +56,9 @@ describe("Logging checks", () => {
         },
         progress: null
       };
+      Globals.serverless.servicePluginOutputs = new Map();
       Globals.serverless.addServiceOutputSection = (name: string, data: string[]) => {
+        Globals.serverless.servicePluginOutputs.set(name, data);
         consoleOutput.push(name);
 
         data.forEach((item) => {
@@ -82,6 +84,19 @@ describe("Logging checks", () => {
 
       Logging.printDomainSummary([dc]);
       expect(consoleOutput[3]).to.equal("Serverless Domain Manager");
+    });
+    it("should not add duplicate output section", () => {
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain"
+      }));
+      dc.domainInfo = new DomainInfo({
+        domainName: "dummy_domain",
+        hostedZoneId: "test_hosted_zone"
+      });
+
+      const outputLengthBefore = consoleOutput.length;
+      Logging.printDomainSummary([dc]);
+      expect(consoleOutput.length).to.equal(outputLengthBefore);
     });
   });
 });

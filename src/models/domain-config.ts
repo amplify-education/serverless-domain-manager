@@ -123,14 +123,9 @@ class DomainConfig {
     return tlsTruststoreUri;
   }
 
-  private static _getSecurityPolicy (securityPolicy: string | undefined) {
-    const securityPolicyDefault = securityPolicy || Globals.tlsVersions.tls_1_2;
-    const tlsVersionToUse = Globals.tlsVersions[securityPolicyDefault.toLowerCase()];
-    if (!tlsVersionToUse) {
-      throw new Error(`${securityPolicyDefault} is not a supported securityPolicy, use tls_1_0 or tls_1_2.`);
-    }
-
-    return tlsVersionToUse;
+  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
+    // converts legacy security policies to upper string if required
+    return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }
 
   private static _getRoute53Params (route53Params: Route53Params | undefined, endpointType: string) {

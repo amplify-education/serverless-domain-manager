@@ -123,9 +123,9 @@ class DomainConfig {
     return tlsTruststoreUri;
   }
 
-  private static _getSecurityPolicy (securityPolicy: string | undefined) {
-    const value = securityPolicy || "TLS_1_2";
-    return Globals.tlsVersions[value.toLowerCase()] || value;
+  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
+    // converts legacy security policies to upper string if required
+    return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }
 
   private static _getRoute53Params (route53Params: Route53Params | undefined, endpointType: string) {

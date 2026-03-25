@@ -123,7 +123,7 @@ class DomainConfig {
     return tlsTruststoreUri;
   }
 
-  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_3) {
+  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
     // converts legacy security policies to upper string if required
     return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }

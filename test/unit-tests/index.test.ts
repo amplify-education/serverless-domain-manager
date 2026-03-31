@@ -255,6 +255,26 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.domains.length).to.equal(1);
     });
 
+    it("Should default to TLS_1_2 security policy when none specified", () => {
+      const dc = new DomainConfig(getDomainConfig({}));
+      expect(dc.securityPolicy).to.equal("TLS_1_2");
+    });
+
+    it("Should convert legacy lowercase tls_1_2 to TLS_1_2", () => {
+      const dc = new DomainConfig(getDomainConfig({ securityPolicy: "tls_1_2" }));
+      expect(dc.securityPolicy).to.equal("TLS_1_2");
+    });
+
+    it("Should convert legacy lowercase tls_1_0 to TLS_1_0", () => {
+      const dc = new DomainConfig(getDomainConfig({ securityPolicy: "tls_1_0" }));
+      expect(dc.securityPolicy).to.equal("TLS_1_0");
+    });
+
+    it("Should accept arbitrary security policy values", () => {
+      const dc = new DomainConfig(getDomainConfig({ securityPolicy: "SecurityPolicy_TLS13_2025_EDGE" }));
+      expect(dc.securityPolicy).to.equal("SecurityPolicy_TLS13_2025_EDGE");
+    });
+
     it("Should enable the plugin by default", () => {
       const plugin = constructPlugin(getDomainConfig({}));
 

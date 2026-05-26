@@ -11,6 +11,8 @@ abstract class APIGatewayBase {
 
     abstract getCustomDomain(domain: DomainConfig, silent?: boolean): Promise<DomainInfo>;
 
+    abstract updateCustomDomain(domain: DomainConfig): Promise<DomainInfo>;
+
     abstract deleteCustomDomain(domain: DomainConfig): Promise<void>;
 
     abstract createBasePathMapping(domain: DomainConfig): Promise<void>;

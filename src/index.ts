@@ -264,6 +264,13 @@ class ServerlessCustomDomain {
                  New domains may take up to 40 minutes to be initialized.`);
       } else {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
+        if (domain.securityPolicy) {
+          try {
+            domain.domainInfo = await apiGateway.updateCustomDomain(domain);
+          } catch (err) {
+            Logging.logWarning(`Unable to update security policy for '${domain.givenDomainName}': ${(err as Error).message}`);
+          }
+        }
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
     } catch (err) {

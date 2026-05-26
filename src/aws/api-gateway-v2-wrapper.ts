@@ -22,7 +22,8 @@ import {
   GetDomainNamesCommand,
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
-  UpdateApiMappingCommand
+  UpdateApiMappingCommand,
+  UpdateDomainNameCommand
 } from "@aws-sdk/client-apigatewayv2";
 import Logging from "../logging";
 import { getAWSPagedResults } from "../utils";
@@ -111,6 +112,45 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
         );
       }
       Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`);
+    }
+  }
+
+  public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+    try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+
+      // Use cached domain info if available, otherwise fetch
+      let currentDomain = domain.domainInfo;
+      if (!currentDomain) {
+        currentDomain = await this.getCustomDomain(domain, false);
+      }
+      if (!currentDomain) {
+        throw new Error(`Unable to fetch current domain info for '${domain.givenDomainName}'`);
+      }
+
+      // Build updated DomainNameConfigurations with new security policy
+      const currentConfigs = ((currentDomain as any).DomainNameConfigurations || []);
+      const domainNameConfigurations = currentConfigs.map((config: any) => ({
+        CertificateArn: config.CertificateArn,
+        EndpointType: config.EndpointType,
+        SecurityPolicy: domain.securityPolicy || config.SecurityPolicy
+      }));
+
+      const params: any = {
+        DomainName: domain.givenDomainName,
+        DomainNameConfigurations: domainNameConfigurations,
+        ...(domainNameId && { DomainNameId: domainNameId })
+      };
+
+      const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
+        new UpdateDomainNameCommand(params)
+      );
+      Logging.logInfo(`V2 - Updated security policy for '${domain.givenDomainName}'`);
+      return new DomainInfo(domainInfo);
+    } catch (err) {
+      throw new Error(
+        `V2 - Failed to update custom domain '${domain.givenDomainName}':\n${(err as Error).message}`
+      );
     }
   }
 

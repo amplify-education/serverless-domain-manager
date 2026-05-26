@@ -20,7 +20,8 @@ import {
   GetDomainNamesCommand,
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
-  UpdateBasePathMappingCommand
+  UpdateBasePathMappingCommand,
+  UpdateDomainNameCommand
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
@@ -83,6 +84,46 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     } catch (err) {
       throw new Error(
         `V1 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+      );
+    }
+  }
+
+  public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+    const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+    const patchOperations: any[] = [];
+
+    if (domain.securityPolicy) {
+      patchOperations.push({
+        op: "replace",
+        path: "/securityPolicy",
+        value: domain.securityPolicy
+      });
+    }
+
+    if (patchOperations.length === 0) {
+      if (domain.domainInfo) {
+        return domain.domainInfo;
+      }
+      const fetchedInfo = await this.getCustomDomain(domain, true);
+      if (!fetchedInfo) {
+        throw new Error(`Unable to fetch domain info for '${domain.givenDomainName}'`);
+      }
+      return fetchedInfo;
+    }
+
+    try {
+      const domainInfo: GetDomainNameCommandOutput = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          domainName: domain.givenDomainName,
+          patchOperations,
+          ...(domainNameId && { domainNameId })
+        })
+      );
+      Logging.logInfo(`V1 - Updated security policy for '${domain.givenDomainName}'`);
+      return new DomainInfo(domainInfo);
+    } catch (err) {
+      throw new Error(
+        `V1 - Failed to update custom domain '${domain.givenDomainName}':\n${(err as Error).message}`
       );
     }
   }

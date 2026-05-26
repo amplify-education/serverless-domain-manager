@@ -135,6 +135,7 @@ class ServerlessCustomDomain {
         const domainTypeConfig = domain[apiType];
         if (domainTypeConfig) {
           domainTypeConfig.apiType = apiType;
+          Logging.logInfo(`Initializing domain config for '${domainTypeConfig.domainName}' (securityPolicy from config: ${domainTypeConfig.securityPolicy})`);
           this.domains.push(new DomainConfig(domainTypeConfig));
           isTypeConfigFound = true;
         }

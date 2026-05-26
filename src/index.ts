@@ -325,13 +325,16 @@ class ServerlessCustomDomain {
    * Lifecycle function to createDomain before deploy and add domain info to the CloudFormation stack's Outputs
    */
   public async createOrGetDomainForCfOutputs (): Promise<void> {
+    Logging.logInfo(`DEBUG: createOrGetDomainForCfOutputs called, total domains: ${this.domains.length}`);
     await Promise.all(this.domains.map(async (domain) => {
+      Logging.logInfo(`DEBUG: Processing domain '${domain.givenDomainName}' (autoDomain: ${domain.autoDomain})`);
       if (domain.autoDomain) {
         Logging.logInfo("Creating domain name before deploy.");
         await this.createDomain(domain);
       }
 
       const apiGateway = this.getApiGateway(domain);
+      Logging.logInfo(`DEBUG: Getting domain info for '${domain.givenDomainName}' before polling`);
       domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
       if (domain.autoDomain) {

@@ -249,7 +249,9 @@ class ServerlessCustomDomain {
     const route53 = new Route53Wrapper(route53Creds, domain.route53Region);
     const acm = new ACMWrapper(Globals.credentials, domain.endpointType);
 
+    Logging.logInfo(`DEBUG: Getting domain '${domain.givenDomainName}' (apiType: ${domain.apiType}, securityPolicy: ${domain.securityPolicy})`);
     domain.domainInfo = await apiGateway.getCustomDomain(domain);
+    Logging.logInfo(`DEBUG: Domain info result: ${domain.domainInfo ? 'exists' : 'not found'}`);
 
     try {
       if (!domain.domainInfo) {
@@ -265,11 +267,15 @@ class ServerlessCustomDomain {
       } else {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
         if (domain.securityPolicy) {
+          Logging.logInfo(`DEBUG: Updating security policy to '${domain.securityPolicy}'`);
           try {
             domain.domainInfo = await apiGateway.updateCustomDomain(domain);
+            Logging.logInfo(`DEBUG: Update completed successfully`);
           } catch (err) {
             Logging.logWarning(`Unable to update security policy for '${domain.givenDomainName}': ${(err as Error).message}`);
           }
+        } else {
+          Logging.logInfo(`DEBUG: No security policy specified`);
         }
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);

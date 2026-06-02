@@ -17,12 +17,12 @@ jobs:
     runs-on: github-hosted-static-ip
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Install and test
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
@@ -33,7 +33,7 @@ jobs:
 
       - name: Extract version
         id: extract_version
-        uses: Saionaro/extract-package-version@v1.3.0
+        uses: Saionaro/extract-package-version@v1.4.0
 
       - name: Get latest tag
         id: get_latest_tag
@@ -57,7 +57,7 @@ jobs:
 
       - name: Create release
         if: env.VERSION_CHANGED == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: 'v${{ steps.extract_version.outputs.version }}'
           generate_release_notes: true

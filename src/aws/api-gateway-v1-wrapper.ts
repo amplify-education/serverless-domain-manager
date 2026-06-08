@@ -20,7 +20,9 @@ import {
   GetDomainNamesCommand,
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
-  UpdateBasePathMappingCommand
+  UpdateBasePathMappingCommand,
+  UpdateDomainNameCommand,
+  UpdateDomainNameCommandOutput
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
@@ -153,6 +155,58 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       }));
     } catch (err) {
       throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
+    }
+  }
+
+  public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+    if (!domain.securityPolicy) {
+      return domain.domainInfo;
+    }
+
+    if (domain.domainInfo?.securityPolicy === domain.securityPolicy) {
+      Logging.logInfo(`V1 - Security policy for '${domain.givenDomainName}' is already '${domain.securityPolicy}'`);
+      return domain.domainInfo;
+    }
+
+    Logging.logInfo(`V1 - Updating security policy for '${domain.givenDomainName}' from '${domain.domainInfo?.securityPolicy}' to '${domain.securityPolicy}'`);
+    try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      const patchOperations: any[] = [
+        {
+          op: "replace",
+          path: "/securityPolicy",
+          value: domain.securityPolicy
+        }
+      ];
+
+      // Enhanced security policies require endpointAccessMode, standard policies require it to be unset
+      if (domain.securityPolicy.startsWith("SecurityPolicy_")) {
+        const endpointAccessMode = domain.endpointAccessMode || "STRICT";
+        patchOperations.push({
+          op: "replace",
+          path: "/endpointAccessMode",
+          value: endpointAccessMode
+        });
+      } else {
+        patchOperations.push({
+          op: "replace",
+          path: "/endpointAccessMode",
+          value: ""
+        });
+      }
+
+      const domainInfo: UpdateDomainNameCommandOutput = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          domainName: domain.givenDomainName,
+          patchOperations,
+          ...(domainNameId && { domainNameId })
+        })
+      );
+      return new DomainInfo(domainInfo);
+    } catch (err) {
+      throw new Error(
+        `V1 - Unable to update security policy for '${domain.givenDomainName}':\n${(err as Error).message}`
+      );
     }
   }
 

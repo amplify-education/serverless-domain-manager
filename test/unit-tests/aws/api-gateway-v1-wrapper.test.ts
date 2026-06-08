@@ -4,6 +4,7 @@ import {
   CreateDomainNameCommand, DeleteBasePathMappingCommand,
   DeleteDomainNameCommand, GetBasePathMappingsCommand,
   GetDomainNameCommand, GetDomainNamesCommand, UpdateBasePathMappingCommand,
+  UpdateDomainNameCommand,
   Op, EndpointType, SecurityPolicy
 } from "@aws-sdk/client-api-gateway";
 import { consoleOutput, expect, getDomainConfig } from "../base";
@@ -732,6 +733,148 @@ describe("API Gateway V1 wrapper checks", () => {
         expect(err.message).to.contains("V1 - Unable to remove base path mapping for");
       }
       expect(errored).to.equal(true);
+    });
+
+    describe("Update custom domain", () => {
+      it("update custom domain - no change needed", async () => {
+        const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "tls_1_2"
+        }));
+        dc.domainInfo = new DomainInfo({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "TLS_1_2"
+        });
+
+        const result = await apiGatewayV1Wrapper.updateCustomDomain(dc);
+
+        expect(result).to.eql(dc.domainInfo);
+        expect(consoleOutput[0]).to.contains("is already");
+      });
+
+      it("update custom domain - enhanced security policy", async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        });
+
+        const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        }));
+        dc.domainInfo = new DomainInfo({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "TLS_1_2"
+        });
+
+        const result = await apiGatewayV1Wrapper.updateCustomDomain(dc);
+
+        expect(result.securityPolicy).to.equal("SecurityPolicy_TLS13_1_3_2025_09");
+        expect(consoleOutput[0]).to.contains("Updating security policy");
+
+        const commandCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        expect(commandCalls.length).to.equal(1);
+        const call = commandCalls[0];
+        const patchOps = call.args[0].patchOperations;
+        expect(patchOps.length).to.equal(2);
+        expect(patchOps[0]).to.eql({
+          op: Op.replace,
+          path: "/securityPolicy",
+          value: "SecurityPolicy_TLS13_1_3_2025_09"
+        });
+        expect(patchOps[1]).to.eql({
+          op: Op.replace,
+          path: "/endpointAccessMode",
+          value: "STRICT"
+        });
+      });
+
+      it("update custom domain - standard security policy", async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "TLS_1_2"
+        });
+
+        const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "tls_1_2"
+        }));
+        dc.domainInfo = new DomainInfo({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        });
+
+        const result = await apiGatewayV1Wrapper.updateCustomDomain(dc);
+
+        expect(result.securityPolicy).to.equal("TLS_1_2");
+
+        const commandCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        const patchOps = commandCalls[0].args[0].patchOperations;
+        expect(patchOps.length).to.equal(2);
+        expect(patchOps[1]).to.eql({
+          op: Op.replace,
+          path: "/endpointAccessMode",
+          value: ""
+        });
+      });
+
+      it("update custom domain - custom endpoint access mode", async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        });
+
+        const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09",
+          endpointAccessMode: "BASIC"
+        }));
+        dc.domainInfo = new DomainInfo({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "TLS_1_2"
+        });
+
+        await apiGatewayV1Wrapper.updateCustomDomain(dc);
+
+        const commandCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        const patchOps = commandCalls[0].args[0].patchOperations;
+        expect(patchOps[1]).to.eql({
+          op: Op.replace,
+          path: "/endpointAccessMode",
+          value: "BASIC"
+        });
+      });
+
+      it("update custom domain failure", async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(UpdateDomainNameCommand).rejects(new Error("Update failed"));
+
+        const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        }));
+        dc.domainInfo = new DomainInfo({
+          distributionDomainName: "d1234.cloudfront.net",
+          securityPolicy: "TLS_1_2"
+        });
+
+        let errored = false;
+        try {
+          await apiGatewayV1Wrapper.updateCustomDomain(dc);
+        } catch (err) {
+          errored = true;
+          expect(err.message).to.contains("V1 - Unable to update security policy for");
+        }
+        expect(errored).to.equal(true);
+      });
     });
   });
 });

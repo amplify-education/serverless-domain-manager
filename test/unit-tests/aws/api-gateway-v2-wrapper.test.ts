@@ -3,7 +3,8 @@ import {
   ApiGatewayV2Client, CreateApiMappingCommand,
   CreateDomainNameCommand, DeleteApiMappingCommand,
   DeleteDomainNameCommand, EndpointType, GetApiMappingsCommand,
-  GetDomainNameCommand, GetDomainNamesCommand, SecurityPolicy, UpdateApiMappingCommand
+  GetDomainNameCommand, GetDomainNamesCommand, SecurityPolicy, UpdateApiMappingCommand,
+  UpdateDomainNameCommand
 } from "@aws-sdk/client-apigatewayv2";
 import { consoleOutput, expect, getDomainConfig } from "../base";
 import Globals from "../../../src/globals";
@@ -778,6 +779,93 @@ describe("API Gateway V2 wrapper checks", () => {
         expect(err.message).to.contains("V2 - Unable to remove base path mapping for");
       }
       expect(errored).to.equal(true);
+    });
+
+    describe("Update custom domain", () => {
+      it("update custom domain - no change needed", async () => {
+        const apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "tls_1_2"
+        }));
+        dc.domainInfo = new DomainInfo({
+          DomainNameConfigurations: [{
+            ApiGatewayDomainName: "d1234.execute-api.us-east-1.amazonaws.com",
+            SecurityPolicy: "TLS_1_2"
+          }],
+          securityPolicy: "TLS_1_2"
+        });
+
+        const result = await apiGatewayV2Wrapper.updateCustomDomain(dc);
+
+        expect(result).to.eql(dc.domainInfo);
+        expect(consoleOutput[0]).to.contains("is already");
+      });
+
+      it("update custom domain - enhanced security policy", async () => {
+        const APIGatewayMock = mockClient(ApiGatewayV2Client);
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          DomainNameConfigurations: [{
+            ApiGatewayDomainName: "d1234.execute-api.us-east-1.amazonaws.com",
+            SecurityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+          }],
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        });
+
+        const apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09",
+          endpointType: Globals.endpointTypes.regional,
+          certificateArn: "test_arn"
+        }));
+        dc.domainInfo = new DomainInfo({
+          DomainNameConfigurations: [{
+            ApiGatewayDomainName: "d1234.execute-api.us-east-1.amazonaws.com",
+            SecurityPolicy: "TLS_1_2",
+            EndpointType: EndpointType.REGIONAL,
+            CertificateArn: "test_arn"
+          }],
+          securityPolicy: "TLS_1_2"
+        });
+
+        const result = await apiGatewayV2Wrapper.updateCustomDomain(dc);
+
+        expect(result.securityPolicy).to.equal("SecurityPolicy_TLS13_1_3_2025_09");
+        expect(consoleOutput[0]).to.contains("Updating security policy");
+
+        const commandCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        expect(commandCalls.length).to.equal(1);
+        const call = commandCalls[0];
+        expect(call.args[0].EndpointAccessMode).to.equal("STRICT");
+      });
+
+      it("update custom domain failure", async () => {
+        const APIGatewayMock = mockClient(ApiGatewayV2Client);
+        APIGatewayMock.on(UpdateDomainNameCommand).rejects(new Error("Update failed"));
+
+        const apiGatewayV2Wrapper = new APIGatewayV2Wrapper();
+        const dc = new DomainConfig(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09"
+        }));
+        dc.domainInfo = new DomainInfo({
+          DomainNameConfigurations: [{
+            ApiGatewayDomainName: "d1234.execute-api.us-east-1.amazonaws.com",
+            SecurityPolicy: "TLS_1_2"
+          }],
+          securityPolicy: "TLS_1_2"
+        });
+
+        let errored = false;
+        try {
+          await apiGatewayV2Wrapper.updateCustomDomain(dc);
+        } catch (err) {
+          errored = true;
+          expect(err.message).to.contains("V2 - Unable to update security policy for");
+        }
+        expect(errored).to.equal(true);
+      });
     });
   });
 });

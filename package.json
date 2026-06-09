@@ -92,5 +92,10 @@
   },
   "peerDependencies": {
     "serverless": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "serverless": {
+      "optional": true
+    }
   }
 }

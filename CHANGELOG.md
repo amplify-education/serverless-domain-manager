@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2026-06-09
+
+### Changed
+- Marked `serverless` peer dependency as optional to stop the forced auto-install when a compatible framework (e.g. `osls`) is already provided. Thank you @nolde ([673](https://github.com/amplify-education/serverless-domain-manager/pull/673))
+- Bumped GitHub Actions to latest versions ([675](https://github.com/amplify-education/serverless-domain-manager/pull/675))
+
 ## [10.1.0] - 2026-03-31
 
 ### Changed

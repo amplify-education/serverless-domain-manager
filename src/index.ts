@@ -88,22 +88,25 @@ class ServerlessCustomDomain {
 
     // start of the legacy AWS SDK V2 creds support
     // TODO: remove it in case serverless will add V3 support
-    // Skipped on frameworks exposing getAwsSdkV3Config() (osls v4): those
-    // removed providers.aws.getCredentials() and resolve credentials natively
-    // via the AWS SDK v3 default credential chain.
+    // Probe for credential-resolution failures and fall back to framework-resolved
+    // credentials. osls v4 turns getCredentials() into a throwing removal stub
+    // (AWS_SDK_V2_SURFACE_REMOVED), so the call is guarded — on those frameworks
+    // credentials are already resolved in initSLSCredentials() via getAwsSdkV3Config().
     const awsProvider = this.serverless.providers.aws;
     const domain = this.domains[0];
-    if (
-      domain &&
-      typeof awsProvider.getAwsSdkV3Config !== "function" &&
-      typeof awsProvider.getCredentials === "function"
-    ) {
+    if (domain && typeof awsProvider.getAwsSdkV3Config !== "function") {
       try {
         await this.getApiGateway(domain).getCustomDomain(domain);
       } catch (error) {
         if (error.message.includes("Could not load credentials from any providers")) {
-          Globals.credentials = awsProvider.getCredentials();
-          await this.initAWSResources();
+          try {
+            if (typeof awsProvider.getCredentials === "function") {
+              Globals.credentials = awsProvider.getCredentials();
+              await this.initAWSResources();
+            }
+          } catch {
+            // getCredentials() removed (osls v4); SDK v3 default chain handles creds
+          }
         }
       }
     }
@@ -191,7 +194,53 @@ class ServerlessCustomDomain {
    */
   public async initSLSCredentials (): Promise<void> {
     const slsProfile = Globals.options["aws-profile"] || Globals.serverless.service.provider.profile;
-    Globals.credentials = slsProfile ? await Globals.getProfileCreds(slsProfile) : null;
+    if (slsProfile) {
+      Globals.credentials = await Globals.getProfileCreds(slsProfile);
+      return;
+    }
+    // No explicit profile: resolve credentials through the framework so the
+    // plugin's AWS SDK v3 clients inherit the same region/profile/SSO/assume-role
+    // resolution. osls v4 exposes this via getAwsSdkV3Config(); serverless v3 via
+    // the legacy getCredentials(). Both are wrapped because osls v4 turns
+    // getCredentials() into a throwing removal stub (AWS_SDK_V2_SURFACE_REMOVED).
+    const awsProvider = this.resolveAwsProvider();
+    if (awsProvider && typeof awsProvider.getAwsSdkV3Config === "function") {
+      try {
+        Globals.credentials = (await awsProvider.getAwsSdkV3Config()).credentials;
+      } catch {
+        Globals.credentials = null;
+      }
+      return;
+    }
+    try {
+      Globals.credentials = awsProvider && typeof awsProvider.getCredentials === "function"
+        ? awsProvider.getCredentials()
+        : null;
+    } catch {
+      Globals.credentials = null;
+    }
+  }
+
+  /**
+   * Resolve the AWS provider instance, preferring one that exposes the osls v4
+   * SDK v3 config surface. `serverless.providers.aws` and `serverless.getProvider('aws')`
+   * can point at different objects depending on the framework version.
+   */
+  private resolveAwsProvider (): any {
+    const sls: any = Globals.serverless;
+    const direct = sls.providers && sls.providers.aws;
+    let viaGetProvider: any = null;
+    if (typeof sls.getProvider === "function") {
+      try {
+        viaGetProvider = sls.getProvider("aws");
+      } catch {
+        viaGetProvider = null;
+      }
+    }
+    if (viaGetProvider && typeof viaGetProvider.getAwsSdkV3Config === "function") {
+      return viaGetProvider;
+    }
+    return direct || viaGetProvider;
   }
 
   /**

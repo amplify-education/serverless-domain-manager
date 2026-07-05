@@ -77,8 +77,13 @@ export default class Globals {
     if (typeof awsProvider.getAwsSdkV3Config === "function") {
       return null;
     }
-    const serviceConf = awsProvider.sdk && awsProvider.sdk.config[service];
-    return serviceConf ? serviceConf.endpoint : null;
+    try {
+      const serviceConf = awsProvider.sdk && awsProvider.sdk.config[service];
+      return serviceConf ? serviceConf.endpoint : null;
+    } catch {
+      // providers.aws.sdk is a removed v2 surface (osls v4); SDK v3 resolves endpoints natively
+      return null;
+    }
   }
 
   public static getRegion () {

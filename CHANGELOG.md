@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Support `osls` v4 / frameworks that removed the bundled AWS SDK v2 module. The plugin no longer accesses `providers.aws.sdk` or `providers.aws.getCredentials()` when `getAwsSdkV3Config()` is available, avoiding the `AWS_SDK_V2_SURFACE_REMOVED` error. AWS SDK v3 clients resolve custom endpoints and credentials natively on those frameworks ([678](https://github.com/amplify-education/serverless-domain-manager/issues/678))
+- Declare `osls` (optional, `>=4`) as a peer dependency alongside `serverless`
 
 ## [10.2.0] - 2026-06-09
 

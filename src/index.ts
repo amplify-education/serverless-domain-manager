@@ -88,13 +88,21 @@ class ServerlessCustomDomain {
 
     // start of the legacy AWS SDK V2 creds support
     // TODO: remove it in case serverless will add V3 support
+    // Skipped on frameworks exposing getAwsSdkV3Config() (osls v4): those
+    // removed providers.aws.getCredentials() and resolve credentials natively
+    // via the AWS SDK v3 default credential chain.
+    const awsProvider = this.serverless.providers.aws;
     const domain = this.domains[0];
-    if (domain) {
+    if (
+      domain &&
+      typeof awsProvider.getAwsSdkV3Config !== "function" &&
+      typeof awsProvider.getCredentials === "function"
+    ) {
       try {
         await this.getApiGateway(domain).getCustomDomain(domain);
       } catch (error) {
         if (error.message.includes("Could not load credentials from any providers")) {
-          Globals.credentials = this.serverless.providers.aws.getCredentials();
+          Globals.credentials = awsProvider.getCredentials();
           await this.initAWSResources();
         }
       }

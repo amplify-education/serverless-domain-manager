@@ -705,4 +705,38 @@ describe("Custom Domain Plugin", () => {
       expect(commandCalls.length).to.equal(1);
     });
   });
+
+  describe("osls v4 / AWS SDK v2 surface removed", () => {
+    let originalServerless: any;
+    before(() => { originalServerless = Globals.serverless; });
+    after(() => { Globals.serverless = originalServerless; });
+
+    it("getServiceEndpoint does not touch providers.aws.sdk when getAwsSdkV3Config is present", () => {
+      // osls v4 removed the bundled AWS SDK v2 module: providers.aws.sdk is a
+      // throwing surface. The plugin must not access it when getAwsSdkV3Config
+      // is available, and AWS SDK v3 clients resolve endpoints natively.
+      Globals.serverless = {
+        providers: {
+          aws: {
+            getAwsSdkV3Config: async () => ({}),
+            get sdk () {
+              throw new Error("AWS_SDK_V2_SURFACE_REMOVED");
+            }
+          }
+        }
+      } as any;
+      expect(Globals.getServiceEndpoint("cloudformation")).to.equal(null);
+    });
+
+    it("getServiceEndpoint still reads sdk.config on v3 frameworks", () => {
+      Globals.serverless = {
+        providers: {
+          aws: {
+            sdk: { config: { cloudformation: { endpoint: "http://localstack:4566" } } }
+          }
+        }
+      } as any;
+      expect(Globals.getServiceEndpoint("cloudformation")).to.equal("http://localstack:4566");
+    });
+  });
 });

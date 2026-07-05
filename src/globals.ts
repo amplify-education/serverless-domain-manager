@@ -69,14 +69,16 @@ export default class Globals {
   }
 
   public static getServiceEndpoint (service: string) {
-    if (Globals.serverless.providers.aws.sdk) {
-      const serviceConf = Globals.serverless.providers.aws.sdk.config[service];
-      if (serviceConf) {
-        return serviceConf.endpoint;
-      }
+    const awsProvider = Globals.serverless.providers.aws;
+    // Frameworks exposing getAwsSdkV3Config() (osls v4) removed the bundled
+    // AWS SDK v2 module, so accessing providers.aws.sdk throws
+    // (AWS_SDK_V2_SURFACE_REMOVED). AWS SDK v3 clients resolve custom endpoints
+    // (e.g. AWS_ENDPOINT_URL_*) natively there, so no manual lookup is needed.
+    if (typeof awsProvider.getAwsSdkV3Config === "function") {
       return null;
     }
-    return null;
+    const serviceConf = awsProvider.sdk && awsProvider.sdk.config[service];
+    return serviceConf ? serviceConf.endpoint : null;
   }
 
   public static getRegion () {

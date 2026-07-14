@@ -773,7 +773,8 @@ describe("Custom Domain Plugin", () => {
             }
           }
         },
-        service: { provider: {} }
+        service: { provider: {} },
+        cli: { log: () => null }
       } as any;
       await plugin.initSLSCredentials();
       expect(Globals.credentials).to.equal(null);

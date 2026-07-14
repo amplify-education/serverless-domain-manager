@@ -705,4 +705,78 @@ describe("Custom Domain Plugin", () => {
       expect(commandCalls.length).to.equal(1);
     });
   });
+
+  describe("osls v4 / AWS SDK v2 surface removed", () => {
+    let originalServerless: any;
+    before(() => { originalServerless = Globals.serverless; });
+    after(() => { Globals.serverless = originalServerless; });
+
+    it("getServiceEndpoint does not touch providers.aws.sdk when getAwsSdkV3Config is present", () => {
+      // osls v4 removed the bundled AWS SDK v2 module: providers.aws.sdk is a
+      // throwing surface. The plugin must not access it when getAwsSdkV3Config
+      // is available, and AWS SDK v3 clients resolve endpoints natively.
+      Globals.serverless = {
+        providers: {
+          aws: {
+            getAwsSdkV3Config: async () => ({}),
+            get sdk () {
+              throw new Error("AWS_SDK_V2_SURFACE_REMOVED");
+            }
+          }
+        }
+      } as any;
+      expect(Globals.getServiceEndpoint("cloudformation")).to.equal(null);
+    });
+
+    it("getServiceEndpoint still reads sdk.config on v3 frameworks", () => {
+      Globals.serverless = {
+        providers: {
+          aws: {
+            sdk: { config: { cloudformation: { endpoint: "http://localstack:4566" } } }
+          }
+        }
+      } as any;
+      expect(Globals.getServiceEndpoint("cloudformation")).to.equal("http://localstack:4566");
+    });
+
+    it("initSLSCredentials pulls credentials from getAwsSdkV3Config and never calls getCredentials", async () => {
+      // osls v4: getCredentials() is a throwing removal stub. With no profile
+      // configured, credentials must come from getAwsSdkV3Config().credentials.
+      const plugin = constructPlugin(getDomainConfig({}));
+      let credentialsCalls = 0;
+      Globals.serverless = {
+        providers: {
+          aws: {
+            getAwsSdkV3Config: async () => ({ credentials: { accessKeyId: "v4-creds" } }),
+            getCredentials () {
+              credentialsCalls++;
+              throw new Error("AWS_SDK_V2_SURFACE_REMOVED");
+            }
+          }
+        },
+        service: { provider: {} }
+      } as any;
+      await plugin.initSLSCredentials();
+      expect(Globals.credentials).to.deep.equal({ accessKeyId: "v4-creds" });
+      expect(credentialsCalls).to.equal(0);
+    });
+
+    it("initSLSCredentials survives a throwing getCredentials when getAwsSdkV3Config is absent", async () => {
+      // Defensive: if a framework lacks getAwsSdkV3Config but makes getCredentials
+      // throw, the plugin must not crash — it falls back to the SDK v3 default chain.
+      const plugin = constructPlugin(getDomainConfig({}));
+      Globals.serverless = {
+        providers: {
+          aws: {
+            getCredentials () {
+              throw new Error("AWS_SDK_V2_SURFACE_REMOVED");
+            }
+          }
+        },
+        service: { provider: {} }
+      } as any;
+      await plugin.initSLSCredentials();
+      expect(Globals.credentials).to.equal(null);
+    });
+  });
 });

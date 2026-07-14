@@ -60,8 +60,9 @@ export interface ServerlessInstance {
   };
   providers: {
     aws: {
-      getCredentials (): any,
-      sdk: any
+      getCredentials? (): any,
+      sdk?: any,
+      getAwsSdkV3Config? (options?: { region?: string, profile?: string }): Promise<any>,
     },
   };
   cli: {

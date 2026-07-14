@@ -2,6 +2,7 @@ import {
   CertificateStatus,
   ACMClient,
   CertificateSummary,
+  KeyAlgorithm,
   ListCertificatesCommand,
   ListCertificatesCommandInput,
   ListCertificatesCommandOutput
@@ -41,7 +42,13 @@ class ACMWrapper {
         "CertificateSummaryList",
         "NextToken",
         "NextToken",
-        new ListCertificatesCommand({ CertificateStatuses: certStatuses })
+        new ListCertificatesCommand({
+          CertificateStatuses: certStatuses,
+          // ACM ListCertificates defaults to RSA_1024/RSA_2048 only; without
+          // Includes.keyTypes every EC-key certificate is silently omitted, so
+          // getCertArnByCertName / getCertArnByDomainName never see them.
+          Includes: { keyTypes: Object.values(KeyAlgorithm) }
+        })
       );
       // enhancement idea: weight the choice of cert so longer expires
       // and RenewalEligibility = ELIGIBLE is more preferable

@@ -1,0 +1,29 @@
+# Deploy the plugin under the osls (Open Serverless) framework, which removed
+# the bundled AWS SDK v2 module and exposes getAwsSdkV3Config() instead. This
+# exercises the osls v4 support end-to-end (no AWS_SDK_V2_SURFACE_REMOVED crash).
+service: ${env:PLUGIN_IDENTIFIER}-osls
+
+provider:
+  name: aws
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/sls_domain_manager_lambda
+  runtime: nodejs24.x
+  region: us-west-2
+  stage: test
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: ${env:PLUGIN_IDENTIFIER}-osls-${env:RANDOM_STRING}.${env:TEST_DOMAIN}
+
+package:
+  patterns:
+    - '!node_modules/**'

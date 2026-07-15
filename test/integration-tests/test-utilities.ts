@@ -40,21 +40,46 @@ async function exec (cmd: string): Promise<string> {
   });
 }
 
+// Frameworks the harness can drive. Both expose a `serverless` CLI entrypoint;
+// osls (Open Serverless) is a fork whose bin also resolves to bin/serverless.js.
+type Framework = "serverless" | "osls";
+
+/**
+ * Make the chosen framework's `serverless` CLI available in the temp dir so the
+ * sls* helpers can keep invoking `npx serverless <cmd>` unchanged.
+ *
+ * serverless is symlinked from the repo's node_modules. osls is intentionally
+ * NOT a root dependency (it drifts the shared @aws-sdk/@smithy versions and
+ * breaks the build), so it runs on demand via npx behind a `.bin/serverless`
+ * shim. osls (Open Serverless) is the framework that removed the bundled AWS
+ * SDK v2 module, which is exactly what this test exercises.
+ * @param tempDir
+ * @param framework which framework to run under (serverless or osls)
+ */
+async function linkFramework (tempDir: string, framework: Framework) {
+  if (framework === "osls") {
+    const shim = `${tempDir}/node_modules/.bin/serverless`;
+    await exec(`printf '#!/bin/sh\\nexec npx --yes osls@4 "$@"\\n' > ${shim} && chmod +x ${shim}`);
+    return;
+  }
+  await exec(`ln -s $(pwd)/node_modules/${framework} ${tempDir}/node_modules/`);
+  await exec(`ln -s $(pwd)/node_modules/${framework}/bin/serverless.js ${tempDir}/node_modules/.bin/serverless`);
+}
+
 /**
  * Move item in folderName to created tempDir
  * @param {string} tempDir
  * @param {string} folderName
+ * @param {Framework} framework which framework to run under (defaults to serverless)
  */
-async function createTempDir (tempDir, folderName) {
+async function createTempDir (tempDir, folderName, framework: Framework = "serverless") {
   await exec(`rm -rf ${tempDir}`);
   await exec(`mkdir -p ${tempDir} && cp -R test/integration-tests/${folderName}/. ${tempDir}`);
   await exec(`mkdir -p ${tempDir}/node_modules/.bin`);
   await exec(`ln -s $(pwd) ${tempDir}/node_modules/serverless-domain-manager`);
 
-  await exec(`ln -s $(pwd)/node_modules/serverless ${tempDir}/node_modules/`);
+  await linkFramework(tempDir, framework);
   await exec(`ln -s $(pwd)/node_modules/serverless-plugin-split-stacks ${tempDir}/node_modules/`);
-  // we use npx running the local serverless in case not exists the global serverless will be used
-  await exec(`ln -s $(pwd)/node_modules/serverless/bin/serverless.js ${tempDir}/node_modules/.bin/serverless`);
 }
 
 /**
@@ -105,10 +130,10 @@ function slsRemove (tempDir, debug: boolean = false) {
  * @param url
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
-async function createResources (folderName, url) {
+async function createResources (folderName, url, framework: Framework = "serverless") {
   console.debug(`\tCreating Resources for ${url} \tUsing tmp directory ${TEMP_DIR}`);
   try {
-    await createTempDir(TEMP_DIR, folderName);
+    await createTempDir(TEMP_DIR, folderName, framework);
     await slsCreateDomain(TEMP_DIR, true);
     await slsDeploy(TEMP_DIR, true);
     console.debug("\tResources Created");

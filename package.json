@@ -1,6 +1,6 @@
 {
   "name": "serverless-domain-manager",
-  "version": "10.2.0",
+  "version": "10.3.0",
   "engines": {
     "node": ">=20"
   },
@@ -29,9 +29,10 @@
   "scripts": {
     "integration-basic": "mocha -r ts-node/register --project tsconfig.json test/integration-tests/basic/basic.test.ts",
     "integration-deploy": "mocha -r ts-node/register --project tsconfig.json test/integration-tests/deploy/deploy.test.ts",
+    "integration-osls": "mocha -r ts-node/register --project tsconfig.json test/integration-tests/osls/osls.test.ts",
     "test": "c8 mocha -r ts-node/register --project tsconfig.json --timeout 5000 'test/unit-tests/**/*.test.ts'",
     "test:debug": "NODE_OPTIONS='--inspect-brk' mocha -j 1 -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts",
-    "integration-test": "npm run integration-basic && npm run integration-deploy",
+    "integration-test": "npm run integration-basic && npm run integration-deploy && npm run integration-osls",
     "lint": "eslint src",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --project .",

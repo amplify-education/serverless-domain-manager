@@ -68,13 +68,23 @@ export default class Globals {
     return Globals.options.stage || Globals.serverless.service.provider.stage;
   }
 
+  /**
+   * Detects frameworks (osls v4) that removed the bundled AWS SDK v2 module and
+   * expose getAwsSdkV3Config() instead. On those frameworks the v2 surfaces
+   * (providers.aws.sdk / getCredentials()) are throwing removal stubs
+   * (AWS_SDK_V2_SURFACE_REMOVED), and AWS SDK v3 clients resolve endpoints and
+   * credentials natively.
+   * @param awsProvider provider to probe; defaults to the active aws provider
+   */
+  public static hasSdkV3Config (awsProvider: any = Globals.serverless?.providers?.aws): boolean {
+    return typeof awsProvider?.getAwsSdkV3Config === "function";
+  }
+
   public static getServiceEndpoint (service: string) {
     const awsProvider = Globals.serverless.providers.aws;
-    // Frameworks exposing getAwsSdkV3Config() (osls v4) removed the bundled
-    // AWS SDK v2 module, so accessing providers.aws.sdk throws
-    // (AWS_SDK_V2_SURFACE_REMOVED). AWS SDK v3 clients resolve custom endpoints
-    // (e.g. AWS_ENDPOINT_URL_*) natively there, so no manual lookup is needed.
-    if (typeof awsProvider.getAwsSdkV3Config === "function") {
+    // AWS SDK v3 clients resolve custom endpoints (e.g. AWS_ENDPOINT_URL_*)
+    // natively on osls v4, so no manual sdk.config lookup is needed there.
+    if (Globals.hasSdkV3Config(awsProvider)) {
       return null;
     }
     try {

@@ -94,7 +94,7 @@ class ServerlessCustomDomain {
     // credentials are already resolved in initSLSCredentials() via getAwsSdkV3Config().
     const awsProvider = this.serverless.providers.aws;
     const domain = this.domains[0];
-    if (domain && typeof awsProvider.getAwsSdkV3Config !== "function") {
+    if (domain && !Globals.hasSdkV3Config(awsProvider)) {
       try {
         await this.getApiGateway(domain).getCustomDomain(domain);
       } catch (error) {
@@ -104,8 +104,11 @@ class ServerlessCustomDomain {
               Globals.credentials = awsProvider.getCredentials();
               await this.initAWSResources();
             }
-          } catch {
+          } catch (error) {
             // getCredentials() removed (osls v4); SDK v3 default chain handles creds
+            Logging.logWarning(
+              `Failed to reload credentials via getCredentials(); relying on the AWS SDK v3 default chain: ${error.message}`
+            );
           }
         }
       }
@@ -204,10 +207,13 @@ class ServerlessCustomDomain {
     // the legacy getCredentials(). Both are wrapped because osls v4 turns
     // getCredentials() into a throwing removal stub (AWS_SDK_V2_SURFACE_REMOVED).
     const awsProvider = this.resolveAwsProvider();
-    if (awsProvider && typeof awsProvider.getAwsSdkV3Config === "function") {
+    if (Globals.hasSdkV3Config(awsProvider)) {
       try {
         Globals.credentials = (await awsProvider.getAwsSdkV3Config()).credentials;
-      } catch {
+      } catch (error) {
+        Logging.logWarning(
+          `Failed to resolve credentials via getAwsSdkV3Config(); falling back to the AWS SDK v3 default chain: ${error.message}`
+        );
         Globals.credentials = null;
       }
       return;
@@ -216,7 +222,10 @@ class ServerlessCustomDomain {
       Globals.credentials = awsProvider && typeof awsProvider.getCredentials === "function"
         ? awsProvider.getCredentials()
         : null;
-    } catch {
+    } catch (error) {
+      Logging.logWarning(
+        `Failed to resolve credentials via getCredentials(); falling back to the AWS SDK v3 default chain: ${error.message}`
+      );
       Globals.credentials = null;
     }
   }
@@ -237,7 +246,7 @@ class ServerlessCustomDomain {
         viaGetProvider = null;
       }
     }
-    if (viaGetProvider && typeof viaGetProvider.getAwsSdkV3Config === "function") {
+    if (Globals.hasSdkV3Config(viaGetProvider)) {
       return viaGetProvider;
     }
     return direct || viaGetProvider;

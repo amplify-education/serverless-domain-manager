@@ -92,7 +92,7 @@
     "diff": "8.0.3"
   },
   "peerDependencies": {
-    "osls": ">=4",
+    "osls": ">=3",
     "serverless": ">=3"
   },
   "peerDependenciesMeta": {

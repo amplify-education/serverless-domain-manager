@@ -22,7 +22,9 @@ import {
   GetDomainNamesCommand,
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
-  UpdateApiMappingCommand
+  UpdateApiMappingCommand,
+  UpdateDomainNameCommand,
+  UpdateDomainNameCommandOutput
 } from "@aws-sdk/client-apigatewayv2";
 import Logging from "../logging";
 import { getAWSPagedResults } from "../utils";
@@ -159,6 +161,47 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     } catch (err) {
       throw new Error(
         `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`
+      );
+    }
+  }
+
+  public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+    if (!domain.securityPolicy) {
+      return domain.domainInfo;
+    }
+
+    if (domain.domainInfo?.securityPolicy === domain.securityPolicy) {
+      Logging.logInfo(`V2 - Security policy for '${domain.givenDomainName}' is already '${domain.securityPolicy}'`);
+      return domain.domainInfo;
+    }
+
+    Logging.logInfo(`V2 - Updating security policy for '${domain.givenDomainName}' from '${domain.domainInfo?.securityPolicy}' to '${domain.securityPolicy}'`);
+    try {
+      const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+      let endpointAccessMode: string | undefined;
+
+      if (domain.securityPolicy.startsWith("SecurityPolicy_")) {
+        endpointAccessMode = domain.endpointAccessMode || "STRICT";
+      } else {
+        endpointAccessMode = "";
+      }
+
+      const domainInfo: UpdateDomainNameCommandOutput = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          DomainName: domain.givenDomainName,
+          DomainNameConfigurations: [{
+            CertificateArn: domain.certificateArn,
+            EndpointType: domain.endpointType as any,
+            SecurityPolicy: domain.securityPolicy as any
+          }],
+          ...(endpointAccessMode !== undefined && { EndpointAccessMode: endpointAccessMode as any }),
+          ...(domainNameId && { DomainNameId: domainNameId })
+        } as any)
+      );
+      return new DomainInfo(domainInfo);
+    } catch (err) {
+      throw new Error(
+        `V2 - Unable to update security policy for '${domain.givenDomainName}':\n${(err as Error).message}`
       );
     }
   }

@@ -330,6 +330,7 @@ class ServerlessCustomDomain {
                  New domains may take up to 40 minutes to be initialized.`);
       } else {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
+        domain.domainInfo = await apiGateway.updateCustomDomain(domain);
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
     } catch (err) {

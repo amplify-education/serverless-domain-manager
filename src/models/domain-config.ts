@@ -28,6 +28,7 @@ class DomainConfig {
   public splitHorizonDns: boolean | undefined;
   public enabled: boolean | string | undefined;
   public securityPolicy: string | undefined;
+  public endpointAccessMode: string | undefined;
   public autoDomain: boolean | undefined;
   public autoDomainWaitFor: string | undefined;
   public route53Params: Route53Params;
@@ -60,6 +61,7 @@ class DomainConfig {
     this.tlsTruststoreUri = DomainConfig._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
     this.tlsTruststoreVersion = config.tlsTruststoreVersion;
     this.securityPolicy = DomainConfig._getSecurityPolicy(config.securityPolicy);
+    this.endpointAccessMode = config.endpointAccessMode;
     this.route53Params = DomainConfig._getRoute53Params(config.route53Params, this.endpointType);
     this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
   }

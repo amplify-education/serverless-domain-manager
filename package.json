@@ -83,7 +83,7 @@
     "@smithy/node-config-provider": "^4.3.12",
     "@smithy/node-http-handler": "^4.5.0",
     "@smithy/smithy-client": "^4.12.7",
-    "@smithy/types": "^4.13.1",
+    "@smithy/types": "^4.18.0",
     "@smithy/util-retry": "^4.2.12",
     "proxy-agent": "^6.5.0"
   },

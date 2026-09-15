@@ -46,7 +46,7 @@
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/chai": "^4.3.20",
+    "@types/chai": "^5.0.0",
     "@types/chai-spies": "^1.0.6",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.15",

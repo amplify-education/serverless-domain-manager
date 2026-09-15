@@ -59,7 +59,7 @@
     "chai-spies": "^1.1.0",
     "eslint": "^9.17.0",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^17.24.0",
+    "eslint-plugin-n": "^18.0.0",
     "eslint-plugin-promise": "^7.2.1",
     "globals": "^17.4.0",
     "mocha": "^11.7.5",

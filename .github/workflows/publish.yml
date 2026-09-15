@@ -17,12 +17,12 @@ jobs:
     runs-on: github-hosted-static-ip
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: Install and test
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
@@ -37,7 +37,7 @@ jobs:
 
       - name: Get latest tag
         id: get_latest_tag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
+        uses: WyriHaximus/github-action-get-previous-tag@61819f33034117e6c686e6a31dba995a85afc9de # v2
         with:
           fallback: 'v0.0.0'
 

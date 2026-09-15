@@ -80,7 +80,7 @@
     "@aws-sdk/client-s3": "^3.1016.0",
     "@aws-sdk/credential-providers": "^3.1016.0",
     "@smithy/config-resolver": "^4.4.13",
-    "@smithy/node-config-provider": "^4.3.12",
+    "@smithy/node-config-provider": "^4.6.2",
     "@smithy/node-http-handler": "^4.5.0",
     "@smithy/smithy-client": "^4.12.7",
     "@smithy/types": "^4.13.1",

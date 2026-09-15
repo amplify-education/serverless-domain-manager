@@ -88,7 +88,7 @@
     "proxy-agent": "^6.5.0"
   },
   "overrides": {
-    "fast-xml-parser": "5.5.9",
+    "fast-xml-parser": "5.11.1",
     "diff": "8.0.3"
   },
   "peerDependencies": {

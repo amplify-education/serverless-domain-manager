@@ -34,6 +34,7 @@ const getDomainConfig = (customDomainOptions) => {
     route53Region: customDomainOptions.route53Region,
     preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
     securityPolicy: customDomainOptions.securityPolicy,
+    endpointAccessMode: customDomainOptions.endpointAccessMode,
     stage: customDomainOptions.stage,
     route53Params: customDomainOptions.route53Params
   };

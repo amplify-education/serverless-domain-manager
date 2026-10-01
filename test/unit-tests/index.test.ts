@@ -6,7 +6,7 @@ import APIGatewayV1Wrapper = require("../../src/aws/api-gateway-v1-wrapper");
 import APIGatewayV2Wrapper = require("../../src/aws/api-gateway-v2-wrapper");
 import { mockClient } from "aws-sdk-client-mock";
 import {
-  APIGatewayClient, CreateBasePathMappingCommand, CreateDomainNameCommand, DeleteBasePathMappingCommand,
+  APIGatewayClient, CreateBasePathMappingCommand, CreateDomainNameCommand, DeleteBasePathMappingCommand, UpdateDomainNameCommand,
   DeleteDomainNameCommand,
   GetBasePathMappingsCommand,
   GetDomainNameCommand, UpdateBasePathMappingCommand
@@ -60,6 +60,20 @@ describe("Custom Domain Plugin", () => {
         expect(err.message).to.equal("notSupported is not supported endpointType, use EDGE, REGIONAL, or PRIVATE.");
       }
       expect(errored).to.equal(true);
+    });
+
+    it("Unsupported endpointAccessMode throws exception", () => {
+      expect(() => new DomainConfig(getDomainConfig({
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "OPEN"
+      }))).to.throw("OPEN is not a supported endpointAccessMode, use BASIC or STRICT.");
+    });
+
+    it("endpointAccessMode on a non-REST API throws exception", () => {
+      expect(() => new DomainConfig(getDomainConfig({
+        apiType: Globals.apiTypes.http,
+        endpointAccessMode: "BASIC"
+      }))).to.throw("endpointAccessMode is only supported for REST APIs.");
     });
 
     it("Unsupported api type throw exception", () => {
@@ -669,6 +683,64 @@ describe("Custom Domain Plugin", () => {
       const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand);
       expect(commandCalls.length).to.equal(1);
       expect(deleteDomainSpy).to.not.have.been.called();
+    });
+
+    it("create_domain:create updates an existing domain whose endpoint access mode differs", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_2"
+      });
+      APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC"
+      });
+      const ACMCMock = mockClient(ACMClient);
+      ACMCMock.on(ListCertificatesCommand).resolves({
+        CertificateSummaryList: [{ CertificateArn: "test_certificate_arn", DomainName: "test_domain" }]
+      });
+      const Route53Mock = mockClient(Route53Client);
+      Route53Mock.on(ListHostedZonesCommand).resolves({
+        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: true }, Id: "public_host_id", Name: "test_domain" }]
+      });
+      Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
+
+      const plugin = constructPlugin(getDomainConfig({
+        domainName: "test_domain",
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC"
+      }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["create_domain:create"]();
+
+      expect(APIGatewayMock.commandCalls(UpdateDomainNameCommand).length).to.equal(1);
+    });
+
+    it("create_domain:create leaves an existing domain alone when no endpoint access mode is configured", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_0"
+      });
+      const ACMCMock = mockClient(ACMClient);
+      ACMCMock.on(ListCertificatesCommand).resolves({
+        CertificateSummaryList: [{ CertificateArn: "test_certificate_arn", DomainName: "test_domain" }]
+      });
+      const Route53Mock = mockClient(Route53Client);
+      Route53Mock.on(ListHostedZonesCommand).resolves({
+        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: true }, Id: "public_host_id", Name: "test_domain" }]
+      });
+      Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain" }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["create_domain:create"]();
+
+      expect(APIGatewayMock.commandCalls(UpdateDomainNameCommand).length).to.equal(0);
     });
 
     it("delete_domain:delete", async () => {

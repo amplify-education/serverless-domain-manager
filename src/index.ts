@@ -330,6 +330,16 @@ class ServerlessCustomDomain {
                  New domains may take up to 40 minutes to be initialized.`);
       } else {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
+        // Only reconcile when an access mode is configured, so domains of existing users are never modified.
+        const needsUpdate = domain.endpointAccessMode && (
+          domain.securityPolicy !== domain.domainInfo.securityPolicy ||
+          domain.endpointAccessMode !== domain.domainInfo.endpointAccessMode
+        );
+        if (needsUpdate) {
+          domain.domainInfo = await apiGateway.updateCustomDomain(domain) ?? domain.domainInfo;
+          Logging.logInfo(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode were updated.
+                 Changes may take up to 15 minutes to be applied.`);
+        }
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
     } catch (err) {

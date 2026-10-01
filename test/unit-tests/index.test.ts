@@ -12,6 +12,7 @@ import {
   GetDomainNameCommand, UpdateBasePathMappingCommand
 } from "@aws-sdk/client-api-gateway";
 import { ACMClient, ListCertificatesCommand } from "@aws-sdk/client-acm";
+import { ApiGatewayV2Client, GetDomainNameCommand as GetDomainNameCommandV2 } from "@aws-sdk/client-apigatewayv2";
 import { ChangeResourceRecordSetsCommand, ListHostedZonesCommand, Route53Client } from "@aws-sdk/client-route-53";
 import { CloudFormationClient, DescribeStackResourceCommand, ResourceStatus } from "@aws-sdk/client-cloudformation";
 
@@ -741,6 +742,37 @@ describe("Custom Domain Plugin", () => {
       await plugin.hooks["create_domain:create"]();
 
       expect(APIGatewayMock.commandCalls(UpdateDomainNameCommand).length).to.equal(0);
+    });
+
+    it("create_domain:create warns instead of updating when the API type cannot update the domain", async () => {
+      // a REST API with a multi-level base path is served by the V2 wrapper, which cannot update domains
+      const APIGatewayV2Mock = mockClient(ApiGatewayV2Client);
+      APIGatewayV2Mock.on(GetDomainNameCommandV2).resolves({
+        DomainName: "test_domain",
+        DomainNameConfigurations: [{ SecurityPolicy: "TLS_1_2", HostedZoneId: "test_id" }]
+      });
+      const ACMCMock = mockClient(ACMClient);
+      ACMCMock.on(ListCertificatesCommand).resolves({
+        CertificateSummaryList: [{ CertificateArn: "test_certificate_arn", DomainName: "test_domain" }]
+      });
+      const Route53Mock = mockClient(Route53Client);
+      Route53Mock.on(ListHostedZonesCommand).resolves({
+        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: true }, Id: "public_host_id", Name: "test_domain" }]
+      });
+      Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
+
+      const plugin = constructPlugin(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "api/test",
+        apiType: Globals.apiTypes.rest,
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC"
+      }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["create_domain:create"]();
+
+      expect(consoleOutput.join("\n")).to.contain("cannot be updated for this API type");
+      expect(consoleOutput.join("\n")).to.not.contain("were updated");
     });
 
     it("delete_domain:delete", async () => {

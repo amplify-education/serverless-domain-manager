@@ -336,9 +336,14 @@ class ServerlessCustomDomain {
           domain.endpointAccessMode !== domain.domainInfo.endpointAccessMode
         );
         if (needsUpdate) {
-          domain.domainInfo = await apiGateway.updateCustomDomain(domain) ?? domain.domainInfo;
-          Logging.logInfo(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode were updated.
+          const updatedDomainInfo = await apiGateway.updateCustomDomain(domain);
+          if (updatedDomainInfo) {
+            domain.domainInfo = updatedDomainInfo;
+            Logging.logInfo(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode were updated.
                  Changes may take up to 15 minutes to be applied.`);
+          } else {
+            Logging.logWarning(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode cannot be updated for this API type.`);
+          }
         }
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);

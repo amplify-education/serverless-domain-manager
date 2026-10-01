@@ -52,6 +52,8 @@ export default class Globals {
   };
 
   /* eslint camelcase: ["error", {allow: ["^tls_"]}] */
+  public static endpointAccessModes = ["BASIC", "STRICT"];
+
   public static tlsVersions = {
     tls_1_0: "TLS_1_0",
     tls_1_2: "TLS_1_2",

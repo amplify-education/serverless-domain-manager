@@ -190,6 +190,17 @@ To remove the created custom domain:
 ```
 serverless delete_domain
 ```
+
+### Retries
+
+The plugin retries a failed AWS call up to 4 times, waiting a little longer before each retry.
+API Gateway limits management calls per account, so many deploys at once can still fail with `Too Many Requests`.
+To allow more retries, set `SLS_DOMAIN_MANAGER_MAX_RETRIES` to a whole number:
+```
+SLS_DOMAIN_MANAGER_MAX_RETRIES=10 serverless deploy
+```
+An unset or invalid value keeps the default of 4 retries.
+
 # How it works
 Creating the custom domain takes advantage of Amazon's Certificate Manager to assign a certificate to the given domain name. Based on already created certificate names, the plugin will search for the certificate that resembles the custom domain's name the most and assign the ARN to that domain name. The plugin then creates the proper A Alias and AAAA Alias records for the domain through Route 53. Once the domain name is set it takes up to 40 minutes before it is initialized. After the certificate is initialized, `sls deploy` will create the base path mapping and assign the lambda to the custom domain name through CloudFront. All resources are created independent of CloudFormation. However, deploying will also output the domain name and distribution domain name to the CloudFormation stack outputs under the keys `DomainName` and `DistributionDomainName`, respectively.
 

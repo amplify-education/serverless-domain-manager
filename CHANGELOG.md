@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.4.0] - 2026-11-02
 
 ### Added
-- Configurable number of AWS call retries through the `SLS_DOMAIN_MANAGER_MAX_RETRIES` environment variable, limited to 20 retries. An invalid value prints a warning and keeps the default of 4 retries. Thank you @buddhamagnet ([715](https://github.com/amplify-education/serverless-domain-manager/pull/715))
+- Configurable number of AWS call retries through the `SLS_DOMAIN_MANAGER_MAX_RETRIES` environment variable, limited to 20 retries. Thank you @buddhamagnet ([715](https://github.com/amplify-education/serverless-domain-manager/pull/715))
 
 ## [10.3.1] - 2026-07-21
 

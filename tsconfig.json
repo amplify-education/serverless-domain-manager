@@ -11,6 +11,9 @@
     "types": [
       "mocha",
       "node"
+    ],
+    "lib": [
+      "es2022"
     ]
   },
   "include": [

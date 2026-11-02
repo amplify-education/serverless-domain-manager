@@ -113,12 +113,19 @@ class DomainConfig {
         );
       }
 
-      const { protocol, pathname } = new URL(tlsTruststoreUri);
+      const invalidUriError = new Error(
+        `${tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`
+      );
+      let url: URL;
+      try {
+        url = new URL(tlsTruststoreUri);
+      } catch {
+        throw invalidUriError;
+      }
 
-      if (protocol !== "s3:" && !pathname.substring(1).includes("/")) {
-        throw new Error(
-          `${tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`
-        );
+      // pathname is "/" when the key is missing (s3://bucket-name/)
+      if (url.protocol !== "s3:" || !url.hostname || url.pathname.length <= 1) {
+        throw invalidUriError;
       }
     }
 

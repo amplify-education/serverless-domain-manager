@@ -81,7 +81,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       return new DomainInfo(domainInfo);
     } catch (err) {
       throw new Error(
-        `V2 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+        `V2 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -107,7 +108,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
     } catch (err) {
       if (!err.$metadata || err.$metadata.httpStatusCode !== 404 || !silent) {
         throw new Error(
-          `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
+          `V2 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`,
+          { cause: err }
         );
       }
       Logging.logInfo(`V2 - '${domain.givenDomainName}' does not exist.`);
@@ -158,7 +160,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       );
     } catch (err) {
       throw new Error(
-        `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`
+        `V2 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -190,7 +193,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       Logging.logInfo(`V2 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
     } catch (err) {
       throw new Error(
-        `V2 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V2 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -217,7 +221,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       );
     } catch (err) {
       throw new Error(
-        `V2 - Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`
+        `V2 - Make sure the '${domain.givenDomainName}' exists. Unable to get API Mappings:\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -242,7 +247,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       Logging.logInfo(`V2 - Updated API mapping to '${domain.basePath}' for '${domain.givenDomainName}'`);
     } catch (err) {
       throw new Error(
-        `V2 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V2 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -261,7 +267,8 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       Logging.logInfo(`V2 - Removed API Mapping with id: '${domain.apiMapping.apiMappingId}'`);
     } catch (err) {
       throw new Error(
-        `V2 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V2 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }

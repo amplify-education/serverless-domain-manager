@@ -98,7 +98,7 @@ class ServerlessCustomDomain {
       try {
         await this.getApiGateway(domain).getCustomDomain(domain);
       } catch (error) {
-        if (error.message.includes("Could not load credentials from any providers")) {
+        if (error?.message?.includes("Could not load credentials from any providers")) {
           try {
             const credentials = Globals.getLegacyCredentials(awsProvider);
             if (credentials) {
@@ -169,10 +169,6 @@ class ServerlessCustomDomain {
    */
   public validateDomainConfigs () {
     this.domains.forEach((domain) => {
-      if (domain.apiType === Globals.apiTypes.rest) {
-        // No validation for REST API types
-      }
-
       if (domain.apiType === Globals.apiTypes.http) {
         // HTTP APIs do not support edge domains
         if (domain.endpointType === Globals.endpointTypes.edge || domain.endpointType === Globals.endpointTypes.private) {
@@ -333,7 +329,7 @@ class ServerlessCustomDomain {
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
     } catch (err) {
-      throw new Error(`Unable to create domain '${domain.givenDomainName}':\n${err.message}`);
+      throw new Error(`Unable to create domain '${domain.givenDomainName}':\n${err.message}`, { cause: err });
     } finally {
       if (creationProgress) {
         creationProgress.remove();
@@ -379,21 +375,23 @@ class ServerlessCustomDomain {
    */
   public async deleteDomain (domain: DomainConfig): Promise<void> {
     const apiGateway = this.getApiGateway(domain);
-    const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : null;
+    const route53Creds = domain.route53Profile ? await Globals.getProfileCreds(domain.route53Profile) : Globals.credentials;
     const route53 = new Route53Wrapper(route53Creds, domain.route53Region);
 
     domain.domainInfo = await apiGateway.getCustomDomain(domain);
     try {
       if (domain.domainInfo) {
-        await apiGateway.deleteCustomDomain(domain);
+        // remove the DNS records first: if that fails the domain still exists, so the
+        // command can be re-run instead of leaving records that point at a deleted domain
         await route53.changeResourceRecordSet(ChangeAction.DELETE, domain);
+        await apiGateway.deleteCustomDomain(domain);
         domain.domainInfo = null;
         Logging.logInfo(`Custom domain ${domain.givenDomainName} was deleted.`);
       } else {
         Logging.logInfo(`Custom domain ${domain.givenDomainName} does not exist.`);
       }
     } catch (err) {
-      throw new Error(`Unable to delete domain '${domain.givenDomainName}':\n${err.message}`);
+      throw new Error(`Unable to delete domain '${domain.givenDomainName}':\n${err.message}`, { cause: err });
     }
   }
 
@@ -411,10 +409,9 @@ class ServerlessCustomDomain {
       domain.domainInfo = await apiGateway.getCustomDomain(domain);
 
       if (domain.autoDomain) {
-        const atLeastOneDoesNotExist = () => this.domains.some((d) => !d.domainInfo);
         const maxWaitFor = parseInt(domain.autoDomainWaitFor, 10) || 120;
         const pollInterval = 3;
-        for (let i = 0; i * pollInterval < maxWaitFor && atLeastOneDoesNotExist() === true; i++) {
+        for (let i = 0; i * pollInterval < maxWaitFor && !domain.domainInfo; i++) {
           Logging.logInfo(`
                         Poll #${i + 1}: polling every ${pollInterval} seconds
                         for domain to exist or until ${maxWaitFor} seconds
@@ -445,7 +442,7 @@ class ServerlessCustomDomain {
         }
         return mapping.apiId === domain.apiId;
       });
-      domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
+      domain.apiMapping = filteredMappings.length ? filteredMappings[0] : null;
       domain.domainInfo = await apiGateway.getCustomDomain(domain, false);
       await this.updateDomainSecurity(domain, apiGateway);
 
@@ -484,7 +481,7 @@ class ServerlessCustomDomain {
           if (domain.preserveExternalPathMappings) {
             externalBasePathExists = mappings.length > filteredMappings.length;
           }
-          domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
+          domain.apiMapping = filteredMappings.length ? filteredMappings[0] : null;
           if (domain.apiMapping) {
             await apiGateway.deleteBasePathMapping(domain);
           } else {
@@ -494,7 +491,8 @@ class ServerlessCustomDomain {
           }
         }
       } catch (err) {
-        if (err.message.indexOf("Failed to find CloudFormation") > -1) {
+        // getStackApiId() throws "Failed to find logicalResourceId" when neither the stack nor a nested stack has the API
+        if (err.message.includes("Failed to find logicalResourceId") || err.message.includes("Failed to find CloudFormation")) {
           Logging.logWarning(`Unable to find Cloudformation Stack for ${domain.givenDomainName},
                         API Mappings may need to be manually removed.`);
         } else {

@@ -3,6 +3,7 @@ import { fromIni } from "@aws-sdk/credential-providers";
 import { ConfiguredRetryStrategy } from "@smithy/util-retry";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { ProxyAgent } from "proxy-agent";
+import Logging from "./logging";
 
 export default class Globals {
   public static pluginName = "Serverless Domain Manager";
@@ -17,6 +18,10 @@ export default class Globals {
   public static defaultRegion = "us-east-1";
   public static defaultBasePath = "(none)";
   public static defaultStage = "$default";
+
+  public static defaultMaxRetries = 4;
+  public static maxRetriesLimit = 20;
+  public static maxRetriesWarnedValue: string | undefined;
 
   // https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-known-issues.html
   public static reservedBasePaths = ["ping", "sping"];
@@ -115,11 +120,24 @@ export default class Globals {
   }
 
   // SLS_DOMAIN_MANAGER_MAX_RETRIES counts retries, so attempts are one more.
-  // Falls back to 5 attempts when it is unset or not a whole number.
+  // Values above the limit are capped; anything that is not a whole number uses the default.
   public static getMaxAttempts (): number {
-    const value = process.env.SLS_DOMAIN_MANAGER_MAX_RETRIES;
-    const retries = Number(value);
-    return value && Number.isInteger(retries) && retries >= 0 ? retries + 1 : 5;
+    const value = process.env.SLS_DOMAIN_MANAGER_MAX_RETRIES?.trim();
+    if (!value) {
+      return Globals.defaultMaxRetries + 1;
+    }
+    const retries = /^\d+$/.test(value)
+      ? Math.min(Number(value), Globals.maxRetriesLimit)
+      : Globals.defaultMaxRetries;
+    // every AWS client reads the setting, so warn only once per value
+    if (String(retries) !== value && Globals.maxRetriesWarnedValue !== value) {
+      Globals.maxRetriesWarnedValue = value;
+      Logging.logWarning(
+        `SLS_DOMAIN_MANAGER_MAX_RETRIES='${value}' must be a whole number from 0 to ${Globals.maxRetriesLimit}, ` +
+        `using ${retries} retries.`
+      );
+    }
+    return retries + 1;
   }
 
   public static getRequestHandler () {

@@ -122,10 +122,8 @@ export default class Globals {
   // SLS_DOMAIN_MANAGER_MAX_RETRIES counts retries, so attempts are one more.
   // Values above the limit are capped; anything that is not a whole number uses the default.
   public static getMaxAttempts (): number {
-    const value = process.env.SLS_DOMAIN_MANAGER_MAX_RETRIES?.trim();
-    if (!value) {
-      return Globals.defaultMaxRetries + 1;
-    }
+    // an unset or empty value uses the default without a warning
+    const value = process.env.SLS_DOMAIN_MANAGER_MAX_RETRIES?.trim() || String(Globals.defaultMaxRetries);
     const retries = /^\d+$/.test(value)
       ? Math.min(Number(value), Globals.maxRetriesLimit)
       : Globals.defaultMaxRetries;

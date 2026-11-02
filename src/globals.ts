@@ -105,13 +105,21 @@ export default class Globals {
     return await fromIni({ profile })();
   }
 
-  public static getRetryStrategy (attempts: number = 5, delay: number = 3000, backoff: number = 500) {
+  public static getRetryStrategy (attempts: number = Globals.getMaxAttempts(), delay: number = 3000, backoff: number = 500) {
     return new ConfiguredRetryStrategy(
       attempts, // max attempts.
       // This example sets the backoff at 500ms plus 3s per attempt.
       // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_retry.html#aws-sdkutil-retry
       (attempt: number) => backoff + attempt * delay // backoff function.
     );
+  }
+
+  // SLS_DOMAIN_MANAGER_MAX_RETRIES counts retries, so attempts are one more.
+  // Falls back to 5 attempts when it is unset or not a whole number.
+  public static getMaxAttempts (): number {
+    const value = process.env.SLS_DOMAIN_MANAGER_MAX_RETRIES;
+    const retries = Number(value);
+    return value && Number.isInteger(retries) && retries >= 0 ? retries + 1 : 5;
   }
 
   public static getRequestHandler () {

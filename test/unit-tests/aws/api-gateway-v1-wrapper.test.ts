@@ -92,6 +92,27 @@ describe("API Gateway V1 wrapper checks", () => {
       expect(commandCalls.length).to.equal(1);
     });
 
+    it("update custom domain failure", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(UpdateDomainNameCommand).rejects(new Error("BadRequestException"));
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.regional,
+        endpointAccessMode: "BASIC"
+      }));
+
+      let errored = false;
+      try {
+        await apiGatewayV1Wrapper.updateCustomDomain(dc);
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("V1 - Failed to update custom domain 'test_domain':\nBadRequestException");
+      }
+      expect(errored).to.equal(true);
+    });
+
     it("create custom domain edge", async () => {
       const APIGatewayMock = mockClient(APIGatewayClient);
       APIGatewayMock.on(CreateDomainNameCommand).resolves({

@@ -330,21 +330,7 @@ class ServerlessCustomDomain {
                  New domains may take up to 40 minutes to be initialized.`);
       } else {
         Logging.logInfo(`Custom domain '${domain.givenDomainName}' already exists.`);
-        // Only reconcile when an access mode is configured, so domains of existing users are never modified.
-        const needsUpdate = domain.endpointAccessMode && (
-          domain.securityPolicy !== domain.domainInfo.securityPolicy ||
-          domain.endpointAccessMode !== domain.domainInfo.endpointAccessMode
-        );
-        if (needsUpdate) {
-          const updatedDomainInfo = await apiGateway.updateCustomDomain(domain);
-          if (updatedDomainInfo) {
-            domain.domainInfo = updatedDomainInfo;
-            Logging.logInfo(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode were updated.
-                 Changes may take up to 15 minutes to be applied.`);
-          } else {
-            Logging.logWarning(`Custom domain '${domain.givenDomainName}' security policy and endpoint access mode cannot be updated for this API type.`);
-          }
-        }
+        await this.updateDomainSecurity(domain, apiGateway);
       }
       await route53.changeResourceRecordSet(ChangeAction.UPSERT, domain);
     } catch (err) {
@@ -353,6 +339,29 @@ class ServerlessCustomDomain {
       if (creationProgress) {
         creationProgress.remove();
       }
+    }
+  }
+
+  /**
+   * Updates the security policy and endpoint access mode of an existing domain when they differ from the config.
+   * Only configured values are compared, so domains of users who set neither are never modified.
+   */
+  public async updateDomainSecurity (domain: DomainConfig, apiGateway: APIGatewayBase): Promise<void> {
+    const policyDiffers = domain.securityPolicy && domain.securityPolicy !== domain.domainInfo.securityPolicy;
+    const modeDiffers = domain.endpointAccessMode && domain.endpointAccessMode !== domain.domainInfo.endpointAccessMode;
+    if (!policyDiffers && !modeDiffers) {
+      return;
+    }
+    const updatedDomainInfo = await apiGateway.updateCustomDomain(domain);
+    if (updatedDomainInfo) {
+      domain.domainInfo = updatedDomainInfo;
+      Logging.logInfo(`Custom domain '${domain.givenDomainName}' security settings were updated.
+                 Changes may take up to 15 minutes to be applied.`);
+    } else {
+      Logging.logWarning(
+        `Custom domain '${domain.givenDomainName}' security policy cannot be updated for HTTP/WebSocket APIs ` +
+        "or multi-level base paths."
+      );
     }
   }
 
@@ -439,6 +448,7 @@ class ServerlessCustomDomain {
       });
       domain.apiMapping = filteredMappings ? filteredMappings[0] : null;
       domain.domainInfo = await apiGateway.getCustomDomain(domain, false);
+      await this.updateDomainSecurity(domain, apiGateway);
 
       if (!domain.apiMapping) {
         await apiGateway.createBasePathMapping(domain);

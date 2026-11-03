@@ -61,7 +61,7 @@ class DomainConfig {
     this.tlsTruststoreUri = DomainConfig._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
     this.tlsTruststoreVersion = config.tlsTruststoreVersion;
     this.securityPolicy = DomainConfig._getSecurityPolicy(config.securityPolicy);
-    this.endpointAccessMode = DomainConfig._getEndpointAccessMode(config.endpointAccessMode, this.apiType);
+    this.endpointAccessMode = DomainConfig._getEndpointAccessMode(config.endpointAccessMode, this.apiType, this.basePath);
     this.route53Params = DomainConfig._getRoute53Params(config.route53Params, this.endpointType);
     this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
   }
@@ -125,12 +125,16 @@ class DomainConfig {
     return tlsTruststoreUri;
   }
 
-  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
+  private static _getSecurityPolicy (securityPolicy: string | undefined) {
+    // left undefined when not configured, so existing domains are only updated to an explicit policy
+    if (!securityPolicy) {
+      return undefined;
+    }
     // converts legacy security policies to upper string if required
     return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }
 
-  private static _getEndpointAccessMode (endpointAccessMode: string | undefined, apiType: string) {
+  private static _getEndpointAccessMode (endpointAccessMode: string | undefined, apiType: string, basePath: string) {
     if (!endpointAccessMode) {
       return undefined;
     }
@@ -139,7 +143,12 @@ class DomainConfig {
       throw new Error("endpointAccessMode is only supported for REST APIs.");
     }
 
-    const normalized = endpointAccessMode.toUpperCase();
+    // multi-level base paths are managed through API Gateway V2, which has no endpoint access mode
+    if (basePath.includes("/")) {
+      throw new Error(`endpointAccessMode is not supported with a multi-level basePath ('${basePath}').`);
+    }
+
+    const normalized = String(endpointAccessMode).toUpperCase();
     if (!Globals.endpointAccessModes.includes(normalized)) {
       throw new Error(`${endpointAccessMode} is not a supported endpointAccessMode, use BASIC or STRICT.`);
     }

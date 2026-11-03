@@ -56,7 +56,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       endpointConfiguration: {
         types: [domain.endpointType]
       },
-      securityPolicy: domain.securityPolicy,
+      securityPolicy: domain.securityPolicy ?? Globals.tlsVersions.tls_1_2,
       ...(domain.endpointAccessMode && { endpointAccessMode: domain.endpointAccessMode }),
       tags: providerTags
     };
@@ -98,7 +98,9 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
   public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
     const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
     const patchOperations = [
-      { op: Op.replace, path: "/securityPolicy", value: domain.securityPolicy },
+      ...(domain.securityPolicy
+        ? [{ op: Op.replace, path: "/securityPolicy", value: domain.securityPolicy }]
+        : []),
       ...(domain.endpointAccessMode
         ? [{ op: Op.replace, path: "/endpointAccessMode", value: domain.endpointAccessMode }]
         : [])

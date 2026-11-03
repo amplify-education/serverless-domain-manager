@@ -70,6 +70,19 @@ describe("Custom Domain Plugin", () => {
       }))).to.throw("OPEN is not a supported endpointAccessMode, use BASIC or STRICT.");
     });
 
+    it("endpointAccessMode with a multi-level basePath throws exception", () => {
+      expect(() => new DomainConfig(getDomainConfig({
+        basePath: "api/test",
+        endpointAccessMode: "BASIC"
+      }))).to.throw("endpointAccessMode is not supported with a multi-level basePath ('api/test').");
+    });
+
+    it("non-string endpointAccessMode throws a validation error", () => {
+      expect(() => new DomainConfig(getDomainConfig({
+        endpointAccessMode: 1
+      }))).to.throw("1 is not a supported endpointAccessMode, use BASIC or STRICT.");
+    });
+
     it("endpointAccessMode on a non-REST API throws exception", () => {
       expect(() => new DomainConfig(getDomainConfig({
         apiType: Globals.apiTypes.http,
@@ -270,9 +283,9 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.domains.length).to.equal(1);
     });
 
-    it("Should default to TLS_1_2 security policy when none specified", () => {
+    it("Should leave the security policy unset when none specified", () => {
       const dc = new DomainConfig(getDomainConfig({}));
-      expect(dc.securityPolicy).to.equal("TLS_1_2");
+      expect(dc.securityPolicy).to.equal(undefined);
     });
 
     it("Should convert legacy lowercase tls_1_2 to TLS_1_2", () => {
@@ -744,35 +757,162 @@ describe("Custom Domain Plugin", () => {
       expect(APIGatewayMock.commandCalls(UpdateDomainNameCommand).length).to.equal(0);
     });
 
-    it("create_domain:create warns instead of updating when the API type cannot update the domain", async () => {
-      // a REST API with a multi-level base path is served by the V2 wrapper, which cannot update domains
+    const existingDomains: { existing: Record<string, any>; expectedUpdates: number }[] = [
+      { existing: { securityPolicy: "TLS_1_2" }, expectedUpdates: 1 },
+      { existing: { securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09", endpointAccessMode: "BASIC" }, expectedUpdates: 0 }
+    ];
+    for (const { existing, expectedUpdates } of existingDomains) {
+      it(`after:deploy:deploy makes ${expectedUpdates} domain update(s) for an existing domain with ${JSON.stringify(existing)}`, async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(GetDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          ...existing
+        });
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+          endpointAccessMode: "BASIC"
+        });
+        APIGatewayMock.on(GetBasePathMappingsCommand).resolves({ items: [] });
+        APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+        const CloudFormationMock = mockClient(CloudFormationClient);
+        CloudFormationMock.on(DescribeStackResourceCommand).resolves({
+          StackResourceDetail: {
+            LogicalResourceId: Globals.CFResourceIds[Globals.apiTypes.rest],
+            PhysicalResourceId: "test_rest_api_id",
+            ResourceType: "",
+            LastUpdatedTimestamp: null,
+            ResourceStatus: ResourceStatus.CREATE_COMPLETE
+          }
+        });
+
+        const plugin = constructPlugin(getDomainConfig({
+          domainName: "test_domain",
+          securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+          endpointAccessMode: "BASIC"
+        }));
+        plugin.initAWSRegion = async () => null;
+        await plugin.hooks["after:deploy:deploy"]();
+
+        const updateCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        expect(updateCalls.length).to.equal(expectedUpdates);
+        if (expectedUpdates) {
+          expect(updateCalls[0].args[0].input.patchOperations).to.deep.equal([
+            { op: "replace", path: "/securityPolicy", value: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09" },
+            { op: "replace", path: "/endpointAccessMode", value: "BASIC" }
+          ]);
+        }
+        expect(APIGatewayMock.commandCalls(CreateBasePathMappingCommand).length).to.equal(1);
+      });
+    }
+
+    const policyOnlyDomains: { existing: Record<string, any>; expectedUpdates: number }[] = [
+      { existing: { securityPolicy: "TLS_1_0" }, expectedUpdates: 1 },
+      { existing: { securityPolicy: "TLS_1_2" }, expectedUpdates: 0 }
+    ];
+    for (const { existing, expectedUpdates } of policyOnlyDomains) {
+      it(`after:deploy:deploy with only securityPolicy set makes ${expectedUpdates} domain update(s) for ${existing.securityPolicy}`, async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(GetDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          ...existing
+        });
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          securityPolicy: "TLS_1_2"
+        });
+        APIGatewayMock.on(GetBasePathMappingsCommand).resolves({ items: [] });
+        APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+        const CloudFormationMock = mockClient(CloudFormationClient);
+        CloudFormationMock.on(DescribeStackResourceCommand).resolves({
+          StackResourceDetail: {
+            LogicalResourceId: Globals.CFResourceIds[Globals.apiTypes.rest],
+            PhysicalResourceId: "test_rest_api_id",
+            ResourceType: "",
+            LastUpdatedTimestamp: null,
+            ResourceStatus: ResourceStatus.CREATE_COMPLETE
+          }
+        });
+
+        const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain", securityPolicy: "TLS_1_2" }));
+        plugin.initAWSRegion = async () => null;
+        await plugin.hooks["after:deploy:deploy"]();
+
+        const updateCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        expect(updateCalls.length).to.equal(expectedUpdates);
+        if (expectedUpdates) {
+          expect(updateCalls[0].args[0].input.patchOperations).to.deep.equal([
+            { op: "replace", path: "/securityPolicy", value: "TLS_1_2" }
+          ]);
+        }
+      });
+    }
+
+    it("after:deploy:deploy with only endpointAccessMode set updates the mode and keeps the security policy", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_0"
+      });
+      APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_0",
+        endpointAccessMode: "BASIC"
+      });
+      APIGatewayMock.on(GetBasePathMappingsCommand).resolves({ items: [] });
+      APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+      const CloudFormationMock = mockClient(CloudFormationClient);
+      CloudFormationMock.on(DescribeStackResourceCommand).resolves({
+        StackResourceDetail: {
+          LogicalResourceId: Globals.CFResourceIds[Globals.apiTypes.rest],
+          PhysicalResourceId: "test_rest_api_id",
+          ResourceType: "",
+          LastUpdatedTimestamp: null,
+          ResourceStatus: ResourceStatus.CREATE_COMPLETE
+        }
+      });
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain", endpointAccessMode: "BASIC" }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["after:deploy:deploy"]();
+
+      const updateCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+      expect(updateCalls.length).to.equal(1);
+      expect(updateCalls[0].args[0].input.patchOperations).to.deep.equal([
+        { op: "replace", path: "/endpointAccessMode", value: "BASIC" }
+      ]);
+    });
+
+    it("create_domain:create warns when the security policy of an HTTP API domain differs", async () => {
       const APIGatewayV2Mock = mockClient(ApiGatewayV2Client);
       APIGatewayV2Mock.on(GetDomainNameCommandV2).resolves({
         DomainName: "test_domain",
-        DomainNameConfigurations: [{ SecurityPolicy: "TLS_1_2", HostedZoneId: "test_id" }]
-      });
-      const ACMCMock = mockClient(ACMClient);
-      ACMCMock.on(ListCertificatesCommand).resolves({
-        CertificateSummaryList: [{ CertificateArn: "test_certificate_arn", DomainName: "test_domain" }]
+        DomainNameConfigurations: [{ SecurityPolicy: "TLS_1_0", HostedZoneId: "test_id" }]
       });
       const Route53Mock = mockClient(Route53Client);
       Route53Mock.on(ListHostedZonesCommand).resolves({
-        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: true }, Id: "public_host_id", Name: "test_domain" }]
+        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: false }, Id: "public_host_id", Name: "test_domain" }]
       });
       Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
 
       const plugin = constructPlugin(getDomainConfig({
         domainName: "test_domain",
-        basePath: "api/test",
-        apiType: Globals.apiTypes.rest,
-        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
-        endpointAccessMode: "BASIC"
+        apiType: Globals.apiTypes.http,
+        endpointType: Globals.endpointTypes.regional,
+        securityPolicy: "TLS_1_2"
       }));
       plugin.initAWSRegion = async () => null;
       await plugin.hooks["create_domain:create"]();
 
-      expect(consoleOutput.join("\n")).to.contain("cannot be updated for this API type");
-      expect(consoleOutput.join("\n")).to.not.contain("were updated");
+      expect(consoleOutput.join("\n")).to.contain(
+        "Custom domain 'test_domain' security policy cannot be updated for HTTP/WebSocket APIs or multi-level base paths."
+      );
     });
 
     it("delete_domain:delete", async () => {

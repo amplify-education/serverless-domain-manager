@@ -6,6 +6,7 @@ class DomainInfo {
   public domainNameId: string;
   public hostedZoneId: string;
   public securityPolicy: string;
+  public endpointAccessMode: string | undefined;
 
   /**
    * Sometimes, the getDomainName call doesn't return either a distributionHostedZoneId or a regionalHostedZoneId.
@@ -33,6 +34,8 @@ class DomainInfo {
     this.securityPolicy = data.securityPolicy ||
       (data.DomainNameConfigurations && data.DomainNameConfigurations[0].SecurityPolicy) ||
       this.defaultSecurityPolicy;
+
+    this.endpointAccessMode = data.endpointAccessMode;
 
     this.domainNameId = data.domainNameId || data.DomainNameId || this.defaultDomainNameId;
   }

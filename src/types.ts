@@ -24,6 +24,7 @@ export interface CustomDomain {
   splitHorizonDns: boolean | undefined;
   enabled: boolean | string | undefined;
   securityPolicy: string | undefined;
+  endpointAccessMode: string | undefined;
   autoDomain: boolean | undefined;
   autoDomainWaitFor: string | undefined;
   allowPathMatching: boolean | undefined;

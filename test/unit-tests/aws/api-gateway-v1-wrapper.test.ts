@@ -3,7 +3,7 @@ import {
   APIGatewayClient, CreateBasePathMappingCommand,
   CreateDomainNameCommand, DeleteBasePathMappingCommand,
   DeleteDomainNameCommand, GetBasePathMappingsCommand,
-  GetDomainNameCommand, GetDomainNamesCommand, UpdateBasePathMappingCommand,
+  GetDomainNameCommand, GetDomainNamesCommand, UpdateBasePathMappingCommand, UpdateDomainNameCommand,
   Op, EndpointType, SecurityPolicy
 } from "@aws-sdk/client-api-gateway";
 import { consoleOutput, expect, getDomainConfig } from "../base";
@@ -25,6 +25,73 @@ describe("API Gateway V1 wrapper checks", () => {
   });
 
   describe("Custom domain", () => {
+    it("create custom domain with enhanced security policy and endpoint access mode", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(CreateDomainNameCommand).resolves({
+        regionalDomainName: "foo",
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC"
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.regional,
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "basic",
+        certificateArn: "test_arn"
+      }));
+
+      const actualResult = await apiGatewayV1Wrapper.createCustomDomain(dc);
+
+      expect(actualResult).to.eql(new DomainInfo({
+        regionalDomainName: "foo",
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC"
+      }));
+      const commandCalls = APIGatewayMock.commandCalls(CreateDomainNameCommand, {
+        domainName: dc.givenDomainName,
+        endpointConfiguration: { types: [EndpointType.REGIONAL] },
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "BASIC",
+        tags: {
+          ...Globals.serverless.service.provider.stackTags,
+          ...Globals.serverless.service.provider.tags
+        },
+        regionalCertificateArn: dc.certificateArn
+      }, true);
+      expect(commandCalls.length).to.equal(1);
+    });
+
+    it("update custom domain security policy and endpoint access mode", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+        regionalDomainName: "foo",
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "STRICT"
+      });
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        endpointType: Globals.endpointTypes.regional,
+        securityPolicy: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09",
+        endpointAccessMode: "STRICT"
+      }));
+
+      const actualResult = await apiGatewayV1Wrapper.updateCustomDomain(dc);
+
+      expect(actualResult.endpointAccessMode).to.equal("STRICT");
+      const commandCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand, {
+        domainName: dc.givenDomainName,
+        patchOperations: [
+          { op: Op.replace, path: "/securityPolicy", value: "SecurityPolicy_TLS13_1_2_PFS_PQ_2025_09" },
+          { op: Op.replace, path: "/endpointAccessMode", value: "STRICT" }
+        ]
+      }, true);
+      expect(commandCalls.length).to.equal(1);
+    });
+
     it("create custom domain edge", async () => {
       const APIGatewayMock = mockClient(APIGatewayClient);
       APIGatewayMock.on(CreateDomainNameCommand).resolves({

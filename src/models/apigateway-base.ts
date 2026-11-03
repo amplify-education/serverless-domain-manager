@@ -11,6 +11,14 @@ abstract class APIGatewayBase {
 
     abstract getCustomDomain(domain: DomainConfig, silent?: boolean): Promise<DomainInfo>;
 
+    /**
+     * Updates the security policy and endpoint access mode of an existing domain.
+     * Returns undefined when the API type does not support updating them.
+     */
+    public async updateCustomDomain (_domain: DomainConfig): Promise<DomainInfo | undefined> {
+        return undefined;
+    }
+
     abstract deleteCustomDomain(domain: DomainConfig): Promise<void>;
 
     abstract createBasePathMapping(domain: DomainConfig): Promise<void>;

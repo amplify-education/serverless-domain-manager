@@ -20,7 +20,10 @@ import {
   GetDomainNamesCommand,
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
-  UpdateBasePathMappingCommand
+  Op,
+  UpdateBasePathMappingCommand,
+  UpdateDomainNameCommand,
+  UpdateDomainNameCommandOutput
 } from "@aws-sdk/client-api-gateway";
 import ApiGatewayMap = require("../models/api-gateway-map");
 import APIGatewayBase = require("../models/apigateway-base");
@@ -54,6 +57,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         types: [domain.endpointType]
       },
       securityPolicy: domain.securityPolicy,
+      ...(domain.endpointAccessMode && { endpointAccessMode: domain.endpointAccessMode }),
       tags: providerTags
     };
 
@@ -83,6 +87,35 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     } catch (err) {
       throw new Error(
         `V1 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+      );
+    }
+  }
+
+  /**
+   * Updates the security policy and endpoint access mode of an existing custom domain
+   * @param domain: DomainConfig
+   */
+  public async updateCustomDomain (domain: DomainConfig): Promise<DomainInfo> {
+    const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
+    const patchOperations = [
+      { op: Op.replace, path: "/securityPolicy", value: domain.securityPolicy },
+      ...(domain.endpointAccessMode
+        ? [{ op: Op.replace, path: "/endpointAccessMode", value: domain.endpointAccessMode }]
+        : [])
+    ];
+
+    try {
+      const domainInfo: UpdateDomainNameCommandOutput = await this.apiGateway.send(
+        new UpdateDomainNameCommand({
+          domainName: domain.givenDomainName,
+          ...(domainNameId && { domainNameId }),
+          patchOperations
+        })
+      );
+      return new DomainInfo(domainInfo);
+    } catch (err) {
+      throw new Error(
+        `V1 - Failed to update custom domain '${domain.givenDomainName}':\n${err.message}`
       );
     }
   }

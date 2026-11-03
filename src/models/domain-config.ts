@@ -28,6 +28,7 @@ class DomainConfig {
   public splitHorizonDns: boolean | undefined;
   public enabled: boolean | string | undefined;
   public securityPolicy: string | undefined;
+  public endpointAccessMode: string | undefined;
   public autoDomain: boolean | undefined;
   public autoDomainWaitFor: string | undefined;
   public route53Params: Route53Params;
@@ -60,6 +61,7 @@ class DomainConfig {
     this.tlsTruststoreUri = DomainConfig._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
     this.tlsTruststoreVersion = config.tlsTruststoreVersion;
     this.securityPolicy = DomainConfig._getSecurityPolicy(config.securityPolicy);
+    this.endpointAccessMode = DomainConfig._getEndpointAccessMode(config.endpointAccessMode, this.apiType);
     this.route53Params = DomainConfig._getRoute53Params(config.route53Params, this.endpointType);
     this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
   }
@@ -126,6 +128,22 @@ class DomainConfig {
   private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
     // converts legacy security policies to upper string if required
     return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
+  }
+
+  private static _getEndpointAccessMode (endpointAccessMode: string | undefined, apiType: string) {
+    if (!endpointAccessMode) {
+      return undefined;
+    }
+
+    if (apiType !== Globals.apiTypes.rest) {
+      throw new Error("endpointAccessMode is only supported for REST APIs.");
+    }
+
+    const normalized = endpointAccessMode.toUpperCase();
+    if (!Globals.endpointAccessModes.includes(normalized)) {
+      throw new Error(`${endpointAccessMode} is not a supported endpointAccessMode, use BASIC or STRICT.`);
+    }
+    return normalized;
   }
 
   private static _getRoute53Params (route53Params: Route53Params | undefined, endpointType: string) {

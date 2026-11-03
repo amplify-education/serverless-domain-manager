@@ -125,7 +125,11 @@ class DomainConfig {
     return tlsTruststoreUri;
   }
 
-  private static _getSecurityPolicy (securityPolicy = Globals.tlsVersions.tls_1_2) {
+  private static _getSecurityPolicy (securityPolicy: string | undefined) {
+    // left undefined when not configured, so existing domains are only updated to an explicit policy
+    if (!securityPolicy) {
+      return undefined;
+    }
     // converts legacy security policies to upper string if required
     return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }

@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.5.0] - 2026-11-03
 
 ### Added
-- `endpointAccessMode` option (`BASIC` or `STRICT`) for REST custom domains, required by some enhanced security policies. When set, `sls deploy` and `create_domain` update the security policy and access mode of an existing domain. Thank you @rogerswingle ([713](https://github.com/amplify-education/serverless-domain-manager/pull/713))
+- `endpointAccessMode` option (`BASIC` or `STRICT`) for REST custom domains, required by some enhanced security policies. When set, `sls deploy` and `create_domain` update the access mode of an existing domain. Thank you @rogerswingle ([713](https://github.com/amplify-education/serverless-domain-manager/pull/713))
+- When `securityPolicy` is set, `sls deploy` and `create_domain` update the security policy of an existing REST domain.
 
 ## [10.4.0] - 2026-11-02
 

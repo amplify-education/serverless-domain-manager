@@ -12,6 +12,7 @@ import {
   GetDomainNameCommand, UpdateBasePathMappingCommand
 } from "@aws-sdk/client-api-gateway";
 import { ACMClient, ListCertificatesCommand } from "@aws-sdk/client-acm";
+import { ApiGatewayV2Client, GetDomainNameCommand as GetDomainNameCommandV2 } from "@aws-sdk/client-apigatewayv2";
 import { ChangeResourceRecordSetsCommand, ListHostedZonesCommand, Route53Client } from "@aws-sdk/client-route-53";
 import { CloudFormationClient, DescribeStackResourceCommand, ResourceStatus } from "@aws-sdk/client-cloudformation";
 
@@ -282,9 +283,9 @@ describe("Custom Domain Plugin", () => {
       expect(plugin.domains.length).to.equal(1);
     });
 
-    it("Should default to TLS_1_2 security policy when none specified", () => {
+    it("Should leave the security policy unset when none specified", () => {
       const dc = new DomainConfig(getDomainConfig({}));
-      expect(dc.securityPolicy).to.equal("TLS_1_2");
+      expect(dc.securityPolicy).to.equal(undefined);
     });
 
     it("Should convert legacy lowercase tls_1_2 to TLS_1_2", () => {
@@ -806,6 +807,113 @@ describe("Custom Domain Plugin", () => {
         expect(APIGatewayMock.commandCalls(CreateBasePathMappingCommand).length).to.equal(1);
       });
     }
+
+    const policyOnlyDomains: { existing: Record<string, any>; expectedUpdates: number }[] = [
+      { existing: { securityPolicy: "TLS_1_0" }, expectedUpdates: 1 },
+      { existing: { securityPolicy: "TLS_1_2" }, expectedUpdates: 0 }
+    ];
+    for (const { existing, expectedUpdates } of policyOnlyDomains) {
+      it(`after:deploy:deploy with only securityPolicy set makes ${expectedUpdates} domain update(s) for ${existing.securityPolicy}`, async () => {
+        const APIGatewayMock = mockClient(APIGatewayClient);
+        APIGatewayMock.on(GetDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          ...existing
+        });
+        APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+          domainName: "test_domain",
+          regionalHostedZoneId: "test_id",
+          securityPolicy: "TLS_1_2"
+        });
+        APIGatewayMock.on(GetBasePathMappingsCommand).resolves({ items: [] });
+        APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+        const CloudFormationMock = mockClient(CloudFormationClient);
+        CloudFormationMock.on(DescribeStackResourceCommand).resolves({
+          StackResourceDetail: {
+            LogicalResourceId: Globals.CFResourceIds[Globals.apiTypes.rest],
+            PhysicalResourceId: "test_rest_api_id",
+            ResourceType: "",
+            LastUpdatedTimestamp: null,
+            ResourceStatus: ResourceStatus.CREATE_COMPLETE
+          }
+        });
+
+        const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain", securityPolicy: "TLS_1_2" }));
+        plugin.initAWSRegion = async () => null;
+        await plugin.hooks["after:deploy:deploy"]();
+
+        const updateCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+        expect(updateCalls.length).to.equal(expectedUpdates);
+        if (expectedUpdates) {
+          expect(updateCalls[0].args[0].input.patchOperations).to.deep.equal([
+            { op: "replace", path: "/securityPolicy", value: "TLS_1_2" }
+          ]);
+        }
+      });
+    }
+
+    it("after:deploy:deploy with only endpointAccessMode set updates the mode and keeps the security policy", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_0"
+      });
+      APIGatewayMock.on(UpdateDomainNameCommand).resolves({
+        domainName: "test_domain",
+        regionalHostedZoneId: "test_id",
+        securityPolicy: "TLS_1_0",
+        endpointAccessMode: "BASIC"
+      });
+      APIGatewayMock.on(GetBasePathMappingsCommand).resolves({ items: [] });
+      APIGatewayMock.on(CreateBasePathMappingCommand).resolves(null);
+      const CloudFormationMock = mockClient(CloudFormationClient);
+      CloudFormationMock.on(DescribeStackResourceCommand).resolves({
+        StackResourceDetail: {
+          LogicalResourceId: Globals.CFResourceIds[Globals.apiTypes.rest],
+          PhysicalResourceId: "test_rest_api_id",
+          ResourceType: "",
+          LastUpdatedTimestamp: null,
+          ResourceStatus: ResourceStatus.CREATE_COMPLETE
+        }
+      });
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain", endpointAccessMode: "BASIC" }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["after:deploy:deploy"]();
+
+      const updateCalls = APIGatewayMock.commandCalls(UpdateDomainNameCommand);
+      expect(updateCalls.length).to.equal(1);
+      expect(updateCalls[0].args[0].input.patchOperations).to.deep.equal([
+        { op: "replace", path: "/endpointAccessMode", value: "BASIC" }
+      ]);
+    });
+
+    it("create_domain:create warns when the security policy of an HTTP API domain differs", async () => {
+      const APIGatewayV2Mock = mockClient(ApiGatewayV2Client);
+      APIGatewayV2Mock.on(GetDomainNameCommandV2).resolves({
+        DomainName: "test_domain",
+        DomainNameConfigurations: [{ SecurityPolicy: "TLS_1_0", HostedZoneId: "test_id" }]
+      });
+      const Route53Mock = mockClient(Route53Client);
+      Route53Mock.on(ListHostedZonesCommand).resolves({
+        HostedZones: [{ CallerReference: "1", Config: { PrivateZone: false }, Id: "public_host_id", Name: "test_domain" }]
+      });
+      Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
+
+      const plugin = constructPlugin(getDomainConfig({
+        domainName: "test_domain",
+        apiType: Globals.apiTypes.http,
+        endpointType: Globals.endpointTypes.regional,
+        securityPolicy: "TLS_1_2"
+      }));
+      plugin.initAWSRegion = async () => null;
+      await plugin.hooks["create_domain:create"]();
+
+      expect(consoleOutput.join("\n")).to.contain(
+        "Custom domain 'test_domain' security policy cannot be updated for HTTP/WebSocket APIs or multi-level base paths."
+      );
+    });
 
     it("delete_domain:delete", async () => {
       const APIGatewayMock = mockClient(APIGatewayClient);

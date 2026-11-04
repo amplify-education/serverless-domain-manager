@@ -57,7 +57,7 @@ class APIGatewayV2Wrapper extends APIGatewayBase {
       DomainNameConfigurations: [{
         CertificateArn: domain.certificateArn,
         EndpointType: domain.endpointType,
-        SecurityPolicy: domain.securityPolicy ?? Globals.tlsVersions.tls_1_2
+        SecurityPolicy: domain.securityPolicy ?? Globals.defaultSecurityPolicy
       }],
       Tags: providerTags
     };

@@ -57,7 +57,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       endpointConfiguration: {
         types: [domain.endpointType]
       },
-      securityPolicy: domain.securityPolicy ?? Globals.tlsVersions.tls_1_2,
+      securityPolicy: domain.securityPolicy ?? Globals.defaultSecurityPolicy,
       ...(domain.endpointAccessMode && { endpointAccessMode: domain.endpointAccessMode }),
       tags: providerTags
     };

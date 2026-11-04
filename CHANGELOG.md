@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Dropped Node20 support.
+- Documented the available security policies and warn about a `securityPolicy` that does not match the API type or endpoint type, or misses `endpointAccessMode`.
 - Updated packages. The `basic-ftp` dependency (via `proxy-agent`) is overridden to `^6.2.5` to resolve GHSA-c475-qrg2-pj4r.
 - Upgraded to ESLint 10 and removed the unused `eslint-plugin-import`, `eslint-plugin-n` and `eslint-plugin-promise`. Unit tests are now linted as well.
 - CI: test on Node.js 22, 24 and 26, build on pull requests, install with `npm ci` and pin GitHub Actions to commit SHAs.

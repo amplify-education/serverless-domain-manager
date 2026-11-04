@@ -294,6 +294,57 @@ describe("Custom Domain Plugin", () => {
       expect(dc.securityPolicy).to.equal(undefined);
     });
 
+    const securityPolicyScenarios: { config: Record<string, any>; warning: string | null }[] = [
+      { config: { endpointType: "REGIONAL", securityPolicy: "TLS_1_2" }, warning: null },
+      { config: { endpointType: "EDGE", securityPolicy: "tls_1_0" }, warning: null },
+      {
+        config: { endpointType: "REGIONAL", securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09", endpointAccessMode: "BASIC" },
+        warning: null
+      },
+      {
+        config: { endpointType: "EDGE", securityPolicy: "SecurityPolicy_TLS13_2025_EDGE", endpointAccessMode: "STRICT" },
+        warning: null
+      },
+      { config: { apiType: "HTTP", endpointType: "REGIONAL", securityPolicy: "TLS_1_2" }, warning: null },
+      {
+        config: { apiType: "HTTP", endpointType: "REGIONAL", securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09" },
+        warning: "is not supported for HTTP/WebSocket APIs and multi-level base paths, use TLS_1_0 or TLS_1_2."
+      },
+      {
+        config: { endpointType: "REGIONAL", basePath: "api/v1", securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09" },
+        warning: "is not supported for HTTP/WebSocket APIs and multi-level base paths, use TLS_1_0 or TLS_1_2."
+      },
+      {
+        config: { endpointType: "REGIONAL", securityPolicy: "tls_1_3" },
+        warning: "is not a known REST API security policy, AWS may reject it."
+      },
+      {
+        config: { endpointType: "REGIONAL", securityPolicy: "SecurityPolicy_TLS13_2025_EDGE", endpointAccessMode: "BASIC" },
+        warning: "is for EDGE endpoints only, not REGIONAL."
+      },
+      {
+        config: { endpointType: "EDGE", securityPolicy: "SecurityPolicy_TLS13_1_3_2025_09", endpointAccessMode: "BASIC" },
+        warning: "is not supported for EDGE endpoints, use a SecurityPolicy_*_EDGE policy."
+      },
+      {
+        config: { endpointType: "PRIVATE", securityPolicy: "SecurityPolicy_TLS13_1_2_2021_06" },
+        warning: "requires endpointAccessMode (BASIC or STRICT)."
+      }
+    ];
+    for (const { config, warning } of securityPolicyScenarios) {
+      it(`Should ${warning ? "warn" : "not warn"} about securityPolicy for ${JSON.stringify(config)}`, () => {
+        consoleOutput.length = 0;
+        const dc = new DomainConfig(getDomainConfig({ domainName: "test_domain", ...config }));
+        const warnings = consoleOutput.filter((line) => line.includes("securityPolicy"));
+        if (warning) {
+          expect(warnings).to.have.length(1);
+          expect(warnings[0]).to.contain(`securityPolicy '${dc.securityPolicy}' ${warning}`);
+        } else {
+          expect(warnings).to.have.length(0);
+        }
+      });
+    }
+
     it("Should convert legacy lowercase tls_1_2 to TLS_1_2", () => {
       const dc = new DomainConfig(getDomainConfig({ securityPolicy: "tls_1_2" }));
       expect(dc.securityPolicy).to.equal("TLS_1_2");

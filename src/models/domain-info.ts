@@ -1,6 +1,8 @@
 /**
  * Wrapper class for Custom Domain information
  */
+import Globals from "../globals";
+
 class DomainInfo {
   public domainName: string;
   public domainNameId: string;
@@ -16,7 +18,6 @@ class DomainInfo {
    * PR: https://github.com/amplify-education/serverless-domain-manager/pull/171
    */
   private defaultHostedZoneId: string = "Z2FDTNDATAQYW2";
-  private defaultSecurityPolicy: string = "TLS_1_2";
   private defaultDomainNameId: string = "";
 
   constructor (data: any) {
@@ -33,7 +34,7 @@ class DomainInfo {
 
     this.securityPolicy = data.securityPolicy ||
       (data.DomainNameConfigurations && data.DomainNameConfigurations[0].SecurityPolicy) ||
-      this.defaultSecurityPolicy;
+      Globals.defaultSecurityPolicy;
 
     this.endpointAccessMode = data.endpointAccessMode;
 

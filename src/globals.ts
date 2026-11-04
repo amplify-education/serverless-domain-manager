@@ -18,6 +18,7 @@ export default class Globals {
   public static defaultRegion = "us-east-1";
   public static defaultBasePath = "(none)";
   public static defaultStage = "$default";
+  public static defaultSecurityPolicy = "TLS_1_2";
 
   public static defaultMaxRetries = 4;
   public static maxRetriesLimit = 20;
@@ -57,13 +58,6 @@ export default class Globals {
   };
 
   public static endpointAccessModes = ["BASIC", "STRICT"];
-
-  /* eslint camelcase: ["error", {allow: ["^tls_"]}] */
-  public static tlsVersions = {
-    tls_1_0: "TLS_1_0",
-    tls_1_2: "TLS_1_2",
-    tls_1_3: "TLS_1_3"
-  };
 
   public static routingPolicies = {
     simple: "simple",

@@ -32,9 +32,15 @@ Resources:
               - apigateway:PATCH
               - apigateway:POST
             Resource:
-              !Sub arn:aws:apigateway:${AWS::Region}::/apis*
-              !Sub arn:aws:apigateway:${AWS::Region}::/domainnames*
-              !Sub arn:aws:apigateway:${AWS::Region}::/restapis*
+              - !Sub arn:aws:apigateway:${AWS::Region}::/apis*
+              - !Sub arn:aws:apigateway:${AWS::Region}::/domainnames*
+              - !Sub arn:aws:apigateway:${AWS::Region}::/restapis*
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStackResource
+              - cloudformation:DescribeStacks
+              - cloudformation:ListExports
+            Resource: '*'
           - Effect: Allow
             Action:
               - cloudfront:UpdateDistribution

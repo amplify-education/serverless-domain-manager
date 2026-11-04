@@ -1024,4 +1024,57 @@ describe("Custom Domain Plugin", () => {
       expect(Globals.credentials).to.equal(null);
     });
   });
+
+  describe("serverless v3 getCredentials() (#683)", () => {
+    const v2Credentials = {
+      accessKeyId: "env_key_id",
+      secretAccessKey: "env_secret",
+      sessionToken: "env_token",
+      expireTime: null,
+      get: () => null
+    };
+    let originalServerless: any;
+    beforeEach(() => { originalServerless = Globals.serverless; });
+    afterEach(() => {
+      Globals.serverless = originalServerless;
+      Globals.credentials = null;
+    });
+
+    for (const { name, result, expected } of [
+      {
+        name: "unwraps the AWS SDK v2 credentials into AWS SDK v3 credentials",
+        result: { credentials: v2Credentials, signatureVersion: "v4" },
+        expected: { accessKeyId: "env_key_id", secretAccessKey: "env_secret", sessionToken: "env_token" }
+      },
+      { name: "falls back to the default chain when nothing was found", result: {}, expected: null },
+      {
+        name: "falls back to the default chain when the keys are not loaded (e.g. SSO profiles)",
+        result: { credentials: { accessKeyId: undefined, secretAccessKey: undefined } },
+        expected: null
+      }
+    ]) {
+      it(`initSLSCredentials ${name}`, async () => {
+        const plugin = constructPlugin(getDomainConfig({}));
+        plugin.serverless.providers.aws.getCredentials = () => result;
+        await plugin.initSLSCredentials();
+        expect(Globals.credentials).to.deep.equal(expected);
+      });
+    }
+
+    it("passes valid credentials to the AWS SDK v3 clients", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({ domainName: "test_domain", regionalHostedZoneId: "test_id" });
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain" }));
+      plugin.serverless.providers.aws.getCredentials = () => ({ credentials: v2Credentials });
+      plugin.initAWSRegion = async () => null;
+      await plugin.hookWrapper(async () => null);
+
+      expect(await plugin.apiGatewayV1Wrapper.apiGateway.config.credentials()).to.deep.include({
+        accessKeyId: "env_key_id",
+        secretAccessKey: "env_secret",
+        sessionToken: "env_token"
+      });
+    });
+  });
 });

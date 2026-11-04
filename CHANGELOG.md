@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.5.1] - 2026-11-04
+
+### Fixed
+- AWS requests failed with `Resolved credential object is not valid` on Serverless Framework v3 when no `provider.profile` is set. The credentials from `getCredentials()` are now converted to the AWS SDK v3 format, falling back to the AWS SDK default chain as in 10.2.0 ([683](https://github.com/amplify-education/serverless-domain-manager/issues/683))
+
 ## [10.5.0] - 2026-11-03
 
 ### Added

@@ -87,6 +87,25 @@ export default class Globals {
     return typeof awsProvider?.getAwsSdkV3Config === "function";
   }
 
+  /**
+   * Converts the result of the legacy getCredentials() (serverless v3) into AWS SDK v3 credentials.
+   * getCredentials() returns a wrapper `{ credentials }` around an AWS SDK v2 credentials object,
+   * which AWS SDK v3 clients reject with "Resolved credential object is not valid".
+   * Returns null when no static keys are available, so the AWS SDK v3 default chain is used.
+   * @param awsProvider provider exposing getCredentials()
+   */
+  public static getLegacyCredentials (awsProvider: any) {
+    const credentials = awsProvider?.getCredentials?.()?.credentials;
+    if (!credentials?.accessKeyId || !credentials?.secretAccessKey) {
+      return null;
+    }
+    return {
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken
+    };
+  }
+
   public static getServiceEndpoint (service: string) {
     const awsProvider = Globals.serverless.providers.aws;
     // AWS SDK v3 clients resolve custom endpoints (e.g. AWS_ENDPOINT_URL_*)

@@ -17,12 +17,12 @@ jobs:
     runs-on: github-hosted-static-ip
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
 
       - name: Install and test
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24.x
           registry-url: 'https://registry.npmjs.org'
@@ -33,11 +33,11 @@ jobs:
 
       - name: Extract version
         id: extract_version
-        uses: Saionaro/extract-package-version@v1.4.0
+        uses: Saionaro/extract-package-version@a5ea15b23669502732d230f62cabfa92fb137a38 # v1.4.0
 
       - name: Get latest tag
         id: get_latest_tag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
+        uses: WyriHaximus/github-action-get-previous-tag@04e8485ecb6487243907e330d522ff60f02283ce # v1.4.0
         with:
           fallback: 'v0.0.0'
 
@@ -50,14 +50,14 @@ jobs:
           fi
 
       - name: Create tag
-        uses: rickstaa/action-create-tag@v1
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # v1.7.2
         if: env.VERSION_CHANGED == 'true'
         with:
           tag: "v${{ steps.extract_version.outputs.version }}"
 
       - name: Create release
         if: env.VERSION_CHANGED == 'true'
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: 'v${{ steps.extract_version.outputs.version }}'
           generate_release_notes: true

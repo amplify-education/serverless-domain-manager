@@ -382,7 +382,7 @@ describe("API Gateway V2 wrapper checks", () => {
       const dc = createPrivateDomainConfig();
 
       const result = await apiGatewayV2Wrapper.getCustomDomain(dc);
-      expect(result).to.be.undefined;
+      expect(result).to.equal(undefined);
       expect(consoleOutput[0]).to.contains("does not exist or is not a private domain");
     });
 

@@ -134,6 +134,48 @@ describe("ACM Wrapper checks", () => {
     expect(actualResult).to.equal(testCertificateArnByDomain);
   });
 
+  it("getCertArn prefers an exact match over a wildcard and matches case-insensitively", async () => {
+    const ACMCMock = mockClient(ACMClient);
+    ACMCMock.on(ListCertificatesCommand).resolves({
+      CertificateSummaryList: [
+        { CertificateArn: "wildcard_arn", DomainName: "*.example.com" },
+        { CertificateArn: "exact_arn", DomainName: "API.example.com" }
+      ]
+    });
+
+    const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
+    const dc = new DomainConfig(getDomainConfig({ domainName: "api.Example.com" }));
+
+    expect(await acmWrapper.getCertArn(dc)).to.equal("exact_arn");
+  });
+
+  for (const { domainName, certName } of [
+    { domainName: "api.notexample.com", certName: "example.com" },
+    { domainName: "api.example.com.au", certName: "example.com" },
+    { domainName: "api.example.com", certName: "example.com" },
+    { domainName: "a.b.example.com", certName: "*.example.com" },
+    { domainName: "example.com", certName: "*.example.com" }
+  ]) {
+    it(`getCertArn does not pick '${certName}' for '${domainName}'`, async () => {
+      const ACMCMock = mockClient(ACMClient);
+      ACMCMock.on(ListCertificatesCommand).resolves({
+        CertificateSummaryList: [{ CertificateArn: "wrong_arn", DomainName: certName }]
+      });
+
+      const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
+      const dc = new DomainConfig(getDomainConfig({ domainName }));
+
+      let errored = false;
+      try {
+        await acmWrapper.getCertArn(dc);
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.contains(`Could not find an in-date certificate for '${domainName}'`);
+      }
+      expect(errored).to.equal(true);
+    });
+  }
+
   it("empty getCertArn by domain name", async () => {
     const ACMCMock = mockClient(ACMClient);
     ACMCMock.on(ListCertificatesCommand).resolves(certTestData);
@@ -153,8 +195,9 @@ describe("ACM Wrapper checks", () => {
   });
 
   it("getCertArn failure", async () => {
+    const awsError = new Error("throttled");
     const ACMCMock = mockClient(ACMClient);
-    ACMCMock.on(ListCertificatesCommand).rejects();
+    ACMCMock.on(ListCertificatesCommand).rejects(awsError);
 
     const acmWrapper = new ACMWrapper(null, Globals.endpointTypes.regional);
     const dc = new DomainConfig(getDomainConfig({
@@ -167,6 +210,7 @@ describe("ACM Wrapper checks", () => {
     } catch (err) {
       errored = true;
       expect(err.message).to.contains("Could not search certificates in Certificate Manager");
+      expect(err.cause).to.equal(awsError);
     }
     expect(errored).to.equal(true);
   });

@@ -30,7 +30,7 @@ class S3Wrapper {
       await this.s3.send(new HeadObjectCommand(params));
     } catch (err) {
       if (!err.$metadata || err.$metadata.httpStatusCode !== 403) {
-        throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`);
+        throw Error(`Could not head S3 object at ${domain.tlsTruststoreUri}.\n${err.message}`, { cause: err });
       }
 
       Logging.logWarning(

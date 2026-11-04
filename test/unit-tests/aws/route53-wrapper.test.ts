@@ -188,8 +188,9 @@ describe("Route53 wrapper checks", () => {
     dc.givenDomainName = "testapi.test_domain";
     expect(await routeWrap.getRoute53HostedZoneId(dc, false)).to.equal("3");
 
+    // hosted zones are cached per wrapper instance
     const commandCalls = Route53Mock.commandCalls(ListHostedZonesCommand, {});
-    expect(commandCalls.length).to.equal(2);
+    expect(commandCalls.length).to.equal(1);
   });
 
   it("get route53 hosted zone id private", async () => {
@@ -265,6 +266,58 @@ describe("Route53 wrapper checks", () => {
       expect(err.message).to.contains("Could not find hosted zone");
     }
     expect(errored).to.equal(true);
+  });
+
+  it("get route53 hosted zone does not match a zone on a partial label", async () => {
+    const Route53Mock = mockClient(Route53Client);
+    Route53Mock.on(ListHostedZonesCommand).resolves({
+      HostedZones: [
+        {
+          CallerReference: "1",
+          Config: { PrivateZone: false },
+          Id: "example_id",
+          Name: "example.com."
+        }
+      ]
+    });
+
+    const dc = new DomainConfig(getDomainConfig({
+      domainName: "api.myexample.com"
+    }));
+
+    let errored = false;
+    try {
+      await new Route53Wrapper().getRoute53HostedZoneId(dc);
+    } catch (err) {
+      errored = true;
+      expect(err.message).to.contains("Could not find hosted zone 'api.myexample.com'");
+    }
+    expect(errored).to.equal(true);
+  });
+
+  it("get route53 hosted zone id matches case-insensitively and prefers the most specific zone", async () => {
+    const Route53Mock = mockClient(Route53Client);
+    Route53Mock.on(ListHostedZonesCommand).resolves({
+      HostedZones: [
+        {
+          CallerReference: "1",
+          Config: { PrivateZone: false },
+          Id: "/hostedzone/parent_id",
+          Name: "Example.com."
+        }, {
+          CallerReference: "2",
+          Config: { PrivateZone: false },
+          Id: "/hostedzone/child_id",
+          Name: "dev.Example.com."
+        }
+      ]
+    });
+
+    const deepDc = new DomainConfig(getDomainConfig({ domainName: "a.b.API.dev.example.com" }));
+    expect(await new Route53Wrapper().getRoute53HostedZoneId(deepDc)).to.equal("child_id");
+
+    const apexDc = new DomainConfig(getDomainConfig({ domainName: "example.COM" }));
+    expect(await new Route53Wrapper().getRoute53HostedZoneId(apexDc)).to.equal("parent_id");
   });
 
   it("change resource record set skip", async () => {
@@ -553,6 +606,22 @@ describe("Route53 wrapper checks", () => {
     };
     const commandCalls2 = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand, expectedParams2, true);
     expect(commandCalls2.length).to.equal(1);
+    // the hosted zones are listed once and reused for the public and private lookups
+    expect(Route53Mock.commandCalls(ListHostedZonesCommand).length).to.equal(1);
+  });
+
+  it("change resource record set logs a removal for DELETE", async () => {
+    const Route53Mock = mockClient(Route53Client);
+    Route53Mock.on(ListHostedZonesCommand).resolves({
+      HostedZones: [{ CallerReference: "1", Config: { PrivateZone: false }, Id: "test_host_id", Name: "test_domain" }]
+    });
+    Route53Mock.on(ChangeResourceRecordSetsCommand).resolves(null);
+
+    const dc = new DomainConfig(getDomainConfig({ domainName: "test_domain" }));
+    await new Route53Wrapper().changeResourceRecordSet(ChangeAction.DELETE, dc);
+
+    expect(consoleOutput.join("\n")).to.contains("Removing route53 record for 'test_domain'");
+    expect(consoleOutput.join("\n")).to.not.contains("Creating/updating");
   });
 
   it("change resource record set failure", async () => {

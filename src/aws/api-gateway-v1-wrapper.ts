@@ -21,6 +21,7 @@ import {
   GetDomainNamesCommandInput,
   GetDomainNamesCommandOutput,
   Op,
+  PatchOperation,
   UpdateBasePathMappingCommand,
   UpdateDomainNameCommand,
   UpdateDomainNameCommandOutput
@@ -56,7 +57,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       endpointConfiguration: {
         types: [domain.endpointType]
       },
-      securityPolicy: domain.securityPolicy ?? Globals.tlsVersions.tls_1_2,
+      securityPolicy: domain.securityPolicy ?? Globals.defaultSecurityPolicy,
       ...(domain.endpointAccessMode && { endpointAccessMode: domain.endpointAccessMode }),
       tags: providerTags
     };
@@ -86,7 +87,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       return new DomainInfo(domainInfo);
     } catch (err) {
       throw new Error(
-        `V1 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Failed to create custom domain '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -117,7 +119,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       return new DomainInfo(domainInfo);
     } catch (err) {
       throw new Error(
-        `V1 - Failed to update custom domain '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Failed to update custom domain '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -143,7 +146,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     } catch (err) {
       if (!err.$metadata || err.$metadata.httpStatusCode !== 404 || !silent) {
         throw new Error(
-          `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`
+          `V1 - Unable to fetch information about '${domain.givenDomainName}':\n${err.message}`,
+          { cause: err }
         );
       }
       Logging.logWarning(`V1 - '${domain.givenDomainName}' does not exist.`);
@@ -187,7 +191,7 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
         ...(domainNameId && { domainNameId })
       }));
     } catch (err) {
-      throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`);
+      throw new Error(`V1 - Failed to delete custom domain '${domain.givenDomainName}':\n${err.message}`, { cause: err });
     }
   }
 
@@ -204,7 +208,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       Logging.logInfo(`V1 - Created API mapping '${domain.basePath}' for '${domain.givenDomainName}'`);
     } catch (err) {
       throw new Error(
-        `V1 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Unable to create base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -228,7 +233,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
     } catch (err) {
       throw new Error(
         `V1 - Make sure the '${domain.givenDomainName}' exists.
-                 Unable to get Base Path Mappings:\n${err.message}`
+                 Unable to get Base Path Mappings:\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -236,21 +242,30 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
   public async updateBasePathMapping (domain: DomainConfig): Promise<void> {
     Logging.logInfo(`V1 - Updating API mapping from '${domain.apiMapping.basePath}'
             to '${domain.basePath}' for '${domain.givenDomainName}'`);
+    const patchOperations: PatchOperation[] = [{
+      op: "replace",
+      path: "/basePath",
+      value: domain.basePath
+    }];
+    // re-point the mapping when it targets another API (e.g. matched by allowPathMatching) or stage
+    if (domain.apiId && domain.apiId !== domain.apiMapping.apiId) {
+      patchOperations.push({ op: "replace", path: "/restapiId", value: domain.apiId });
+    }
+    if (domain.stage && domain.stage !== domain.apiMapping.stage) {
+      patchOperations.push({ op: "replace", path: "/stage", value: domain.stage });
+    }
     try {
       const domainNameId = await this.getDomainNameIdForPrivateDomain(domain);
       await this.apiGateway.send(new UpdateBasePathMappingCommand({
         basePath: domain.apiMapping.basePath,
         domainName: domain.givenDomainName,
-        patchOperations: [{
-          op: "replace",
-          path: "/basePath",
-          value: domain.basePath
-        }],
+        patchOperations,
         ...(domainNameId && { domainNameId })
       }));
     } catch (err) {
       throw new Error(
-        `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Unable to update base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }
@@ -268,7 +283,8 @@ class APIGatewayV1Wrapper extends APIGatewayBase {
       Logging.logInfo(`V1 - Removed '${domain.apiMapping.basePath}' base path mapping`);
     } catch (err) {
       throw new Error(
-        `V1 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`
+        `V1 - Unable to remove base path mapping for '${domain.givenDomainName}':\n${err.message}`,
+        { cause: err }
       );
     }
   }

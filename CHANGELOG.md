@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2026-11-04
+
+### Possible Breaking Changes
+- REST API (API Gateway V1) base path mapping updates now also patch `/restapiId` and `/stage` when they differ from the existing mapping, not only `/basePath`. With `allowPathMatching` enabled, a mapping matched by its base path that points to another API or stage is re-pointed to the deployed API and configured stage on the next `sls deploy`.
+- Certificate auto-selection (without `certificateArn`/`certificateName`) follows TLS name matching: an exact name matches only itself and a wildcard covers a single label, case-insensitive.
+- Route 53 hosted zone lookup (without `hostedZoneId`) matches whole DNS labels, case-insensitive, so `api.myexample.com` no longer resolves to the `example.com` zone.
+- `tlsTruststoreUri` must be an `s3://bucket-name/key` URI.
+- `delete_domain` removes the Route 53 records before the custom domain, so a failed record removal keeps the domain and the command can be re-run.
+
+### Fixed
+- `delete_domain` used the default AWS credential chain for Route 53 instead of the credentials resolved from `provider.profile`/`--aws-profile` (or the framework) when `route53Profile` is not set.
+- With `autoDomain` and multiple domains, each domain now only polls until it exists itself instead of re-polling until every domain exists.
+- `sls remove` showed a generic warning instead of the "Unable to find Cloudformation Stack" message when the stack or API resource no longer exists.
+- Boolean options left empty in YAML (e.g. `enabled: ~`) fall back to their default instead of crashing.
+- Route 53 logged "Creating/updating" when removing records, and listed all hosted zones up to three times per change for split-horizon DNS.
+- Errors wrapped by the plugin keep the original AWS SDK error as `cause`.
+
+### Changed
+- Dropped Node20 support.
+- Documented the available security policies and warn about a `securityPolicy` that does not match the API type or endpoint type, or misses `endpointAccessMode`.
+- Updated packages. The `basic-ftp` dependency (via `proxy-agent`) is overridden to `^6.2.5` to resolve GHSA-c475-qrg2-pj4r.
+- Upgraded to ESLint 10 and removed the unused `eslint-plugin-import`, `eslint-plugin-n` and `eslint-plugin-promise`. Unit tests are now linted as well.
+- CI: test on Node.js 22, 24 and 26, build on pull requests, install with `npm ci` and pin GitHub Actions to commit SHAs.
 ## [10.5.1] - 2026-11-04
 
 ### Fixed

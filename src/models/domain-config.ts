@@ -8,6 +8,8 @@ import { CustomDomain, Route53Params } from "../types";
 import { evaluateBoolean } from "../utils";
 import ApiGatewayMap = require("./api-gateway-map");
 import Logging from "../logging";
+import { SecurityPolicy as RestSecurityPolicy } from "@aws-sdk/client-api-gateway";
+import { SecurityPolicy as HttpSecurityPolicy } from "@aws-sdk/client-apigatewayv2";
 
 class DomainConfig {
   public givenDomainName: string;
@@ -60,8 +62,11 @@ class DomainConfig {
     this.endpointType = DomainConfig._getEndpointType(config.endpointType);
     this.tlsTruststoreUri = DomainConfig._getTLSTruststoreUri(config.tlsTruststoreUri, this.endpointType);
     this.tlsTruststoreVersion = config.tlsTruststoreVersion;
-    this.securityPolicy = DomainConfig._getSecurityPolicy(config.securityPolicy);
     this.endpointAccessMode = DomainConfig._getEndpointAccessMode(config.endpointAccessMode, this.apiType, this.basePath);
+    // apiType, endpointType, basePath and endpointAccessMode should be defined before securityPolicy
+    this.securityPolicy = DomainConfig._getSecurityPolicy(
+      config.securityPolicy, this.apiType, this.endpointType, this.basePath, this.endpointAccessMode
+    );
     this.route53Params = DomainConfig._getRoute53Params(config.route53Params, this.endpointType);
     this.splitHorizonDns = !this.hostedZoneId && !this.hostedZonePrivate && evaluateBoolean(config.splitHorizonDns, false);
   }
@@ -113,25 +118,23 @@ class DomainConfig {
         );
       }
 
-      const { protocol, pathname } = new URL(tlsTruststoreUri);
+      const invalidUriError = new Error(
+        `${tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`
+      );
+      let url: URL;
+      try {
+        url = new URL(tlsTruststoreUri);
+      } catch {
+        throw invalidUriError;
+      }
 
-      if (protocol !== "s3:" && !pathname.substring(1).includes("/")) {
-        throw new Error(
-          `${tlsTruststoreUri} is not a valid s3 uri, try something like s3://bucket-name/key-name.`
-        );
+      // pathname is "/" when the key is missing (s3://bucket-name/)
+      if (url.protocol !== "s3:" || !url.hostname || url.pathname.length <= 1) {
+        throw invalidUriError;
       }
     }
 
     return tlsTruststoreUri;
-  }
-
-  private static _getSecurityPolicy (securityPolicy: string | undefined) {
-    // left undefined when not configured, so existing domains are only updated to an explicit policy
-    if (!securityPolicy) {
-      return undefined;
-    }
-    // converts legacy security policies to upper string if required
-    return Globals.tlsVersions[securityPolicy] ?? securityPolicy;
   }
 
   private static _getEndpointAccessMode (endpointAccessMode: string | undefined, apiType: string, basePath: string) {
@@ -153,6 +156,47 @@ class DomainConfig {
       throw new Error(`${endpointAccessMode} is not a supported endpointAccessMode, use BASIC or STRICT.`);
     }
     return normalized;
+  }
+
+  /**
+   * Converts legacy lowercase policies (e.g. tls_1_2) to upper case and warns about a policy AWS is likely
+   * to reject. The policy is still sent to AWS, so policies added after the installed AWS SDK version keep working.
+   * https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-security-policies-list.html
+   */
+  private static _getSecurityPolicy (
+    securityPolicy: string | undefined, apiType: string, endpointType: string, basePath: string, endpointAccessMode: string | undefined
+  ) {
+    // left undefined when not configured, so existing domains are only updated to an explicit policy
+    if (!securityPolicy) {
+      return undefined;
+    }
+    const policy = /^tls_\d_\d$/i.test(securityPolicy) ? securityPolicy.toUpperCase() : securityPolicy;
+    const warn = (reason: string) => Logging.logWarning(`securityPolicy '${policy}' ${reason}`);
+
+    // HTTP and WebSocket APIs and multi-level base paths are managed through API Gateway V2
+    if (apiType !== Globals.apiTypes.rest || basePath.includes("/")) {
+      const policies: string[] = Object.values(HttpSecurityPolicy);
+      if (!policies.includes(policy)) {
+        warn(`is not supported for HTTP/WebSocket APIs and multi-level base paths, use ${policies.join(" or ")}.`);
+      }
+      return policy;
+    }
+
+    if (!(Object.values(RestSecurityPolicy) as string[]).includes(policy)) {
+      warn("is not a known REST API security policy, AWS may reject it.");
+    } else if (policy.startsWith("SecurityPolicy_")) {
+      const isEdgePolicy = policy.endsWith("_EDGE");
+      const isEdgeEndpoint = endpointType === Globals.endpointTypes.edge;
+      if (isEdgePolicy && !isEdgeEndpoint) {
+        warn(`is for EDGE endpoints only, not ${endpointType}.`);
+      } else if (!isEdgePolicy && isEdgeEndpoint) {
+        warn("is not supported for EDGE endpoints, use a SecurityPolicy_*_EDGE policy.");
+      }
+      if (!endpointAccessMode) {
+        warn("requires endpointAccessMode (BASIC or STRICT).");
+      }
+    }
+    return policy;
   }
 
   private static _getRoute53Params (route53Params: Route53Params | undefined, endpointType: string) {

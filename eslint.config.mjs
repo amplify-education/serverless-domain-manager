@@ -1,9 +1,6 @@
 import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
-import pluginImport from "eslint-plugin-import";
-import pluginN from "eslint-plugin-n";
-import pluginPromise from "eslint-plugin-promise";
 import globals from "globals";
 
 export default [
@@ -27,10 +24,7 @@ export default [
       }
     },
     plugins: {
-      "@typescript-eslint": tseslint,
-      "import": pluginImport,
-      "n": pluginN,
-      "promise": pluginPromise
+      "@typescript-eslint": tseslint
     },
     rules: {
       ...tseslint.configs.recommended.rules,

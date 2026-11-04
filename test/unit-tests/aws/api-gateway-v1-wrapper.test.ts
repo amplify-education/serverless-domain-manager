@@ -481,7 +481,7 @@ describe("API Gateway V1 wrapper checks", () => {
       const dc = createPrivateDomainConfig();
 
       const result = await apiGatewayV1Wrapper.getCustomDomain(dc);
-      expect(result).to.be.undefined;
+      expect(result).to.equal(undefined);
       expect(consoleOutput[0]).to.contains("does not exist or is not a private domain");
     });
 
@@ -737,6 +737,68 @@ describe("API Gateway V1 wrapper checks", () => {
 
       expect(commandCalls.length).to.equal(1);
       expect(consoleOutput[0]).to.contains(`V1 - Updating API mapping from '${dc.apiMapping.basePath}'`);
+    });
+
+    it("update base path mapping re-points the API and stage when they changed", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(UpdateBasePathMappingCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "test_basepath",
+        stage: "new_stage"
+      }));
+      dc.apiId = "new_api_id";
+      dc.apiMapping = {
+        apiId: "old_api_id",
+        basePath: "test_basepath",
+        stage: "old_stage",
+        apiMappingId: null
+      };
+
+      await apiGatewayV1Wrapper.updateBasePathMapping(dc);
+      const expectedParams = {
+        basePath: "test_basepath",
+        domainName: dc.givenDomainName,
+        patchOperations: [
+          { op: Op.replace, path: "/basePath", value: "test_basepath" },
+          { op: Op.replace, path: "/restapiId", value: "new_api_id" },
+          { op: Op.replace, path: "/stage", value: "new_stage" }
+        ]
+      };
+      const commandCalls = APIGatewayMock.commandCalls(UpdateBasePathMappingCommand, expectedParams, true);
+
+      expect(commandCalls.length).to.equal(1);
+    });
+
+    it("update base path mapping only patches the base path when the API and stage are unchanged", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(UpdateBasePathMappingCommand).resolves(null);
+
+      const apiGatewayV1Wrapper = new APIGatewayV1Wrapper();
+      const dc = new DomainConfig(getDomainConfig({
+        domainName: "test_domain",
+        basePath: "new_basepath",
+        stage: "test"
+      }));
+      dc.apiId = "test_rest_api_id";
+      dc.apiMapping = {
+        apiId: "test_rest_api_id",
+        basePath: "old_basepath",
+        stage: "test",
+        apiMappingId: null
+      };
+
+      await apiGatewayV1Wrapper.updateBasePathMapping(dc);
+      const expectedParams = {
+        basePath: "old_basepath",
+        domainName: dc.givenDomainName,
+        patchOperations: [{ op: Op.replace, path: "/basePath", value: "new_basepath" }]
+      };
+      const commandCalls = APIGatewayMock.commandCalls(UpdateBasePathMappingCommand, expectedParams, true);
+
+      expect(commandCalls.length).to.equal(1);
     });
 
     it("update base path mapping failure", async () => {

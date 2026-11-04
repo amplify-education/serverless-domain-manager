@@ -60,7 +60,7 @@ class ACMWrapper {
       }
       Logging.logInfo(`Found a certificate ARN: '${certificateArn}'`);
     } catch (err) {
-      throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`);
+      throw Error(`Could not search certificates in Certificate Manager.\n${err.message}`, { cause: err });
     }
     if (certificateArn == null) {
       let errorMessage = `Could not find an in-date certificate for '${certificateName}'.`;
@@ -95,20 +95,33 @@ class ACMWrapper {
         ...(currCert.SubjectAlternativeNameSummaries || [])
       ];
       for (const currCertDomain of allDomainsForCert) {
-        let certificateListName = currCertDomain;
-        // Looks for wild card and take it out when checking
-        if (certificateListName[0] === "*") {
-          certificateListName = certificateListName.substring(1);
-        }
-        // Looks to see if the name in the list is within the given domain
         // Also checks if the name is more specific than previous ones
-        if (domainName.includes(certificateListName) && certificateListName.length > nameLength) {
-          nameLength = certificateListName.length;
+        if (ACMWrapper.certNameCoversDomain(currCertDomain, domainName) && currCertDomain.length > nameLength) {
+          nameLength = currCertDomain.length;
           certificateArn = currCert.CertificateArn;
         }
       }
     }
     return certificateArn;
+  }
+
+  /**
+   * Checks whether a certificate name covers the given domain, following TLS rules:
+   * an exact name matches only itself, and a wildcard (`*.example.com`) matches
+   * exactly one label in its place (`api.example.com`, but not `a.b.example.com`).
+   */
+  private static certNameCoversDomain (certName: string, domainName: string): boolean {
+    const cert = certName.toLowerCase();
+    const domain = domainName.toLowerCase();
+    if (!cert.startsWith("*.")) {
+      return cert === domain;
+    }
+    const parent = cert.substring(1); // ".example.com"
+    if (!domain.endsWith(parent)) {
+      return false;
+    }
+    const label = domain.substring(0, domain.length - parent.length);
+    return label.length > 0 && !label.includes(".");
   }
 }
 

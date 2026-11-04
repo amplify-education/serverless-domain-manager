@@ -164,7 +164,8 @@ class CloudFormationWrapper {
       if (CloudFormationWrapper.isAccessDenied(err)) {
         throw err;
       }
-      throw new Error(`Failed to find CloudFormation resources with an error: ${err.message}\n`);
+      throw new Error(`Failed to find CloudFormation resources with an error: ${err.message}
+`, { cause: err });
     }
   }
 

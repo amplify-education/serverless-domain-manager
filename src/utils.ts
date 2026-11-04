@@ -23,7 +23,8 @@ async function sleep (seconds: number) {
  * @returns {boolean} the parsed boolean from the config value, or the default value
  */
 function evaluateBoolean (value: any, defaultValue: boolean): boolean {
-  if (value === undefined) {
+  // null covers keys left empty in YAML (e.g. `enabled: ~` or `enabled:`)
+  if (value === undefined || value === null) {
     return defaultValue;
   }
 

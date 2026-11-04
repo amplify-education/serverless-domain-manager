@@ -107,7 +107,11 @@ class CloudFormationWrapper {
     try {
       // trying to get information for specified stack name
       response = await this.getStack(logicalResourceId, this.stackName);
-    } catch {
+    } catch (err) {
+      // missing permissions would otherwise be reported as a missing stack or resource
+      if (CloudFormationWrapper.isAccessDenied(err)) {
+        throw err;
+      }
       // in case error trying to get information from some of nested stacks
       response = await this.getNestedStack(logicalResourceId, this.stackName);
     }
@@ -157,8 +161,15 @@ class CloudFormationWrapper {
         })
       );
     } catch (err) {
+      if (CloudFormationWrapper.isAccessDenied(err)) {
+        throw err;
+      }
       throw new Error(`Failed to find CloudFormation resources with an error: ${err.message}\n`);
     }
+  }
+
+  private static isAccessDenied (err): boolean {
+    return err.$metadata?.httpStatusCode === 403 || err.name === "AccessDenied";
   }
 
   /**

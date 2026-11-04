@@ -247,6 +247,32 @@ describe("Cloud Formation wrapper checks", () => {
     expect(errored).to.equal(true);
   });
 
+  for (const { name, error } of [
+    { name: "HTTP 403", error: { $metadata: { httpStatusCode: 403 } } },
+    { name: "AccessDenied", error: { name: "AccessDenied" } }
+  ]) {
+    it(`findApiId reports missing permissions (${name}) instead of a missing resource`, async () => {
+      const accessDenied = Object.assign(
+        new Error("User: test is not authorized to perform: cloudformation:DescribeStackResource"),
+        error
+      );
+      const CloudFormationMock = mockClient(CloudFormationClient);
+      CloudFormationMock.on(DescribeStackResourceCommand).rejects(accessDenied);
+      CloudFormationMock.on(DescribeStacksCommand).resolves({ Stacks: [] });
+
+      let errored = false;
+      try {
+        await new CloudFormationWrapper().findApiId(Globals.apiTypes.rest);
+      } catch (err) {
+        errored = true;
+        expect(err.message).to.equal("User: test is not authorized to perform: cloudformation:DescribeStackResource");
+      }
+      expect(errored).to.equal(true);
+      // the nested stack search is skipped, it could only end with "Failed to find logicalResourceId"
+      expect(CloudFormationMock.commandCalls(DescribeStacksCommand).length).to.equal(0);
+    });
+  }
+
   it("findApiId for the rest api type with nested stacks", async () => {
     const physicalResourceId = "test_rest_api_id";
     const nestedStackName = "custom-stage-name-NestedStackTwo-U89W84TQIHJK";

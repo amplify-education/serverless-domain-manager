@@ -66,7 +66,7 @@
     "serverless-plugin-split-stacks": "^1.15.0",
     "serverless-vpc-discovery": "^8.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.0"
   },
   "dependencies": {
     "@aws-sdk/client-acm": "^3.1161.0",

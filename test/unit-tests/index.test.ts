@@ -1,5 +1,6 @@
 import Globals from "../../src/globals";
-import { chaiSpy, consoleOutput, constructPlugin, expect, getDomainConfig, getV3Utils } from "./base";
+import { mock } from "node:test";
+import { consoleOutput, constructPlugin, expect, getDomainConfig, getV3Utils } from "./base";
 import Logging from "../../src/logging";
 import DomainConfig = require("../../src/models/domain-config");
 import utils = require("../../src/utils");
@@ -624,10 +625,10 @@ describe("Custom Domain Plugin", () => {
       const plugin = constructPlugin(domainOptions);
       plugin.initAWSRegion = async () => null;
 
-      const createDomainSpy = chaiSpy.on(plugin, "createDomain");
+      const createDomainSpy = mock.method(plugin, "createDomain");
       await plugin.hooks["before:deploy:deploy"]();
 
-      expect(createDomainSpy).to.not.have.been.called();
+      expect(createDomainSpy.mock.callCount()).to.equal(0);
     });
 
     it("before:deploy:deploy with autoDomain true", async () => {
@@ -646,10 +647,10 @@ describe("Custom Domain Plugin", () => {
       plugin.createDomain = async () => null;
       plugin.initAWSRegion = async () => null;
 
-      const createDomainSpy = chaiSpy.on(plugin, "createDomain");
+      const createDomainSpy = mock.method(plugin, "createDomain");
       await plugin.hooks["before:deploy:deploy"]();
 
-      expect(createDomainSpy).to.have.been.called();
+      expect(createDomainSpy.mock.callCount()).to.be.greaterThan(0);
     });
 
     it("before:deploy:deploy with autoDomain true only polls domains that do not exist yet", async () => {
@@ -740,15 +741,15 @@ describe("Custom Domain Plugin", () => {
         }));
         plugin.initAWSRegion = async () => null;
         plugin.deleteDomain = async () => null;
-        const deleteDomainSpy = chaiSpy.on(plugin, "deleteDomain");
+        const deleteDomainSpy = mock.method(plugin, "deleteDomain");
 
         await plugin.hooks["before:remove:remove"]();
 
         expect(consoleOutput.join("\n")).to.contains("Unable to find Cloudformation Stack for test_domain");
         if (shouldDeleteDomain) {
-          expect(deleteDomainSpy).to.have.been.called();
+          expect(deleteDomainSpy.mock.callCount()).to.be.greaterThan(0);
         } else {
-          expect(deleteDomainSpy).to.not.have.been.called();
+          expect(deleteDomainSpy.mock.callCount()).to.equal(0);
         }
       });
     }
@@ -814,10 +815,10 @@ describe("Custom Domain Plugin", () => {
       plugin.initAWSRegion = async () => null;
       plugin.deleteDomain = async () => null;
 
-      const deleteDomainSpy = chaiSpy.on(plugin, "deleteDomain");
+      const deleteDomainSpy = mock.method(plugin, "deleteDomain");
       await plugin.hooks["before:remove:remove"]();
 
-      expect(deleteDomainSpy).to.have.been.called();
+      expect(deleteDomainSpy.mock.callCount()).to.be.greaterThan(0);
     });
 
     it("create_domain:create", async () => {
@@ -841,12 +842,12 @@ describe("Custom Domain Plugin", () => {
       plugin.initAWSRegion = async () => null;
       plugin.deleteDomain = async () => null;
 
-      const deleteDomainSpy = chaiSpy.on(plugin, "deleteDomain");
+      const deleteDomainSpy = mock.method(plugin, "deleteDomain");
       await plugin.hooks["create_domain:create"]();
 
       const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand);
       expect(commandCalls.length).to.equal(1);
-      expect(deleteDomainSpy).to.not.have.been.called();
+      expect(deleteDomainSpy.mock.callCount()).to.equal(0);
     });
 
     it("create_domain:create with no domain info", async () => {
@@ -878,12 +879,12 @@ describe("Custom Domain Plugin", () => {
       plugin.initAWSRegion = async () => null;
       plugin.deleteDomain = async () => null;
 
-      const deleteDomainSpy = chaiSpy.on(plugin, "deleteDomain");
+      const deleteDomainSpy = mock.method(plugin, "deleteDomain");
       await plugin.hooks["create_domain:create"]();
 
       const commandCalls = Route53Mock.commandCalls(ChangeResourceRecordSetsCommand);
       expect(commandCalls.length).to.equal(1);
-      expect(deleteDomainSpy).to.not.have.been.called();
+      expect(deleteDomainSpy.mock.callCount()).to.equal(0);
     });
 
     it("create_domain:create updates an existing domain whose endpoint access mode differs", async () => {

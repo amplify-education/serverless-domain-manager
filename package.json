@@ -84,7 +84,9 @@
   },
   "overrides": {
     "basic-ftp": "^6.2.5",
-    "diff": "^9.0.0"
+    "diff": "^9.0.0",
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
   },
   "peerDependencies": {
     "osls": ">=3",

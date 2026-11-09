@@ -47,7 +47,8 @@ Serverless Framework plugin (TypeScript, compiled to CommonJS in `dist/`) that c
 - AWS SDK response mocks: SDK enums (e.g. `securityPolicy`) need loosely typed fixtures (`Record<string, any>`).
 
 ## Dependencies
-- Do not install `osls` at the repo root (drifts `@aws-sdk`/`@smithy`, breaks `tsc`); run it via `npx`.
+- `osls` is a devDependency for the osls integration test (it keeps its own nested `@smithy` copies). Re-run `npm run build` after lockfile changes: shared `@smithy/smithy-client` versions drifting apart break `tsc` with `separate declarations of a private property 'handlers'`.
+- `serverless` and `osls` both install `node_modules/.bin/serverless`/`sls` and the last one installed wins, so `npx serverless` at the repo root may run osls. `linkFramework` in `test/integration-tests/test-utilities.ts` links each package's declared bin (`serverless` v4: `run.js`, osls: `bin/serverless.js`).
 - `proxy-agent` stays on v6: v7+/v8 is ESM-only and the build is CommonJS. `basic-ftp` (via proxy-agent) is pinned with an override `^6.2.5`; `diff` override `^9.0.0` (ts-node, mocha, sinon).
 - Held back: TypeScript (typescript-eslint supports `<6.1`), `@types/node` matches the minimum Node. These caps live in `.github/renovate.json` (not the root: `files` publishes `*.json`), which also sets `:preserveSemverRanges` so Renovate doesn't pin a published library's ranges.
 - ESM-only test deps (chai 6) load through `require()` of ESM, which needs Node 22.12+. Spy with `mock.method()` from `node:test` (no chai-spies).

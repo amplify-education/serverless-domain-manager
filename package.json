@@ -45,7 +45,6 @@
     "dist/**/*.js"
   ],
   "devDependencies": {
-
     "@eslint/js": "^10.0.1",
     "@types/chai": "^4.3.20",
     "@types/chai-spies": "^1.0.6",

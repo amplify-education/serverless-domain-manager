@@ -24,7 +24,7 @@ jobs:
       - name: Install and test
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: 26.x
+          node-version: 26.13.0
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build

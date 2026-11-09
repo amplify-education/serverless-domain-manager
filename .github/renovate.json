@@ -13,11 +13,6 @@
       "allowedVersions": "<7.0.0"
     },
     {
-      "description": "chai 5+ is ESM-only; tests use chai-spies",
-      "matchPackageNames": ["chai", "@types/chai"],
-      "allowedVersions": "<5.0.0"
-    },
-    {
       "description": "@types/node matches the minimum supported Node (engines.node)",
       "matchPackageNames": ["@types/node"],
       "allowedVersions": "<23.0.0"

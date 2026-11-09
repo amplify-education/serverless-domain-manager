@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [":preserveSemverRanges"],
+  "packageRules": [
+    {
+      "description": "typescript-eslint supports TypeScript <6.1",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<6.1.0"
+    },
+    {
+      "description": "proxy-agent v7+ is ESM-only; the build is CommonJS",
+      "matchPackageNames": ["proxy-agent"],
+      "allowedVersions": "<7.0.0"
+    },
+    {
+      "description": "@types/node matches the minimum supported Node (engines.node)",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<23.0.0"
+    }
+  ]
+}

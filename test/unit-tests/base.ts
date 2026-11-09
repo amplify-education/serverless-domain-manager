@@ -1,15 +1,11 @@
 import "mocha";
 import chai = require("chai");
-import spies = require("chai-spies");
 import Globals from "../../src/globals";
 import { ServerlessOptions, ServerlessUtils } from "../../src/types";
 import ServerlessCustomDomain = require("../../src");
 import { ResourceRecordSetRegion } from "@aws-sdk/client-route-53";
 
-chai.use(spies);
-
 const expect = chai.expect;
-const chaiSpy = chai.spy;
 const consoleOutput = [];
 const getDomainConfig = (customDomainOptions) => {
   return {
@@ -113,7 +109,6 @@ constructPlugin(getDomainConfig({}));
 
 export {
   expect,
-  chaiSpy,
   consoleOutput,
   getDomainConfig,
   getV3Utils,

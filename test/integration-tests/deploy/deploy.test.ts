@@ -1,6 +1,5 @@
 import "mocha";
 import chai = require("chai");
-import itParam = require("mocha-param");
 import utilities = require("../test-utilities");
 import APIGatewayWrap from "../apigateway";
 import { TEST_DOMAIN, PLUGIN_IDENTIFIER, RANDOM_STRING } from "../base";
@@ -11,7 +10,18 @@ const TIMEOUT_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
 // the us-west-2 is set in each test config
 const apiGatewayClient = new APIGatewayWrap("us-west-2");
 
-const testCases = [
+interface TestCase {
+  testBasePath: string;
+  testDescription: string;
+  testDomain: string;
+  testEndpoint: string;
+  testFolder: string;
+  testStage: string;
+  isPrivate: boolean;
+  restApiName?: string;
+}
+
+const testCases: TestCase[] = [
   {
     testBasePath: "(none)",
     testDescription: "Creates domain as part of deploy",
@@ -154,42 +164,43 @@ describe("Integration Tests", function () {
   this.timeout(TIMEOUT_MINUTES);
 
   describe("Configuration Tests", () => {
-    // @ts-expect-error mocha-param types don't resolve with heterogeneous test case objects
-    itParam("${value.testDescription}", testCases, async (value) => {
-      let restApiInfo;
-      if (value.restApiName) {
-        restApiInfo = await apiGatewayClient.setupApiGatewayResources(value.restApiName);
-
-        process.env.REST_API_ID = restApiInfo.restApiId;
-        process.env.RESOURCE_ID = restApiInfo.resourceId;
-      }
-      try {
-        await utilities.createResources(value.testFolder, value.testDomain);
-
-        // Use different methods for private domains since they require domainNameId
-        let stage: string;
-        let basePath: string;
-        if (value.isPrivate) {
-          stage = await apiGatewayClient.getStageForPrivateDomain(value.testDomain);
-          basePath = await apiGatewayClient.getBasePathForPrivateDomain(value.testDomain);
-        } else {
-          stage = await apiGatewayClient.getStage(value.testDomain);
-          basePath = await apiGatewayClient.getBasePath(value.testDomain);
-        }
-        expect(stage).to.equal(value.testStage);
-        expect(basePath).to.equal(value.testBasePath);
-
-        const endpoint = await apiGatewayClient.getEndpointType(value.testDomain, value.isPrivate);
-        expect(endpoint).to.equal(value.testEndpoint);
-      } finally {
-        await utilities.destroyResources(value.testDomain);
+    for (const value of testCases) {
+      it(value.testDescription, async () => {
+        let restApiInfo;
         if (value.restApiName) {
-          await apiGatewayClient.deleteApiGatewayResources(restApiInfo.restApiId);
+          restApiInfo = await apiGatewayClient.setupApiGatewayResources(value.restApiName);
 
-          delete process.env.REST_API_ID;
-          delete process.env.RESOURCE_ID;
+          process.env.REST_API_ID = restApiInfo.restApiId;
+          process.env.RESOURCE_ID = restApiInfo.resourceId;
         }
-      }
-    });
+        try {
+          await utilities.createResources(value.testFolder, value.testDomain);
+
+          // Use different methods for private domains since they require domainNameId
+          let stage: string;
+          let basePath: string;
+          if (value.isPrivate) {
+            stage = await apiGatewayClient.getStageForPrivateDomain(value.testDomain);
+            basePath = await apiGatewayClient.getBasePathForPrivateDomain(value.testDomain);
+          } else {
+            stage = await apiGatewayClient.getStage(value.testDomain);
+            basePath = await apiGatewayClient.getBasePath(value.testDomain);
+          }
+          expect(stage).to.equal(value.testStage);
+          expect(basePath).to.equal(value.testBasePath);
+
+          const endpoint = await apiGatewayClient.getEndpointType(value.testDomain, value.isPrivate);
+          expect(endpoint).to.equal(value.testEndpoint);
+        } finally {
+          await utilities.destroyResources(value.testDomain);
+          if (value.restApiName) {
+            await apiGatewayClient.deleteApiGatewayResources(restApiInfo.restApiId);
+
+            delete process.env.REST_API_ID;
+            delete process.env.RESOURCE_ID;
+          }
+        }
+      });
+    }
   });
 });

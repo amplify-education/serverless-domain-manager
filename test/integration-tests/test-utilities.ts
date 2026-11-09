@@ -1,6 +1,8 @@
 "use strict";
 
 import { spawn } from "child_process";
+import fs = require("fs");
+import path = require("path");
 import { TEMP_DIR } from "./base";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -48,22 +50,17 @@ type Framework = "serverless" | "osls";
  * Make the chosen framework's `serverless` CLI available in the temp dir so the
  * sls* helpers can keep invoking `npx serverless <cmd>` unchanged.
  *
- * serverless is symlinked from the repo's node_modules. osls is intentionally
- * NOT a root dependency (it drifts the shared @aws-sdk/@smithy versions and
- * breaks the build), so it runs on demand via npx behind a `.bin/serverless`
- * shim. osls (Open Serverless) is the framework that removed the bundled AWS
- * SDK v2 module, which is exactly what this test exercises.
+ * Both are symlinked from the repo's node_modules. They both install a
+ * `serverless` bin into the repo's node_modules/.bin, so link the framework's
+ * own declared bin instead (serverless v4: run.js, osls: bin/serverless.js).
  * @param tempDir
  * @param framework which framework to run under (serverless or osls)
  */
 async function linkFramework (tempDir: string, framework: Framework) {
-  if (framework === "osls") {
-    const shim = `${tempDir}/node_modules/.bin/serverless`;
-    await exec(`printf '#!/bin/sh\\nexec npx --yes osls@4 "$@"\\n' > ${shim} && chmod +x ${shim}`);
-    return;
-  }
-  await exec(`ln -s $(pwd)/node_modules/${framework} ${tempDir}/node_modules/`);
-  await exec(`ln -s $(pwd)/node_modules/${framework}/bin/serverless.js ${tempDir}/node_modules/.bin/serverless`);
+  const frameworkDir = path.resolve("node_modules", framework);
+  const bin = JSON.parse(fs.readFileSync(path.join(frameworkDir, "package.json"), "utf8")).bin.serverless;
+  await exec(`ln -s ${frameworkDir} ${tempDir}/node_modules/`);
+  await exec(`ln -s ${path.join(frameworkDir, bin)} ${tempDir}/node_modules/.bin/serverless`);
 }
 
 /**

@@ -9,3 +9,4 @@ npm-debug.log
 dist/
 .nyc_output/
 *.tgz
+.claude/settings.local.json

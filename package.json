@@ -45,6 +45,7 @@
     "dist/**/*.js"
   ],
   "devDependencies": {
+
     "@eslint/js": "^10.0.1",
     "@types/chai": "^4.3.20",
     "@types/chai-spies": "^1.0.6",
@@ -69,24 +70,24 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@aws-sdk/client-acm": "^3.1161.0",
-    "@aws-sdk/client-api-gateway": "^3.1161.0",
-    "@aws-sdk/client-apigatewayv2": "^3.1161.0",
-    "@aws-sdk/client-cloudformation": "^3.1161.0",
-    "@aws-sdk/client-route-53": "^3.1161.0",
-    "@aws-sdk/client-s3": "^3.1161.0",
-    "@aws-sdk/credential-providers": "^3.1161.0",
+    "@aws-sdk/client-acm": "^3.1164.0",
+    "@aws-sdk/client-api-gateway": "^3.1164.0",
+    "@aws-sdk/client-apigatewayv2": "^3.1164.0",
+    "@aws-sdk/client-cloudformation": "^3.1164.0",
+    "@aws-sdk/client-route-53": "^3.1164.0",
+    "@aws-sdk/client-s3": "^3.1164.0",
+    "@aws-sdk/credential-providers": "^3.1164.0",
     "@smithy/config-resolver": "^4.7.2",
     "@smithy/node-config-provider": "^4.6.2",
-    "@smithy/node-http-handler": "^4.14.1",
+    "@smithy/node-http-handler": "^4.14.2",
     "@smithy/smithy-client": "^4.15.2",
-    "@smithy/types": "^4.19.0",
+    "@smithy/types": "^4.20.0",
     "@smithy/util-retry": "^4.6.2",
     "proxy-agent": "^6.5.0"
   },
   "overrides": {
     "basic-ftp": "^6.2.5",
-    "diff": "^8.0.3"
+    "diff": "^9.0.0"
   },
   "peerDependencies": {
     "osls": ">=3",

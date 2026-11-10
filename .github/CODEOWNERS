@@ -1,0 +1,6 @@
+# Code Owners file indicating who should be requested automatically to review changes to certain files
+# https://help.github.com/en/articles/about-code-owners
+# This default file is automatically added by terraform-config/config/github/amplify-education/astrotools
+# but can be safely updated directly in the repo.
+
+*       @amplify-education/astrotools

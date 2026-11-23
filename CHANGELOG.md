@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.5.2] - 2026-11-23
+
+### Fixed
+- AWS requests failed with `Could not load credentials from any providers` on Serverless Framework v4 when the credentials come from the framework, e.g. Serverless Dashboard providers (regression in 10.5.1). The async `getCredentials()` result is now awaited. Thank you @pelizza ([726](https://github.com/amplify-education/serverless-domain-manager/issues/726))
+
 ## [10.5.1] - 2026-11-04
 
 ### Fixed

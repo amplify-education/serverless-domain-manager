@@ -1340,4 +1340,64 @@ describe("Custom Domain Plugin", () => {
       });
     });
   });
+
+  describe("serverless v4 async getCredentials() (#726)", () => {
+    const v4Credentials = {
+      accessKeyId: "v4_key_id",
+      secretAccessKey: "v4_secret",
+      sessionToken: "v4_token",
+      accountId: "123456789012",
+      callerArn: "arn:aws:sts::123456789012:assumed-role/test/session"
+    };
+    const expected = { accessKeyId: "v4_key_id", secretAccessKey: "v4_secret", sessionToken: "v4_token" };
+    let originalServerless: any;
+    beforeEach(() => { originalServerless = Globals.serverless; });
+    afterEach(() => {
+      Globals.serverless = originalServerless;
+      Globals.credentials = null;
+    });
+
+    it("initSLSCredentials resolves the flat keys and drops the extra fields", async () => {
+      const plugin = constructPlugin(getDomainConfig({}));
+      plugin.serverless.providers.aws.getCredentials = async () => v4Credentials;
+      await plugin.initSLSCredentials();
+      expect(Globals.credentials).to.deep.equal(expected);
+    });
+
+    it("initSLSCredentials falls back to the default chain when getCredentials() rejects", async () => {
+      const plugin = constructPlugin(getDomainConfig({}));
+      plugin.serverless.providers.aws.getCredentials = async () => { throw new Error("AWS credentials missing"); };
+      await plugin.initSLSCredentials();
+      expect(Globals.credentials).to.equal(null);
+      expect(consoleOutput[0]).to.contain("AWS credentials missing");
+    });
+
+    it("passes valid credentials to the AWS SDK v3 clients", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand).resolves({ domainName: "test_domain", regionalHostedZoneId: "test_id" });
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain" }));
+      plugin.serverless.providers.aws.getCredentials = async () => v4Credentials;
+      plugin.initAWSRegion = async () => null;
+      await plugin.hookWrapper(async () => null);
+
+      expect(await plugin.apiGatewayV1Wrapper.apiGateway.config.credentials()).to.deep.include(expected);
+    });
+
+    it("hookWrapper reloads credentials after 'Could not load credentials from any providers'", async () => {
+      const APIGatewayMock = mockClient(APIGatewayClient);
+      APIGatewayMock.on(GetDomainNameCommand)
+        .rejectsOnce(new Error("Could not load credentials from any providers"))
+        .resolves({ domainName: "test_domain", regionalHostedZoneId: "test_id" });
+
+      const plugin = constructPlugin(getDomainConfig({ domainName: "test_domain" }));
+      plugin.serverless.providers.aws.getCredentials = async () => v4Credentials;
+      plugin.initSLSCredentials = async () => { Globals.credentials = null; };
+      plugin.initAWSRegion = async () => null;
+      await plugin.hookWrapper(async () => null);
+
+      expect(Globals.credentials).to.deep.equal(expected);
+      expect(await plugin.apiGatewayV1Wrapper.apiGateway.config.credentials()).to.deep.include(expected);
+    });
+  });
 });

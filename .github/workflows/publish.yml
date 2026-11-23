@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - '[0-9]+.x'
+      - 'release/[0-9]+.x'
 
 # https://docs.npmjs.com/trusted-publishers
 permissions:
@@ -70,6 +70,7 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == "main" ]]; then
             DIST_TAG=latest
           else
-            DIST_TAG="latest-${GITHUB_REF_NAME%%.*}"
+            MAJOR="${GITHUB_REF_NAME#release/}"
+            DIST_TAG="latest-${MAJOR%%.*}"
           fi
           npm publish --access public --verbose --tag "$DIST_TAG"

@@ -100,7 +100,7 @@ class ServerlessCustomDomain {
       } catch (error) {
         if (error.message.includes("Could not load credentials from any providers")) {
           try {
-            const credentials = Globals.getLegacyCredentials(awsProvider);
+            const credentials = await Globals.getLegacyCredentials(awsProvider);
             if (credentials) {
               Globals.credentials = credentials;
               await this.initAWSResources();
@@ -220,7 +220,7 @@ class ServerlessCustomDomain {
       return;
     }
     try {
-      Globals.credentials = Globals.getLegacyCredentials(awsProvider);
+      Globals.credentials = await Globals.getLegacyCredentials(awsProvider);
     } catch (error) {
       Logging.logWarning(
         `Failed to resolve credentials via getCredentials(); falling back to the AWS SDK v3 default chain: ${error.message}`

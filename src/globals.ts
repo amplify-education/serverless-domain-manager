@@ -88,14 +88,16 @@ export default class Globals {
   }
 
   /**
-   * Converts the result of the legacy getCredentials() (serverless v3) into AWS SDK v3 credentials.
-   * getCredentials() returns a wrapper `{ credentials }` around an AWS SDK v2 credentials object,
+   * Converts the result of the framework's getCredentials() into AWS SDK v3 credentials.
+   * Serverless v3 returns a wrapper `{ credentials }` around an AWS SDK v2 credentials object,
    * which AWS SDK v3 clients reject with "Resolved credential object is not valid".
+   * Serverless v4 returns a Promise of flat keys `{ accessKeyId, secretAccessKey, ... }`.
    * Returns null when no static keys are available, so the AWS SDK v3 default chain is used.
    * @param awsProvider provider exposing getCredentials()
    */
-  public static getLegacyCredentials (awsProvider: any) {
-    const credentials = awsProvider?.getCredentials?.()?.credentials;
+  public static async getLegacyCredentials (awsProvider: any) {
+    const result = await awsProvider?.getCredentials?.();
+    const credentials = result?.credentials ?? result;
     if (!credentials?.accessKeyId || !credentials?.secretAccessKey) {
       return null;
     }

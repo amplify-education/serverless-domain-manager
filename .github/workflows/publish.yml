@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - '[0-9]+.x'
 
 # https://docs.npmjs.com/trusted-publishers
 permissions:
@@ -35,15 +36,11 @@ jobs:
         id: extract_version
         uses: Saionaro/extract-package-version@v1.4.0
 
-      - name: Get latest tag
-        id: get_latest_tag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-        with:
-          fallback: 'v0.0.0'
-
       - name: See if version changed
+        env:
+          VERSION: ${{ steps.extract_version.outputs.version }}
         run: |
-          if [[ "v${{ steps.extract_version.outputs.version }}" == "${{ steps.get_latest_tag.outputs.tag }}" ]]; then
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
             echo "VERSION_CHANGED=false" >> "$GITHUB_ENV"
           else
             echo "VERSION_CHANGED=true" >> "$GITHUB_ENV"
@@ -61,6 +58,7 @@ jobs:
         with:
           tag_name: 'v${{ steps.extract_version.outputs.version }}'
           generate_release_notes: true
+          make_latest: ${{ github.ref_name == 'main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -68,4 +66,10 @@ jobs:
         if: env.VERSION_CHANGED == 'true'
         env:
           NPM_CONFIG_PROVENANCE: true
-        run: npm publish --access public --verbose
+        run: |
+          if [[ "$GITHUB_REF_NAME" == "main" ]]; then
+            DIST_TAG=latest
+          else
+            DIST_TAG="latest-${GITHUB_REF_NAME%%.*}"
+          fi
+          npm publish --access public --verbose --tag "$DIST_TAG"

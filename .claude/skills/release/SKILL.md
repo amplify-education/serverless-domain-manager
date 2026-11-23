@@ -6,6 +6,7 @@ description: Release process for serverless-domain-manager - version bump, CHANG
 # Releasing serverless-domain-manager
 
 - Merging to `main` with a changed `package.json` version auto-publishes to npm and tags `vX.Y.Z` (`.github/workflows/publish.yml`). Merges without a version change publish nothing – but the next release includes everything already on `main`, so merge release PRs before unrelated feature PRs.
+- Fixes for an older major go to a maintenance branch `release/N.x` (e.g. `release/10.x`, cut from the last `vN.*` tag): release PR `release/N.x.y` → `release/N.x`. On merge the workflow publishes under the `latest-N` dist-tag and doesn't mark the GitHub release as latest. Apply the fix to `main` as well.
 - Contributor PRs are merged first, then a release PR bumps the version and adds the CHANGELOG entry.
 - Branch `release/X.Y.Z`; commit subject `release/X.Y.Z`; PR title `Release X.Y.Z`, opened as draft; body sections: Included / Changes in this PR / Testing (state what was not verified, e.g. real-AWS checks). `Fixes #N` closes issues on merge.
 - `npm version X.Y.Z --no-git-tag-version` updates `package.json` and the lockfile.

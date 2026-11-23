@@ -20,7 +20,7 @@ You are maintaining serverless-domain-manager, an open-source Serverless Framewo
 ### Credentials (`initSLSCredentials`)
 1. `--aws-profile` / `provider.profile` → `fromIni`.
 2. osls v4 (`hasSdkV3Config`: provider has `getAwsSdkV3Config()`) → its `.credentials`. On osls v4 `getCredentials()` and `providers.aws.sdk` are throwing stubs.
-3. Serverless v3 → `Globals.getLegacyCredentials()`: `getCredentials()` returns a wrapper `{ credentials: <AWS SDK v2 credentials> }` (or `{}`); it must be unwrapped to `{ accessKeyId, secretAccessKey, sessionToken }`, else SDK v3 fails with "Resolved credential object is not valid" (#683).
+3. Serverless v3/v4 (official v4 has no `getAwsSdkV3Config()`) → `await Globals.getLegacyCredentials()`, normalized to `{ accessKeyId, secretAccessKey, sessionToken }`. v3 `getCredentials()` returns `{ credentials: <AWS SDK v2 credentials> }` (or `{}`); passing it through fails with "Resolved credential object is not valid" (#683). v4's is async and returns flat keys plus `accountId`/`caller*`; not awaiting it breaks Dashboard-provider credentials (#726).
 4. Otherwise `null` → AWS SDK v3 default chain.
 
 ### Retries
